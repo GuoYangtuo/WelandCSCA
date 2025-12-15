@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { studyAPI } from '../services/api';
+import {
+  BookOpen,
+  ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  Check,
+  AlertCircle,
+  FileText,
+  BookMarked,
+  FlaskConical,
+  Target,
+  Lightbulb,
+  GraduationCap,
+  Compass,
+  PenTool
+} from 'lucide-react';
 import './Study.css';
 
 interface Lesson {
@@ -101,9 +117,10 @@ const Study: React.FC = () => {
     return chapters.reduce((total, chapter) => total + chapter.lessons.length, 0);
   };
 
+  const chapterIcons = [BookMarked, FlaskConical, PenTool, Target, Lightbulb, GraduationCap, Compass, BookOpen];
+  
   const getChapterIcon = (index: number) => {
-    const icons = ['📖', '📚', '📝', '🎯', '💡', '🔬', '⚗️', '📐'];
-    return icons[index % icons.length];
+    return chapterIcons[index % chapterIcons.length];
   };
 
   if (isLoading || loading) {
@@ -131,10 +148,7 @@ const Study: React.FC = () => {
       <aside className={`study-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-title-group">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-            </svg>
+            <BookOpen size={24} />
             <div>
               <h2>学习训练</h2>
               <p className="sidebar-subtitle">{chapters.length} 章节 · {getTotalLessons()} 课时</p>
@@ -145,68 +159,58 @@ const Study: React.FC = () => {
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             title={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-              {sidebarCollapsed ? (
-                <polyline points="9 18 15 12 9 6"/>
-              ) : (
-                <polyline points="15 18 9 12 15 6"/>
-              )}
-            </svg>
+            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
         </div>
 
         <div className="chapters-container">
-          {chapters.map((chapter, chapterIndex) => (
-            <div key={chapter.id} className={`chapter-block ${expandedChapters.has(chapter.id) ? 'expanded' : ''}`}>
-              <button
-                className="chapter-header"
-                onClick={() => toggleChapter(chapter.id)}
-              >
-                <span className="chapter-icon">{getChapterIcon(chapterIndex)}</span>
-                <div className="chapter-info">
-                  <span className="chapter-title">{chapter.title}</span>
-                  <span className="chapter-count">{chapter.lessons.length} 课时</span>
-                </div>
-                <span className="expand-arrow">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </span>
-              </button>
-              
-              <div className="lessons-container">
-                <div className="lessons-inner">
-                  {chapter.lessons.map((lesson, lessonIndex) => (
-                    <button
-                      key={lesson.id}
-                      className={`lesson-item ${selectedLesson?.id === lesson.id ? 'active' : ''}`}
-                      onClick={() => handleLessonClick(lesson.id)}
-                    >
-                      <span className="lesson-number">{lessonIndex + 1}</span>
-                      <span className="lesson-title">{lesson.title}</span>
-                      {selectedLesson?.id === lesson.id && (
-                        <span className="lesson-active-indicator">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" width="12" height="12">
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
-                        </span>
-                      )}
-                    </button>
-                  ))}
+          {chapters.map((chapter, chapterIndex) => {
+            const ChapterIcon = getChapterIcon(chapterIndex);
+            return (
+              <div key={chapter.id} className={`chapter-block ${expandedChapters.has(chapter.id) ? 'expanded' : ''}`}>
+                <button
+                  className="chapter-header"
+                  onClick={() => toggleChapter(chapter.id)}
+                >
+                  <span className="chapter-icon">
+                    <ChapterIcon size={18} />
+                  </span>
+                  <div className="chapter-info">
+                    <span className="chapter-title">{chapter.title}</span>
+                    <span className="chapter-count">{chapter.lessons.length} 课时</span>
+                  </div>
+                  <span className="expand-arrow">
+                    <ChevronDown size={16} />
+                  </span>
+                </button>
+                
+                <div className="lessons-container">
+                  <div className="lessons-inner">
+                    {chapter.lessons.map((lesson, lessonIndex) => (
+                      <button
+                        key={lesson.id}
+                        className={`lesson-item ${selectedLesson?.id === lesson.id ? 'active' : ''}`}
+                        onClick={() => handleLessonClick(lesson.id)}
+                      >
+                        <span className="lesson-number">{lessonIndex + 1}</span>
+                        <span className="lesson-title">{lesson.title}</span>
+                        {selectedLesson?.id === lesson.id && (
+                          <span className="lesson-active-indicator">
+                            <Check size={12} strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="sidebar-footer">
           <button onClick={() => navigate('/mock-test')} className="btn btn-sidebar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>
+            <FileText size={18} />
             开始模拟测试
           </button>
         </div>
@@ -224,11 +228,7 @@ const Study: React.FC = () => {
         ) : error ? (
           <div className="content-state error">
             <div className="state-icon error-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="48" height="48">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
+              <AlertCircle size={48} />
             </div>
             <h3>无法加载内容</h3>
             <p>{error}</p>
@@ -244,18 +244,13 @@ const Study: React.FC = () => {
             <header className="article-header">
               <div className="article-breadcrumb">
                 <span>学习训练</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
+                <ChevronRight size={14} />
                 <span>第 {selectedLesson.orderIndex} 课</span>
               </div>
               <h1 className="article-title">{selectedLesson.title}</h1>
               <div className="article-meta">
                 <span className="meta-item">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                  </svg>
+                  <BookOpen size={14} />
                   课时内容
                 </span>
               </div>
@@ -281,9 +276,7 @@ const Study: React.FC = () => {
                     }
                   }}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                    <polyline points="15 18 9 12 15 6"/>
-                  </svg>
+                  <ChevronLeft size={18} />
                   上一课
                 </button>
                 <button 
@@ -299,9 +292,7 @@ const Study: React.FC = () => {
                   }}
                 >
                   下一课
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
+                  <ChevronRight size={18} />
                 </button>
               </div>
             </footer>
@@ -309,34 +300,24 @@ const Study: React.FC = () => {
         ) : (
           <div className="content-state placeholder">
             <div className="placeholder-illustration">
-              <svg viewBox="0 0 200 200" width="200" height="200">
-                <defs>
-                  <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#667eea"/>
-                    <stop offset="100%" stopColor="#764ba2"/>
-                  </linearGradient>
-                </defs>
-                <rect x="40" y="30" width="120" height="140" rx="5" fill="url(#bookGrad)" opacity="0.1"/>
-                <rect x="50" y="40" width="100" height="120" rx="3" fill="white" stroke="url(#bookGrad)" strokeWidth="2"/>
-                <line x1="100" y1="40" x2="100" y2="160" stroke="url(#bookGrad)" strokeWidth="2" strokeDasharray="4"/>
-                <path d="M50 100 Q75 90 100 100 Q125 110 150 100" fill="none" stroke="url(#bookGrad)" strokeWidth="2"/>
-                <circle cx="100" cy="100" r="30" fill="url(#bookGrad)" opacity="0.1"/>
-                <text x="100" y="108" textAnchor="middle" fill="#667eea" fontSize="24">📖</text>
-              </svg>
+              <div className="illustration-wrapper">
+                <BookOpen size={64} strokeWidth={1} className="illustration-icon" />
+                <div className="illustration-glow"></div>
+              </div>
             </div>
             <h3>开始您的学习之旅</h3>
             <p>从左侧选择一个课时，开始学习 CSCA 相关知识</p>
             <div className="quick-tips">
               <div className="tip-item">
-                <span className="tip-icon">💡</span>
+                <Lightbulb size={18} className="tip-icon" />
                 <span>点击章节标题可展开或收起课时列表</span>
               </div>
               <div className="tip-item">
-                <span className="tip-icon">📚</span>
+                <BookMarked size={18} className="tip-icon" />
                 <span>建议按顺序学习，循序渐进</span>
               </div>
               <div className="tip-item">
-                <span className="tip-icon">🎯</span>
+                <Target size={18} className="tip-icon" />
                 <span>学习完成后可以进行模拟测试检验效果</span>
               </div>
             </div>

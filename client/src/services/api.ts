@@ -91,6 +91,43 @@ export const studyAPI = {
   }
 };
 
+export const difyAPI = {
+  // 上传图片到服务器
+  uploadImages: async (files: File[]) => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+    const response = await api.post('/dify/upload-images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+  // 解析题目
+  parseQuestions: async (imageUrls: string[]) => {
+    const response = await api.post('/dify/parse-questions', { imageUrls });
+    return response.data;
+  },
+  // 清理上传的图片
+  cleanupImages: async (filenames: string[]) => {
+    const response = await api.post('/dify/cleanup-images', { filenames });
+    return response.data;
+  }
+};
+
+export const adminAPI = {
+  addQuestion: async (question: any) => {
+    const response = await api.post('/admin/questions', question);
+    return response.data;
+  },
+  batchAddQuestions: async (questions: any[]) => {
+    const response = await api.post('/admin/questions/batch', { questions });
+    return response.data;
+  }
+};
+
 export default api;
 
 

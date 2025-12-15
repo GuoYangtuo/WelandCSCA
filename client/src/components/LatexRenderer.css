@@ -1,0 +1,62 @@
+/* LaTeX渲染组件样式 */
+.latex-content {
+  line-height: 1.6;
+}
+
+.latex-content .katex {
+  font-size: 1em;
+}
+
+.latex-content .katex-display {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.latex-content .katex-display > .katex {
+  display: inline-block;
+  white-space: normal;
+  text-align: left;
+}
+
+/* 块级公式样式 */
+.latex-content .katex-display .katex {
+  font-size: 1.1em;
+}
+
+/* LaTeX错误样式 */
+.latex-error {
+  color: #e74c3c;
+  background-color: rgba(231, 76, 60, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+/* 题目文本中的LaTeX样式优化 */
+.question-text .latex-content {
+  display: inline;
+}
+
+.question-text .latex-content .katex-display {
+  margin: 0.5em 0;
+}
+
+/* 选项中的LaTeX样式 */
+.option-content .latex-content {
+  display: inline;
+}
+
+.option-content .katex {
+  vertical-align: middle;
+}
+
+/* 解释中的LaTeX样式 */
+.explanation-text .latex-content {
+  display: block;
+}
+
+.explanation-text .latex-content .katex-display {
+  margin: 0.8em 0;
+}
+

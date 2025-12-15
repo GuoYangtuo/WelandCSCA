@@ -14,6 +14,7 @@ CSCA（来华留学本科入学学业水平测试）在线培训平台，是Wela
 2. **首页**: 展示CSCA考试的基础信息
 3. **基础测试**: 在线做题练习，不限时间，支持题目导航
 4. **模拟测试**: 完全模拟官方考试，120分钟限时测试
+5. **题目上传**: 支持图片OCR智能识别，自动解析题目结构入库
 
 ## 项目结构
 
@@ -61,6 +62,13 @@ DB_PASSWORD=your_password
 DB_NAME=weland
 DB_CSCA_NAME=csca_platform
 JWT_SECRET=your_jwt_secret_key_here
+
+# Dify AI API 配置（用于OCR识别题目，可选）
+DIFY_API_KEY=your_dify_api_key_here
+
+# 服务器公网地址（用于图片上传后生成可访问的URL，Dify需要访问此地址）
+# 如果是本地开发，可使用 ngrok 等工具暴露服务
+SERVER_URL=https://your-server-domain.com
 ```
 
 ## 安装和运行
@@ -121,6 +129,10 @@ npm run dev
 ### 模拟测试接口
 
 - `GET /api/mock-test/config` - 获取模拟测试配置
+
+### Dify AI接口
+
+- `POST /api/dify/parse-questions` - 调用Dify工作流解析图片中的题目
 
 ## 使用说明
 

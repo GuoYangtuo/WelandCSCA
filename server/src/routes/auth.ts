@@ -57,6 +57,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // 登录
 router.post('/login', async (req: Request, res: Response) => {
+  console.log('login', req.body);
   try {
     const { username, password } = req.body;
 

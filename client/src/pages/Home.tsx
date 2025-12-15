@@ -1,6 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  ArrowRight,
+  Info,
+  CheckCircle2,
+  Globe2,
+  Calendar,
+  Upload,
+  CreditCard,
+  Shield,
+  Clock,
+  BookOpen,
+  FileText,
+  BarChart3,
+  ChevronDown,
+  Sparkles,
+  Target,
+  FlaskConical,
+  Calculator,
+  Languages
+} from 'lucide-react';
 import './Home.css';
 
 const Home: React.FC = () => {
@@ -10,28 +30,28 @@ const Home: React.FC = () => {
   const subjects = [
     {
       name: '专业中文',
-      icon: '文',
+      icon: Languages,
       description: '分为文科中文和理科中文两类',
       details: '申请中文授课本科专业需根据专业类别参加相应测试；申请全英文授课本科无需参加；持有效期内HSK四级可免考',
       color: '#E74C3C'
     },
     {
       name: '数学',
-      icon: '∑',
+      icon: Calculator,
       description: '所有申请人必考科目',
       details: '考察基础学业和逻辑思维能力的重要依据，涵盖等差/等比数列、椭圆、函数、斜率等知识点',
       color: '#3498DB'
     },
     {
       name: '物理',
-      icon: 'Φ',
+      icon: Target,
       description: '选考科目',
       details: '申请理、工、农、医类专业需至少选择物理或化学其中一门',
       color: '#9B59B6'
     },
     {
       name: '化学',
-      icon: '⚗',
+      icon: FlaskConical,
       description: '选考科目',
       details: '涵盖分子式、化学反应、氧化物等基础知识与概念',
       color: '#27AE60'
@@ -103,7 +123,10 @@ const Home: React.FC = () => {
           <div className="hero-pattern"></div>
         </div>
         <div className="hero-content">
-          <div className="hero-badge">CSCA 官方授权培训平台</div>
+          <div className="hero-badge">
+            <Sparkles size={14} />
+            CSCA 官方授权培训平台
+          </div>
           <h1 className="hero-title">
             <span className="title-line">来华留学本科入学</span>
             <span className="title-highlight">学业水平测试</span>
@@ -128,9 +151,7 @@ const Home: React.FC = () => {
               <>
                 <Link to="/basic-test" className="btn btn-gold">
                   <span>开始测试</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
+                  <ArrowRight size={18} />
                 </Link>
                 <Link to="/study" className="btn btn-outline-light">
                   学习训练
@@ -138,10 +159,7 @@ const Home: React.FC = () => {
               </>
             ) : (
               <p className="hero-login-hint">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 16v-4M12 8h.01"/>
-                </svg>
+                <Info size={18} />
                 请先登录以开始学习和测试
               </p>
             )}
@@ -173,10 +191,7 @@ const Home: React.FC = () => {
               <div className="about-highlights">
                 <div className="highlight-item">
                   <div className="highlight-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
+                    <CheckCircle2 size={22} />
                   </div>
                   <div>
                     <h4>标准化评估</h4>
@@ -185,11 +200,7 @@ const Home: React.FC = () => {
                 </div>
                 <div className="highlight-item">
                   <div className="highlight-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="2" y1="12" x2="22" y2="12"/>
-                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                    </svg>
+                    <Globe2 size={22} />
                   </div>
                   <div>
                     <h4>全球认可</h4>
@@ -198,12 +209,7 @@ const Home: React.FC = () => {
                 </div>
                 <div className="highlight-item">
                   <div className="highlight-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/>
-                      <line x1="8" y1="2" x2="8" y2="6"/>
-                      <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
+                    <Calendar size={22} />
                   </div>
                   <div>
                     <h4>灵活安排</h4>
@@ -237,27 +243,27 @@ const Home: React.FC = () => {
             <p className="section-desc">根据申请专业选择相应的考试科目组合</p>
           </div>
           <div className="subjects-grid">
-            {subjects.map((subject, index) => (
-              <div 
-                key={index} 
-                className="subject-card"
-                style={{ '--accent-color': subject.color } as React.CSSProperties}
-              >
-                <div className="subject-icon">
-                  {subject.icon}
+            {subjects.map((subject, index) => {
+              const IconComponent = subject.icon;
+              return (
+                <div 
+                  key={index} 
+                  className="subject-card"
+                  style={{ '--accent-color': subject.color } as React.CSSProperties}
+                >
+                  <div className="subject-icon">
+                    <IconComponent size={32} strokeWidth={1.5} />
+                  </div>
+                  <h3>{subject.name}</h3>
+                  <p className="subject-type">{subject.description}</p>
+                  <p className="subject-details">{subject.details}</p>
+                  <div className="subject-decoration"></div>
                 </div>
-                <h3>{subject.name}</h3>
-                <p className="subject-type">{subject.description}</p>
-                <p className="subject-details">{subject.details}</p>
-                <div className="subject-decoration"></div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="subjects-note">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 16v-4M12 8h.01"/>
-            </svg>
+            <Info size={18} />
             <p>
               <strong>试卷语言：</strong>数学、物理和化学均提供中英文试卷，申请人可根据授课语言或目标学校要求选择试卷语种。
             </p>
@@ -330,21 +336,14 @@ const Home: React.FC = () => {
           <div className="reg-grid">
             <div className="reg-card">
               <div className="reg-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
+                <Upload size={24} />
               </div>
               <h4>报名方式</h4>
               <p>通过CSCA官网 <strong>www.csca.cn</strong> 完成线上报名，支持中英文双语操作</p>
             </div>
             <div className="reg-card">
               <div className="reg-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                  <line x1="1" y1="10" x2="23" y2="10"/>
-                </svg>
+                <CreditCard size={24} />
               </div>
               <h4>考试费用</h4>
               <div className="price-info">
@@ -361,19 +360,14 @@ const Home: React.FC = () => {
             </div>
             <div className="reg-card">
               <div className="reg-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
+                <Shield size={24} />
               </div>
               <h4>支付方式</h4>
               <p>支持支付宝、微信、银联以及VISA和MasterCard等境内外主流支付方式</p>
             </div>
             <div className="reg-card">
               <div className="reg-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
+                <Clock size={24} />
               </div>
               <h4>成绩公布</h4>
               <p>居家网考和机考成绩 <strong>7个工作日</strong> 内公布，纸笔考试 <strong>14个工作日</strong> 内公布</p>
@@ -399,9 +393,7 @@ const Home: React.FC = () => {
                 <div className="faq-question">
                   <h4>{faq.question}</h4>
                   <span className="faq-toggle">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M6 9l6 6 6-6"/>
-                    </svg>
+                    <ChevronDown size={20} />
                   </span>
                 </div>
                 <div className="faq-answer">
@@ -421,27 +413,15 @@ const Home: React.FC = () => {
             <p>我们提供全面的学习资源和模拟测试，助您高效备考</p>
             <div className="cta-features">
               <div className="cta-feature">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
+                <BookOpen size={20} />
                 <span>分章节系统学习</span>
               </div>
               <div className="cta-feature">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
+                <FileText size={20} />
                 <span>真题模拟练习</span>
               </div>
               <div className="cta-feature">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="20" x2="18" y2="10"/>
-                  <line x1="12" y1="20" x2="12" y2="4"/>
-                  <line x1="6" y1="20" x2="6" y2="14"/>
-                </svg>
+                <BarChart3 size={20} />
                 <span>智能进度追踪</span>
               </div>
             </div>

@@ -25,6 +25,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
 
     try {
       if (mode === 'login') {
+        console.log('login', formData.username, formData.password);
         await login(formData.username, formData.password);
       } else {
         if (!formData.email) {

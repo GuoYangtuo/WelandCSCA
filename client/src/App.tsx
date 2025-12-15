@@ -7,7 +7,7 @@ import Study from './pages/Study';
 import QuestionUpload from './pages/QuestionUpload';
 import Admin from './pages/Admin';
 import Layout from './components/Layout';
-import './App.css';
+import './App.css'; 
 
 function App() {
   return (

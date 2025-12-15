@@ -4,7 +4,7 @@ import {
   Upload, Plus, Trash2, Save, FileJson, AlertCircle, CheckCircle, X, 
   Eye, EyeOff, Image, Scan, Edit3, Loader2
 } from 'lucide-react';
-import api, { difyAPI, adminAPI } from '../services/api';
+import { difyAPI, adminAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
 import '../components/LatexRenderer.css';
 import './QuestionUpload.css';
@@ -52,7 +52,7 @@ const QuestionUpload: React.FC = () => {
   const [jsonInput, setJsonInput] = useState('');
   const [showJsonImport, setShowJsonImport] = useState(false);
   const [previewIndices, setPreviewIndices] = useState<Set<number>>(new Set());
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [_editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // 图片上传处理
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

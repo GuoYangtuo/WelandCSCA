@@ -76,7 +76,136 @@ router.post('/upload-images', authenticate, adminAuth, upload.array('images', 10
   }
 });
 
-// Dify工作流代理接口 - 调用OCR识别题目
+// 调用阿里云 Dashscope API 解析图片中的题目
+async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<any> {
+  // 构建消息内容：多张图片 + 提示词
+  const content: any[] = imageUrls.map(url => ({
+    type: 'image_url',
+    image_url: { url }
+  }));
+  
+  content.push({
+    type: 'text',
+    text: `你是一名数据结构化专家，根据用户输入的图片内容，提取其中的题目为结构化的json格式数据，如有需要，使用$...$包裹latex公式。
+
+请严格按照以下JSON格式输出：
+{
+  "questions": [
+    {
+      "question_text": "题目文本",
+      "options": ["选项A", "选项B", "选项C", "选项D"],
+      "correct_option": 0
+    }
+  ]
+}
+
+注意：
+1. correct_option 是正确答案的索引，从0开始（0=A, 1=B, 2=C, 3=D）
+2. 如果图片中有多道题目，请全部提取
+3. 只输出JSON，不要有其他文字`
+  });
+
+  const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'qwen-vl-plus',
+      messages: [
+        {
+          role: 'user',
+          content
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Dashscope API 错误: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
+
+// 从API响应中提取并解析JSON
+function extractJsonFromResponse(responseData: any): any {
+  const content = responseData?.choices?.[0]?.message?.content;
+  
+  if (!content) {
+    throw new Error('API 响应中没有内容');
+  }
+
+  // 尝试从内容中提取JSON
+  let jsonStr = content;
+  
+  // 如果内容包含 ```json 代码块，提取其中的JSON
+  const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+  if (jsonMatch) {
+    jsonStr = jsonMatch[1];
+  } else {
+    // 尝试查找 { 开始的JSON
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      jsonStr = content.slice(jsonStart, jsonEnd + 1);
+    }
+  }
+
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    throw new Error(`JSON 解析失败: ${e}. 原始内容: ${content}`);
+  }
+}
+
+// 带重试机制的API调用
+async function callDashscopeWithRetry(
+  imageUrls: string[], 
+  apiKey: string, 
+  maxRetries: number = 3,
+  retryDelay: number = 1000
+): Promise<{ questions: any[], metadata: any }> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`调用 Dashscope API，第 ${attempt} 次尝试，图片URLs:`, imageUrls);
+      
+      const responseData = await callDashscopeApi(imageUrls, apiKey);
+      const parsedResult = extractJsonFromResponse(responseData);
+      
+      // 验证结果格式
+      if (!parsedResult.questions || !Array.isArray(parsedResult.questions)) {
+        throw new Error('返回结果缺少 questions 数组');
+      }
+
+      return {
+        questions: parsedResult.questions,
+        metadata: {
+          model: responseData.model,
+          usage: responseData.usage,
+          attempt
+        }
+      };
+    } catch (error: any) {
+      lastError = error;
+      console.error(`第 ${attempt} 次尝试失败:`, error.message);
+      
+      if (attempt < maxRetries) {
+        console.log(`等待 ${retryDelay}ms 后重试...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        retryDelay *= 2; // 指数退避
+      }
+    }
+  }
+
+  throw lastError || new Error('所有重试均失败');
+}
+
+// 阿里云 Dashscope API 接口 - 调用OCR识别题目
 router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { imageUrls } = req.body;
@@ -89,70 +218,16 @@ router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest
       return res.status(400).json({ message: '最多支持10张图片' });
     }
 
-    const difyApiKey = process.env.DIFY_API_KEY;
-    if (!difyApiKey) {
-      return res.status(500).json({ message: 'Dify API Key 未配置' });
+    const dashscopeApiKey = process.env.DASHSCOPE_API_KEY;
+    if (!dashscopeApiKey) {
+      return res.status(500).json({ message: 'Dashscope API Key 未配置，请在环境变量中设置 DASHSCOPE_API_KEY' });
     }
 
-    const imageUrlss = [
-      'http://8.149.244.179:3003/uploads/question-1765811933044-98358856.jpg'
-    ];
-
-    // 构建Dify请求体
-    const imagesUploaded = imageUrlss.map((url: string) => ({
-      transfer_method: 'remote_url',
-      url: url,
-      type: 'image'
-    }));
-
-    console.log('调用Dify工作流，图片URLs:', imageUrls);
-
-    const difyResponse = await fetch('https://api.dify.ai/v1/workflows/run', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${difyApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        inputs: {
-          imagesUploaded
-        },
-        response_mode: 'blocking',
-        user: `user-${req.userId || 'anonymous'}`
-      })
-    });
-
-    if (!difyResponse.ok) {
-      const errorText = await difyResponse.text();
-      console.error('Dify API 错误:', errorText);
-      return res.status(500).json({ message: 'Dify API 调用失败' });
-    }
-
-    const difyData: any = await difyResponse.json();
-
-    if (difyData.data?.status !== 'succeeded') {
-      console.error('Dify 工作流失败:', difyData);
-      return res.status(500).json({ message: 'Dify 工作流执行失败' });
-    }
-
-    // 解析输出
-    let output = difyData.data?.outputs?.output;
-    
-    // 如果output是字符串，尝试解析为JSON
-    if (typeof output === 'string') {
-      try {
-        output = JSON.parse(output);
-      } catch (e) {
-        console.error('解析output字符串失败:', e);
-      }
-    }
-    
-    if (!output || !Array.isArray(output)) {
-      return res.status(500).json({ message: '解析结果格式错误' });
-    }
+    // 调用带重试机制的API
+    const result = await callDashscopeWithRetry(imageUrls, dashscopeApiKey, 3, 1000);
 
     // 标准化题目数据格式
-    const questions = output.map((item: any) => ({
+    const questions = result.questions.map((item: any) => ({
       question_text: item.question_text || '',
       options: item.options || ['', '', '', ''],
       correct_answer: item.correct_option ?? item.correct_answer ?? 0,
@@ -165,17 +240,16 @@ router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest
       success: true,
       data: {
         questions,
-        metadata: {
-          workflow_run_id: difyData.workflow_run_id,
-          elapsed_time: difyData.data?.elapsed_time,
-          total_tokens: difyData.data?.total_tokens
-        }
+        metadata: result.metadata
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('解析题目错误:', error);
-    res.status(500).json({ message: '服务器错误' });
+    res.status(500).json({ 
+      message: error.message || '服务器错误',
+      details: '题目解析失败，请检查图片是否清晰或稍后重试'
+    });
   }
 });
 

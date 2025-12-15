@@ -86,7 +86,7 @@
   font-size: 0.9rem;
 }
 
-.form-group input {
+.form-group .login-input {
   width: 100%;
   padding: 0.875rem 1rem;
   border: 2px solid #e5e5e5;
@@ -97,14 +97,14 @@
   background: #fafafa;
 }
 
-.form-group input:focus {
+.form-group .login-input:focus {
   outline: none;
   border-color: #d4af37;
   background: white;
   box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
 }
 
-.form-group input::placeholder {
+.form-group .login-input::placeholder {
   color: #aaa;
 }
 

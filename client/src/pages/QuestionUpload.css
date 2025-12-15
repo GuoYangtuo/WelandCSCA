@@ -725,6 +725,7 @@ select.form-input {
 
 .btn-danger {
   color: #fc8181;
+  background: rgba(245, 101, 101, 0.15);
 }
 
 .btn-danger:hover {

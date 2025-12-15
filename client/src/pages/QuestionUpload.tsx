@@ -51,7 +51,7 @@ const QuestionUpload: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [jsonInput, setJsonInput] = useState('');
   const [showJsonImport, setShowJsonImport] = useState(false);
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [previewIndices, setPreviewIndices] = useState<Set<number>>(new Set());
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // 图片上传处理
@@ -112,6 +112,8 @@ const QuestionUpload: React.FC = () => {
       
       if (result.success && result.data.questions.length > 0) {
         setQuestions(result.data.questions);
+        // 默认开启所有题目的 LaTeX 预览
+        setPreviewIndices(new Set(result.data.questions.map((_: QuestionForm, i: number) => i)));
         setMessage({ 
           type: 'success', 
           text: `成功解析出 ${result.data.questions.length} 道题目，请审核确认` 
@@ -226,7 +228,7 @@ const QuestionUpload: React.FC = () => {
     setUploadedImages([]);
     setQuestions([]);
     setMessage(null);
-    setPreviewIndex(null);
+    setPreviewIndices(new Set());
     setEditingIndex(null);
   };
 
@@ -418,11 +420,19 @@ const QuestionUpload: React.FC = () => {
                     <span className="question-number">题目 {qIndex + 1}</span>
                     <div className="question-form-actions">
                       <button
-                        className={`btn btn-icon ${previewIndex === qIndex ? 'btn-primary' : 'btn-outline'}`}
-                        onClick={() => setPreviewIndex(previewIndex === qIndex ? null : qIndex)}
-                        title={previewIndex === qIndex ? "关闭预览" : "预览LaTeX公式"}
+                        className={`btn btn-icon ${previewIndices.has(qIndex) ? 'btn-primary' : 'btn-outline'}`}
+                        onClick={() => {
+                          const newSet = new Set(previewIndices);
+                          if (newSet.has(qIndex)) {
+                            newSet.delete(qIndex);
+                          } else {
+                            newSet.add(qIndex);
+                          }
+                          setPreviewIndices(newSet);
+                        }}
+                        title={previewIndices.has(qIndex) ? "关闭预览" : "预览LaTeX公式"}
                       >
-                        {previewIndex === qIndex ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {previewIndices.has(qIndex) ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                       <button 
                         className="btn btn-icon btn-danger"
@@ -435,7 +445,7 @@ const QuestionUpload: React.FC = () => {
                   </div>
 
                   {/* LaTeX预览区域 */}
-                  {previewIndex === qIndex && (
+                  {previewIndices.has(qIndex) && (
                     <div className="latex-preview-section">
                       <div className="preview-header">
                         <Eye size={16} />

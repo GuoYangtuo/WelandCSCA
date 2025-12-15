@@ -61,6 +61,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
           <div className="form-group">
             <label>用户名</label>
             <input
+              className="login-input"
               type="text"
               name="username"
               value={formData.username}
@@ -73,6 +74,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
             <div className="form-group">
               <label>邮箱</label>
               <input
+                className="login-input"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -85,6 +87,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
           <div className="form-group">
             <label>密码</label>
             <input
+              className="login-input"
               type="password"
               name="password"
               value={formData.password}

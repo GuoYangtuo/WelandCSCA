@@ -94,8 +94,12 @@ router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest
       return res.status(500).json({ message: 'Dify API Key 未配置' });
     }
 
+    const imageUrlss = [
+      'http://8.149.244.179:3003/uploads/question-1765811933044-98358856.jpg'
+    ];
+
     // 构建Dify请求体
-    const imagesUploaded = imageUrls.map((url: string) => ({
+    const imagesUploaded = imageUrlss.map((url: string) => ({
       transfer_method: 'remote_url',
       url: url,
       type: 'image'

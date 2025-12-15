@@ -66,3 +66,4 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({ children, className = '',
 
 export default LatexRenderer;
 
+

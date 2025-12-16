@@ -903,3 +903,124 @@ select.form-input {
     max-height: 300px;
   }
 }
+
+/* ===== Analyze Status Styles ===== */
+.analyze-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.pending {
+  background: rgba(246, 173, 85, 0.15);
+  border: 1px solid rgba(246, 173, 85, 0.3);
+  color: #f6ad55;
+}
+
+.status-badge.analyzing {
+  background: rgba(66, 153, 225, 0.15);
+  border: 1px solid rgba(66, 153, 225, 0.3);
+  color: #63b3ed;
+}
+
+.status-badge.completed {
+  background: rgba(72, 187, 120, 0.15);
+  border: 1px solid rgba(72, 187, 120, 0.3);
+  color: #68d391;
+}
+
+.status-badge.error {
+  background: rgba(245, 101, 101, 0.15);
+  border: 1px solid rgba(245, 101, 101, 0.3);
+  color: #fc8181;
+}
+
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 0.5rem;
+  background: rgba(245, 101, 101, 0.2);
+  border: none;
+  border-radius: 50%;
+  color: #fc8181;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: rgba(245, 101, 101, 0.35);
+  transform: rotate(90deg);
+}
+
+/* Question card status styles */
+.question-form-card.status-pending {
+  border-color: rgba(246, 173, 85, 0.3);
+}
+
+.question-form-card.status-analyzing {
+  border-color: rgba(66, 153, 225, 0.4);
+  box-shadow: 0 0 20px rgba(66, 153, 225, 0.1);
+}
+
+.question-form-card.status-error {
+  border-color: rgba(245, 101, 101, 0.35);
+}
+
+/* Analyze pending overlay */
+.analyze-pending-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  background: rgba(246, 173, 85, 0.08);
+  border: 1px dashed rgba(246, 173, 85, 0.3);
+  border-radius: 10px;
+  color: #f6ad55;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.analyze-pending-overlay.analyzing {
+  background: rgba(66, 153, 225, 0.08);
+  border-color: rgba(66, 153, 225, 0.3);
+  color: #63b3ed;
+}
+
+/* Knowledge Points */
+.knowledge-points-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.knowledge-point-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(159, 122, 234, 0.15);
+  border: 1px solid rgba(159, 122, 234, 0.3);
+  border-radius: 16px;
+  color: #b794f4;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.preview-label svg {
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}

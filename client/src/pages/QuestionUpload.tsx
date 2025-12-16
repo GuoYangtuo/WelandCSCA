@@ -2,12 +2,15 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Upload, Plus, Trash2, Save, FileJson, AlertCircle, CheckCircle, X, 
-  Image, Scan, Edit3, Loader2
+  Image, Scan, Edit3, Loader2, RefreshCw, Clock, Brain
 } from 'lucide-react';
 import { difyAPI, adminAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
 import '../components/LatexRenderer.css';
 import './QuestionUpload.css';
+
+// 解析状态类型
+type AnalyzeStatus = 'pending' | 'analyzing' | 'completed' | 'error';
 
 interface QuestionForm {
   question_text: string;
@@ -16,6 +19,9 @@ interface QuestionForm {
   explanation: string;
   category: string;
   difficulty: string;
+  knowledge_points: string[];  // 知识点列表
+  analyzeStatus: AnalyzeStatus;  // DeepSeek解析状态
+  analyzeError?: string;  // 解析错误信息
 }
 
 interface UploadedImage {
@@ -30,8 +36,13 @@ const emptyQuestion: QuestionForm = {
   correct_answer: 0,
   explanation: '',
   category: '',
-  difficulty: 'medium'
+  difficulty: 'medium',
+  knowledge_points: [],
+  analyzeStatus: 'completed'  // 手动添加的题目默认为已完成
 };
+
+// 是否启用 DeepSeek 自动解析（从环境变量读取）
+const ENABLE_DEEPSEEK_ANALYZE = import.meta.env.VITE_ENABLE_DEEPSEEK_ANALYZE === 'true';
 
 const QuestionUpload: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -81,6 +92,66 @@ const QuestionUpload: React.FC = () => {
     });
   };
 
+  // 使用DeepSeek解析单个题目
+  const analyzeQuestionWithDeepSeek = async (index: number, question: { question_text: string; options: string[] }) => {
+    // 更新状态为正在解析
+    setQuestions(prev => {
+      const newQuestions = [...prev];
+      if (newQuestions[index]) {
+        newQuestions[index] = { ...newQuestions[index], analyzeStatus: 'analyzing' };
+      }
+      return newQuestions;
+    });
+
+    try {
+      const result = await difyAPI.analyzeQuestion(question);
+      
+      if (result.success && result.data) {
+        // 更新题目信息
+        setQuestions(prev => {
+          const newQuestions = [...prev];
+          if (newQuestions[index]) {
+            newQuestions[index] = {
+              ...newQuestions[index],
+              correct_answer: result.data.correct_answer ?? 0,
+              explanation: result.data.explanation || '',
+              difficulty: result.data.difficulty || 'medium',
+              knowledge_points: result.data.knowledge_points || [],
+              analyzeStatus: 'completed'
+            };
+          }
+          return newQuestions;
+        });
+      } else {
+        throw new Error('解析结果无效');
+      }
+    } catch (error: any) {
+      console.error(`第 ${index + 1} 题解析失败:`, error);
+      setQuestions(prev => {
+        const newQuestions = [...prev];
+        if (newQuestions[index]) {
+          newQuestions[index] = {
+            ...newQuestions[index],
+            analyzeStatus: 'error',
+            analyzeError: error.response?.data?.message || '解析失败'
+          };
+        }
+        return newQuestions;
+      });
+    }
+  };
+
+  // 重新解析单个题目
+  const retryAnalyzeQuestion = (index: number) => {
+    const question = questions[index];
+    if (question) {
+      analyzeQuestionWithDeepSeek(index, {
+        question_text: question.question_text,
+        options: question.options
+      });
+    }
+  };
+
   // 调用Dify API解析题目
   const handleParse = async () => {
     if (uploadedImages.length === 0) {
@@ -103,17 +174,54 @@ const QuestionUpload: React.FC = () => {
       
       const imageUrls = uploadResult.data.urls;
       
-      setParseProgress('正在解析...');
+      setParseProgress('正在识别题目...');
       
-      // 2. 调用Dify API
+      // 2. 调用阿里云API识别图片中的题目（只返回题目和选项）
       const result = await difyAPI.parseQuestions(imageUrls);
       
       if (result.success && result.data.questions.length > 0) {
-        setQuestions(result.data.questions);
-        setMessage({ 
-          type: 'success', 
-          text: `成功解析出 ${result.data.questions.length} 道题目，请审核确认` 
-        });
+        // 根据环境变量决定初始状态
+        const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';
+        
+        const questionsWithStatus: QuestionForm[] = result.data.questions.map((q: any) => ({
+          question_text: q.question_text || '',
+          options: q.options || ['', '', '', ''],
+          correct_answer: 0,  // 暂时设为0
+          explanation: '',
+          category: '',
+          difficulty: 'medium',
+          knowledge_points: [],
+          analyzeStatus: initialAnalyzeStatus
+        }));
+        
+        setQuestions(questionsWithStatus);
+        
+        if (ENABLE_DEEPSEEK_ANALYZE) {
+          // 启用了 DeepSeek 解析，逐个调用
+          setMessage({ 
+            type: 'success', 
+            text: `识别出 ${questionsWithStatus.length} 道题目，正在逐题生成答案和解析...` 
+          });
+          
+          // 3. 逐个调用DeepSeek解析每道题
+          for (let i = 0; i < questionsWithStatus.length; i++) {
+            await analyzeQuestionWithDeepSeek(i, {
+              question_text: questionsWithStatus[i].question_text,
+              options: questionsWithStatus[i].options
+            });
+          }
+          
+          setMessage({ 
+            type: 'success', 
+            text: `全部 ${questionsWithStatus.length} 道题目解析完成，请审核确认` 
+          });
+        } else {
+          // 未启用 DeepSeek 解析，直接让用户手动填写
+          setMessage({ 
+            type: 'success', 
+            text: `识别出 ${questionsWithStatus.length} 道题目，请手动填写答案和解析` 
+          });
+        }
       } else {
         setMessage({ type: 'error', text: '未能解析出题目，请检查图片内容' });
       }
@@ -130,7 +238,7 @@ const QuestionUpload: React.FC = () => {
   };
 
   const addQuestion = () => {
-    setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''] }]);
+    setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''], knowledge_points: [], analyzeStatus: 'completed' }]);
   };
 
   const removeQuestion = (index: number) => {
@@ -173,14 +281,32 @@ const QuestionUpload: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateQuestions()) return;
 
+    // 检查是否有正在解析的题目
+    const analyzingCount = questions.filter(q => q.analyzeStatus === 'analyzing' || q.analyzeStatus === 'pending').length;
+    if (analyzingCount > 0) {
+      setMessage({ type: 'error', text: `还有 ${analyzingCount} 道题目正在解析中，请等待解析完成` });
+      return;
+    }
+
     setUploading(true);
     setMessage(null);
 
     try {
-      if (questions.length === 1) {
-        await adminAPI.addQuestion(questions[0]);
+      // 提交时过滤掉前端专用字段
+      const questionsToSubmit = questions.map(q => ({
+        question_text: q.question_text,
+        options: q.options,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation,
+        category: q.category,
+        difficulty: q.difficulty,
+        knowledge_points: q.knowledge_points  // 知识点也提交到后端
+      }));
+
+      if (questionsToSubmit.length === 1) {
+        await adminAPI.addQuestion(questionsToSubmit[0]);
       } else {
-        await adminAPI.batchAddQuestions(questions);
+        await adminAPI.batchAddQuestions(questionsToSubmit);
       }
       setMessage({ type: 'success', text: `成功上传 ${questions.length} 道题目！` });
       setQuestions([]);
@@ -200,13 +326,15 @@ const QuestionUpload: React.FC = () => {
       const parsed = JSON.parse(jsonInput);
       const questionsArray = Array.isArray(parsed) ? parsed : [parsed];
       
-      const formattedQuestions = questionsArray.map(q => ({
+      const formattedQuestions: QuestionForm[] = questionsArray.map(q => ({
         question_text: q.question_text || q.questionText || '',
         options: q.options || ['', '', '', ''],
         correct_answer: q.correct_answer ?? q.correctAnswer ?? q.correct_option ?? 0,
         explanation: q.explanation || '',
         category: q.category || '',
-        difficulty: q.difficulty || 'medium'
+        difficulty: q.difficulty || 'medium',
+        knowledge_points: q.knowledge_points || [],
+        analyzeStatus: 'completed' as AnalyzeStatus
       }));
 
       setQuestions(formattedQuestions);
@@ -409,9 +537,42 @@ const QuestionUpload: React.FC = () => {
 
             <div className="questions-list">
               {questions.map((question, qIndex) => (
-                <div key={qIndex} className="question-form-card">
+                <div key={qIndex} className={`question-form-card ${question.analyzeStatus === 'pending' ? 'status-pending' : ''} ${question.analyzeStatus === 'analyzing' ? 'status-analyzing' : ''} ${question.analyzeStatus === 'error' ? 'status-error' : ''}`}>
                   <div className="question-form-header">
                     <span className="question-number">题目 {qIndex + 1}</span>
+                    <div className="analyze-status">
+                      {question.analyzeStatus === 'pending' && (
+                        <span className="status-badge pending">
+                          <Clock size={14} />
+                          等待解析
+                        </span>
+                      )}
+                      {question.analyzeStatus === 'analyzing' && (
+                        <span className="status-badge analyzing">
+                          <Loader2 size={14} className="spin" />
+                          正在解析...
+                        </span>
+                      )}
+                      {question.analyzeStatus === 'completed' && (
+                        <span className="status-badge completed">
+                          <CheckCircle size={14} />
+                          解析完成
+                        </span>
+                      )}
+                      {question.analyzeStatus === 'error' && (
+                        <span className="status-badge error">
+                          <AlertCircle size={14} />
+                          解析失败
+                          <button 
+                            className="retry-btn"
+                            onClick={() => retryAnalyzeQuestion(qIndex)}
+                            title="重新解析"
+                          >
+                            <RefreshCw size={14} />
+                          </button>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="question-editor-layout">
@@ -528,6 +689,31 @@ const QuestionUpload: React.FC = () => {
                             <div className="preview-text">
                               <LatexRenderer>{question.explanation}</LatexRenderer>
                             </div>
+                          </div>
+                        )}
+                        {question.knowledge_points && question.knowledge_points.length > 0 && (
+                          <div className="preview-item">
+                            <span className="preview-label">
+                              <Brain size={14} />
+                              知识点
+                            </span>
+                            <div className="knowledge-points-list">
+                              {question.knowledge_points.map((point, i) => (
+                                <span key={i} className="knowledge-point-tag">{point}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {question.analyzeStatus === 'pending' && (
+                          <div className="analyze-pending-overlay">
+                            <Clock size={24} />
+                            <span>等待生成答案和解析...</span>
+                          </div>
+                        )}
+                        {question.analyzeStatus === 'analyzing' && (
+                          <div className="analyze-pending-overlay analyzing">
+                            <Loader2 size={24} className="spin" />
+                            <span>正在解析中...</span>
                           </div>
                         )}
                       </div>

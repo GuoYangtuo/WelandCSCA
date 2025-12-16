@@ -30,8 +30,17 @@ import {
 import './Home.css';
 
 const Home: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openLoginModal } = useAuth();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  // 处理下载大纲点击
+  const handleSyllabusClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      openLoginModal();
+    }
+    // 如果已登录，链接会正常跳转
+  };
 
   const subjects = [
     {
@@ -190,7 +199,7 @@ const Home: React.FC = () => {
                 该考试于2025年正式确立，旨在为来华留学本科生制定统一、权威的录取标准，确保公平公正，提高质量控制水平，提升"留学中国"品牌。
               </p>
               <p>
-              <strong>Weland Global Education 作为全球AI教育平台，为全球学者提供定制化、高效率的CSCA考试培训和模拟测试服务。帮助学者快速提升CSCA考试成绩，提高被中国大学录取的几率。</strong>
+              <strong>Weland Global Education 作为全球AI教育平台，为全球学者提供定制化、高效率的CSCA考试培训和模拟测试服务。帮助学者快速提升CSCA考试成绩，提高被中国大学录取的几率。Weland-CSCA是Weland平台官方项目之一</strong>
               </p>
               <div className="about-highlights">
                 <div className="highlight-item">
@@ -524,18 +533,17 @@ const Home: React.FC = () => {
               <h4>官方资源</h4>
               <ul>
                 <li><a href="https://www.csca.cn" target="_blank" rel="noopener noreferrer">CSCA官网</a></li>
-                <li><a href="https://www.cucas.cn/cn/csca" target="_blank" rel="noopener noreferrer">CUCAS CSCA专页</a></li>
                 <li><a href="https://www.campuschina.org" target="_blank" rel="noopener noreferrer">Campus China</a></li>
               </ul>
             </div>
             <div className="footer-col">
               <h4>考试大纲下载</h4>
               <ul>
-                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012552383445.pdf" target="_blank" rel="noopener noreferrer">文科中文考试大纲</a></li>
-                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012641117574.pdf" target="_blank" rel="noopener noreferrer">理科中文考试大纲</a></li>
-                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012714447954.pdf" target="_blank" rel="noopener noreferrer">数学考试大纲</a></li>
-                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012768231238.pdf" target="_blank" rel="noopener noreferrer">物理考试大纲</a></li>
-                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012823663162.pdf" target="_blank" rel="noopener noreferrer">化学考试大纲</a></li>
+                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012552383445.pdf" target="_blank" rel="noopener noreferrer" onClick={(e) => handleSyllabusClick(e, 'https://www.cucas.cn/uploads/school/2025/1021/1761012552383445.pdf')}>文科中文考试大纲</a></li>
+                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012641117574.pdf" target="_blank" rel="noopener noreferrer" onClick={(e) => handleSyllabusClick(e, 'https://www.cucas.cn/uploads/school/2025/1021/1761012641117574.pdf')}>理科中文考试大纲</a></li>
+                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012714447954.pdf" target="_blank" rel="noopener noreferrer" onClick={(e) => handleSyllabusClick(e, 'https://www.cucas.cn/uploads/school/2025/1021/1761012714447954.pdf')}>数学考试大纲</a></li>
+                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012768231238.pdf" target="_blank" rel="noopener noreferrer" onClick={(e) => handleSyllabusClick(e, 'https://www.cucas.cn/uploads/school/2025/1021/1761012768231238.pdf')}>物理考试大纲</a></li>
+                <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012823663162.pdf" target="_blank" rel="noopener noreferrer" onClick={(e) => handleSyllabusClick(e, 'https://www.cucas.cn/uploads/school/2025/1021/1761012823663162.pdf')}>化学考试大纲</a></li>
               </ul>
             </div>
           </div>

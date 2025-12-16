@@ -8,28 +8,16 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, showAuthModal, authMode, openLoginModal, openRegisterModal, closeAuthModal, switchAuthMode } = useAuth();
   const location = useLocation();
-  const [showAuthModal, setShowAuthModal] = React.useState(false);
-  const [authMode, setAuthMode] = React.useState<'login' | 'register'>('login');
-
-  const handleLoginClick = () => {
-    setAuthMode('login');
-    setShowAuthModal(true);
-  };
-
-  const handleRegisterClick = () => {
-    setAuthMode('register');
-    setShowAuthModal(true);
-  };
 
   return (
     <div className="app">
       <header className="header">
         <div className="header-content">
           <Link to="/" className="logo">
-            <span className="logo-icon">C</span>
-            <h1>Weland-CSCA</h1>
+            <img src="/LOGO.png" alt="Weland" className="logo-image" />
+            <h1>CSCA.weland.group</h1>
           </Link>
           <nav className="nav">
             <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
@@ -55,10 +43,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </>
             ) : (
               <>
-                <button onClick={handleLoginClick} className="btn btn-outline">
+                <button onClick={openLoginModal} className="btn btn-outline">
                   登录
                 </button>
-                <button onClick={handleRegisterClick} className="btn btn-primary">
+                <button onClick={openRegisterModal} className="btn btn-primary">
                   注册
                 </button>
               </>
@@ -70,8 +58,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {showAuthModal && (
         <AuthModal
           mode={authMode}
-          onClose={() => setShowAuthModal(false)}
-          onSwitchMode={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+          onClose={closeAuthModal}
+          onSwitchMode={switchAuthMode}
         />
       )}
     </div>

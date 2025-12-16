@@ -105,9 +105,14 @@ export const difyAPI = {
     });
     return response.data;
   },
-  // 解析题目
+  // 解析题目（只返回题目和选项）
   parseQuestions: async (imageUrls: string[]) => {
     const response = await api.post('/dify/parse-questions', { imageUrls });
+    return response.data;
+  },
+  // 使用DeepSeek解析单个题目的详细信息
+  analyzeQuestion: async (question: { question_text: string; options: string[] }) => {
+    const response = await api.post('/dify/analyze-question', { question });
     return response.data;
   },
   // 清理上传的图片

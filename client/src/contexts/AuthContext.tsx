@@ -15,6 +15,12 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  showAuthModal: boolean;
+  authMode: 'login' | 'register';
+  openLoginModal: () => void;
+  openRegisterModal: () => void;
+  closeAuthModal: () => void;
+  switchAuthMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +37,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
+  const openLoginModal = () => {
+    setAuthMode('login');
+    setShowAuthModal(true);
+  };
+
+  const openRegisterModal = () => {
+    setAuthMode('register');
+    setShowAuthModal(true);
+  };
+
+  const closeAuthModal = () => {
+    setShowAuthModal(false);
+  };
+
+  const switchAuthMode = () => {
+    setAuthMode(authMode === 'login' ? 'register' : 'login');
+  };
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
@@ -74,7 +100,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         register,
         logout,
         isAuthenticated: !!token,
-        isLoading
+        isLoading,
+        showAuthModal,
+        authMode,
+        openLoginModal,
+        openRegisterModal,
+        closeAuthModal,
+        switchAuthMode
       }}
     >
       {children}

@@ -56,6 +56,12 @@
   color: #1a1a2e;
 }
 
+.logo-image {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+}
+
 .nav {
   display: flex;
   gap: 2rem;

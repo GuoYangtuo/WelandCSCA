@@ -19,7 +19,13 @@ import {
   Target,
   FlaskConical,
   Calculator,
-  Languages
+  Languages,
+  Bot,
+  Library,
+  TrendingUp,
+  Brain,
+  Globe,
+  Zap
 } from 'lucide-react';
 import './Home.css';
 
@@ -123,13 +129,9 @@ const Home: React.FC = () => {
           <div className="hero-pattern"></div>
         </div>
         <div className="hero-content">
-          <div className="hero-badge">
-            <Sparkles size={14} />
-            CSCA 官方授权培训平台
-          </div>
           <h1 className="hero-title">
-            <span className="title-line">来华留学本科入学</span>
-            <span className="title-highlight">学业水平测试</span>
+            <span className="title-highlight">Weland-CSCA在线培训平台</span>
+            <span className="title-line">全球首家AI辅助系统</span>
           </h1>
           <p className="hero-subtitle">
             China Scholastic Certificate for Admission
@@ -176,8 +178,7 @@ const Home: React.FC = () => {
       <section className="about-section">
         <div className="container">
           <div className="section-header">
-            <span className="section-tag">关于考试</span>
-            <h2 className="section-title">什么是 CSCA？</h2>
+            <h2 className="section-title">为什么选择 Weland-CSCA？</h2>
           </div>
           <div className="about-content">
             <div className="about-main">
@@ -187,6 +188,9 @@ const Home: React.FC = () => {
               <p>
                 它评估学生在中文、数学、物理和化学方面的能力，以确保他们符合中国大学的入学标准。
                 该考试于2025年正式确立，旨在为来华留学本科生制定统一、权威的录取标准，确保公平公正，提高质量控制水平，提升"留学中国"品牌。
+              </p>
+              <p>
+              <strong>Weland Global Education 作为全球AI教育平台，为全球学者提供定制化、高效率的CSCA考试培训和模拟测试服务。帮助学者快速提升CSCA考试成绩，提高被中国大学录取的几率。</strong>
               </p>
               <div className="about-highlights">
                 <div className="highlight-item">
@@ -218,12 +222,72 @@ const Home: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="about-timeline-preview">
+            <div className="about-sidebar">
+              <div className="platform-advantages">
+                <h3 className="advantages-title">
+                  <Sparkles size={20} />
+                  平台核心优势
+                </h3>
+                <div className="advantages-list">
+                  <div className="advantage-item">
+                    <div className="advantage-icon">
+                      <Bot size={18} />
+                    </div>
+                    <div className="advantage-content">
+                      <h4>AI智能辅助</h4>
+                      <p>智能答疑系统，实时解答学习疑问</p>
+                    </div>
+                  </div>
+                  <div className="advantage-item">
+                    <div className="advantage-icon">
+                      <Library size={18} />
+                    </div>
+                    <div className="advantage-content">
+                      <h4>海量真题题库</h4>
+                      <p>紧贴官方考试大纲的专业题库</p>
+                    </div>
+                  </div>
+                  <div className="advantage-item">
+                    <div className="advantage-icon">
+                      <Brain size={18} />
+                    </div>
+                    <div className="advantage-content">
+                      <h4>智能错题分析</h4>
+                      <p>自动分析薄弱环节，针对性训练</p>
+                    </div>
+                  </div>
+                  <div className="advantage-item">
+                    <div className="advantage-icon">
+                      <TrendingUp size={18} />
+                    </div>
+                    <div className="advantage-content">
+                      <h4>学习进度追踪</h4>
+                      <p>可视化统计，实时掌握备考进度</p>
+                    </div>
+                  </div>
+                  <div className="advantage-item">
+                    <div className="advantage-icon">
+                      <Globe size={18} />
+                    </div>
+                    <div className="advantage-content">
+                      <h4>多语言支持</h4>
+                      <p>多国语言界面，全球适用</p>
+                    </div>
+                  </div>
+                  <div className="advantage-item">
+                    <div className="advantage-icon">
+                      <Zap size={18} />
+                    </div>
+                    <div className="advantage-content">
+                      <h4>模拟考试系统</h4>
+                      <p>还原真实考试环境与节奏</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="timeline-card">
                 <h4>考试发展历程</h4>
                 <ul>
-                  <li><span>2019年</span>开始重视生源质量</li>
-                  <li><span>2021年</span>启动考试准备工作</li>
                   <li><span>2025年</span>正式确立CSCA政策</li>
                   <li><span>2026年</span>全面实施</li>
                   <li><span>2028年</span>计划扩展至所有本科申请者</li>
@@ -238,7 +302,6 @@ const Home: React.FC = () => {
       <section className="subjects-section">
         <div className="container">
           <div className="section-header">
-            <span className="section-tag">考试科目</span>
             <h2 className="section-title">四大核心科目</h2>
             <p className="section-desc">根据申请专业选择相应的考试科目组合</p>
           </div>
@@ -275,8 +338,7 @@ const Home: React.FC = () => {
       <section className="timeline-section">
         <div className="container">
           <div className="section-header light">
-            <span className="section-tag">考试时间</span>
-            <h2 className="section-title">重要日期</h2>
+            <h2 className="section-title">考试时间</h2>
             <p className="section-desc">规划您的备考时间表</p>
           </div>
           <div className="timeline">

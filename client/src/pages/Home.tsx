@@ -235,7 +235,7 @@ const Home: React.FC = () => {
                     </div>
                     <div className="advantage-content">
                       <h4>AI智能辅助</h4>
-                      <p>智能答疑系统，实时解答学习疑问</p>
+                      <p>AI智能小助手，实时解答学习疑问</p>
                     </div>
                   </div>
                   <div className="advantage-item">
@@ -262,7 +262,7 @@ const Home: React.FC = () => {
                     </div>
                     <div className="advantage-content">
                       <h4>学习进度追踪</h4>
-                      <p>可视化统计，实时掌握备考进度</p>
+                      <p>AI小助手追踪学习情况，实时掌握备考进度</p>
                     </div>
                   </div>
                   <div className="advantage-item">
@@ -392,7 +392,6 @@ const Home: React.FC = () => {
       <section className="registration-section">
         <div className="container">
           <div className="section-header">
-            <span className="section-tag">报名信息</span>
             <h2 className="section-title">报名与费用</h2>
           </div>
           <div className="reg-grid">

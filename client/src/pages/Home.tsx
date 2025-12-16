@@ -142,9 +142,6 @@ const Home: React.FC = () => {
             <span className="title-highlight">Weland-CSCA在线培训平台</span>
             <span className="title-line">全球首家AI辅助系统</span>
           </h1>
-          <p className="hero-subtitle">
-            China Scholastic Certificate for Admission
-          </p>
           <p className="hero-description">
             自2026年起，所有申请中国政府奖学金院校本科项目的国际学生，
             须在提交申请前参加该考试，考试成绩单将作为大学录取审核的必备材料之一。

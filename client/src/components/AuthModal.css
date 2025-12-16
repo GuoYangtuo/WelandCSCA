@@ -38,6 +38,12 @@
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content.register-mode {
+  max-width: 480px;
 }
 
 .modal-close {
@@ -65,13 +71,44 @@
   color: #333;
 }
 
+.modal-content .modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 0;
+  border-bottom: none;
+}
+
 .modal-content h2 {
   font-family: 'Noto Serif SC', 'Source Han Serif CN', Georgia, serif;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   color: #1a1a2e;
   font-size: 1.75rem;
   font-weight: 700;
   text-align: center;
+}
+
+.modal-content .modal-header h2 {
+  margin-bottom: 0.75rem;
+}
+
+.modal-content .modal-subtitle {
+  text-align: center;
+  width: 100%;
+}
+
+.modal-content .modal-subtitle p {
+  color: #666;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-content .modal-subtitle p:first-child {
+  color: #d4af37;
+  font-weight: 500;
 }
 
 .form-group {
@@ -86,6 +123,12 @@
   font-size: 0.9rem;
 }
 
+.optional-tag {
+  color: #999;
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
 .form-group .login-input {
   width: 100%;
   padding: 0.875rem 1rem;
@@ -95,6 +138,15 @@
   font-family: inherit;
   transition: all 0.2s ease;
   background: #fafafa;
+}
+
+.form-group .login-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
 }
 
 .form-group .login-input:focus {
@@ -121,8 +173,9 @@
 .btn-block {
   width: 100%;
   margin-top: 1.5rem;
-  padding: 1rem;
-  font-size: 1rem;
+  padding: 1rem 1.5rem;
+  min-height: 52px;
+  font-size: 1.05rem;
   font-weight: 600;
   background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
   color: #1a1a2e;
@@ -165,4 +218,14 @@
 .link-button:hover {
   color: #b8962e;
   text-decoration: underline;
+}
+
+/* 隐藏滚动条但保持滚动功能 */
+.modal-content {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.modal-content::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
 }

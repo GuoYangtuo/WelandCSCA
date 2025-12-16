@@ -41,8 +41,22 @@ export const authAPI = {
     const response = await api.post('/auth/login', { username, password });
     return response.data;
   },
-  register: async (username: string, email: string, password: string) => {
-    const response = await api.post('/auth/register', { username, email, password });
+  register: async (
+    username: string, 
+    email: string, 
+    password: string,
+    nationality: string,
+    source: string,
+    inviteCode?: string
+  ) => {
+    const response = await api.post('/auth/register', { 
+      username, 
+      email, 
+      password,
+      nationality,
+      source,
+      inviteCode
+    });
     return response.data;
   }
 };
@@ -134,5 +148,3 @@ export const adminAPI = {
 };
 
 export default api;
-
-

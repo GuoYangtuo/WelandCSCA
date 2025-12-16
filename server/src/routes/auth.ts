@@ -9,9 +9,9 @@ const router = express.Router();
 // 注册
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, nationality, source, inviteCode } = req.body;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !nationality || !source) {
       return res.status(400).json({ message: '请填写所有必填字段' });
     }
 
@@ -31,10 +31,10 @@ router.post('/register', async (req: Request, res: Response) => {
     // 生成 UUID 作为用户 ID
     const userId = randomUUID();
 
-    // 插入新用户
+    // 插入新用户（包含新字段）
     const [result] = await pool.query(
-      'INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)',
-      [userId, username, email, hashedPassword]
+      'INSERT INTO users (id, username, email, password, nationality, source, invite_code) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, username, email, hashedPassword, nationality, source, inviteCode || null]
     );
 
     // 生成JWT令牌
@@ -107,5 +107,3 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 export default router;
-
-

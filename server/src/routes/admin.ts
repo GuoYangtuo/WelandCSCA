@@ -1,4 +1,5 @@
 import express, { Response } from 'express';
+import { randomBytes } from 'crypto';
 import { cscaPool, pool } from '../config/database';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { adminAuth } from '../middleware/adminAuth';
@@ -463,6 +464,92 @@ router.get('/check', authenticate, adminAuth, async (req: AuthRequest, res: Resp
     success: true,
     isAdmin: true
   });
+});
+
+// ==================== 邀请码管理 ====================
+
+// 生成邀请码
+router.post('/invitation-codes', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { description } = req.body;
+    
+    // 生成8位随机邀请码（大写字母+数字）
+    const code = randomBytes(4).toString('hex').toUpperCase();
+    
+    await cscaPool.query(
+      'INSERT INTO invitation_codes (code, description) VALUES (?, ?)',
+      [code, description || null]
+    );
+
+    res.json({
+      success: true,
+      message: '邀请码生成成功',
+      data: { code }
+    });
+  } catch (error) {
+    console.error('生成邀请码错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 获取邀请码列表
+router.get('/invitation-codes', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const showUsed = req.query.showUsed === 'true';
+    
+    let query = `
+      SELECT ic.*, u.username as used_by_username 
+      FROM invitation_codes ic 
+      LEFT JOIN weland.users u ON ic.used_by = u.id 
+    `;
+    
+    if (!showUsed) {
+      query += ' WHERE ic.is_used = FALSE';
+    }
+    
+    query += ' ORDER BY ic.created_at DESC';
+    
+    const [codes] = await cscaPool.query(query);
+
+    res.json({
+      success: true,
+      data: codes
+    });
+  } catch (error) {
+    console.error('获取邀请码列表错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 删除邀请码（只能删除未使用的）
+router.delete('/invitation-codes/:id', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // 检查邀请码是否已使用
+    const [existing] = await cscaPool.query(
+      'SELECT is_used FROM invitation_codes WHERE id = ?',
+      [id]
+    );
+
+    if ((existing as any[]).length === 0) {
+      return res.status(404).json({ message: '邀请码不存在' });
+    }
+
+    if ((existing as any[])[0].is_used) {
+      return res.status(400).json({ message: '已使用的邀请码不能删除' });
+    }
+
+    await cscaPool.query('DELETE FROM invitation_codes WHERE id = ?', [id]);
+
+    res.json({
+      success: true,
+      message: '邀请码删除成功'
+    });
+  } catch (error) {
+    console.error('删除邀请码错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
 });
 
 export default router;

@@ -91,6 +91,21 @@ export async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='课时表'
     `);
 
+    // 创建邀请码表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS invitation_codes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(32) NOT NULL UNIQUE COMMENT '邀请码',
+        description VARCHAR(200) COMMENT '备注说明',
+        is_used BOOLEAN DEFAULT FALSE COMMENT '是否已使用',
+        used_by VARCHAR(36) COMMENT '使用者用户ID',
+        used_at TIMESTAMP NULL COMMENT '使用时间',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_code (code),
+        INDEX idx_is_used (is_used)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='机构邀请码表'
+    `);
+
     console.log('数据库表初始化完成');
 
     // 插入示例题目（如果表为空）

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { studyAPI } from '../services/api';
 import {
   BookOpen,
@@ -44,6 +45,7 @@ interface LessonContent {
 
 const Study: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedLesson, setSelectedLesson] = useState<LessonContent | null>(null);
@@ -75,7 +77,7 @@ const Study: React.FC = () => {
       }
     } catch (error) {
       console.error('加载章节列表失败:', error);
-      alert('加载章节列表失败，请重试');
+      alert(t.study.loadChaptersFailed);
     } finally {
       setLoading(false);
     }
@@ -100,12 +102,12 @@ const Study: React.FC = () => {
     } catch (error: any) {
       console.error('加载课时内容失败:', error);
       if (error.response?.status === 403 && error.response?.data?.requiresBasicTest) {
-        setError('请先完成基础测试才能查看课时内容');
-        if (confirm('您需要先完成基础测试才能查看课时内容，是否前往基础测试页面？')) {
+        setError(t.study.needBasicTest);
+        if (confirm(t.study.confirmGoBasicTest)) {
           navigate('/basic-test');
         }
       } else {
-        setError('加载课时内容失败，请重试');
+        setError(t.study.loadLessonFailed);
       }
       setSelectedLesson(null);
     } finally {
@@ -135,7 +137,7 @@ const Study: React.FC = () => {
                 <div className="book-page"></div>
               </div>
             </div>
-            <p>正在加载学习内容...</p>
+            <p>{t.study.loading}</p>
           </div>
         </div>
       </div>
@@ -150,14 +152,14 @@ const Study: React.FC = () => {
           <div className="sidebar-title-group">
             <BookOpen size={24} />
             <div>
-              <h2>学习训练</h2>
-              <p className="sidebar-subtitle">{chapters.length} 章节 · {getTotalLessons()} 课时</p>
+              <h2>{t.study.title}</h2>
+              <p className="sidebar-subtitle">{chapters.length} {t.study.chapters} · {getTotalLessons()} {t.study.lessons}</p>
             </div>
           </div>
           <button 
             className="sidebar-toggle"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            title={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
+            title={sidebarCollapsed ? t.study.expandSidebar : t.study.collapseSidebar}
           >
             {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
@@ -177,7 +179,7 @@ const Study: React.FC = () => {
                   </span>
                   <div className="chapter-info">
                     <span className="chapter-title">{chapter.title}</span>
-                    <span className="chapter-count">{chapter.lessons.length} 课时</span>
+                    <span className="chapter-count">{chapter.lessons.length} {t.study.lessons}</span>
                   </div>
                   <span className="expand-arrow">
                     <ChevronDown size={16} />
@@ -211,7 +213,7 @@ const Study: React.FC = () => {
         <div className="sidebar-footer">
           <button onClick={() => navigate('/mock-test')} className="btn btn-sidebar">
             <FileText size={18} />
-            开始模拟测试
+            {t.study.startMockTest}
           </button>
         </div>
       </aside>
@@ -223,35 +225,35 @@ const Study: React.FC = () => {
             <div className="state-animation">
               <div className="pulse-loader"></div>
             </div>
-            <p>正在加载课时内容...</p>
+            <p>{t.study.loadingLesson}</p>
           </div>
         ) : error ? (
           <div className="content-state error">
             <div className="state-icon error-icon">
               <AlertCircle size={48} />
             </div>
-            <h3>无法加载内容</h3>
+            <h3>{t.study.unableToLoad}</h3>
             <p>{error}</p>
             <button
               className="btn btn-primary"
               onClick={() => navigate('/basic-test')}
             >
-              前往基础测试
+              {t.study.goToBasicTest}
             </button>
           </div>
         ) : selectedLesson ? (
           <article className="lesson-article">
             <header className="article-header">
               <div className="article-breadcrumb">
-                <span>学习训练</span>
+                <span>{t.study.title}</span>
                 <ChevronRight size={14} />
-                <span>第 {selectedLesson.orderIndex} 课</span>
+                <span>{t.study.lesson} {selectedLesson.orderIndex}</span>
               </div>
               <h1 className="article-title">{selectedLesson.title}</h1>
               <div className="article-meta">
                 <span className="meta-item">
                   <BookOpen size={14} />
-                  课时内容
+                  {t.study.lessonContent}
                 </span>
               </div>
             </header>
@@ -277,7 +279,7 @@ const Study: React.FC = () => {
                   }}
                 >
                   <ChevronLeft size={18} />
-                  上一课
+                  {t.study.prevLesson}
                 </button>
                 <button 
                   className="btn btn-primary"
@@ -291,7 +293,7 @@ const Study: React.FC = () => {
                     }
                   }}
                 >
-                  下一课
+                  {t.study.nextLesson}
                   <ChevronRight size={18} />
                 </button>
               </div>
@@ -305,20 +307,20 @@ const Study: React.FC = () => {
                 <div className="illustration-glow"></div>
               </div>
             </div>
-            <h3>开始您的学习之旅</h3>
-            <p>从左侧选择一个课时，开始学习 CSCA 相关知识</p>
+            <h3>{t.study.startLearning}</h3>
+            <p>{t.study.selectLessonHint}</p>
             <div className="quick-tips">
               <div className="tip-item">
                 <Lightbulb size={18} className="tip-icon" />
-                <span>点击章节标题可展开或收起课时列表</span>
+                <span>{t.study.tips.expandCollapse}</span>
               </div>
               <div className="tip-item">
                 <BookMarked size={18} className="tip-icon" />
-                <span>建议按顺序学习，循序渐进</span>
+                <span>{t.study.tips.sequential}</span>
               </div>
               <div className="tip-item">
                 <Target size={18} className="tip-icon" />
-                <span>学习完成后可以进行模拟测试检验效果</span>
+                <span>{t.study.tips.testAfterStudy}</span>
               </div>
             </div>
           </div>

@@ -699,6 +699,91 @@ textarea.form-input {
   }
 }
 
+/* Invitation Codes */
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a0aec0;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #00d9ff;
+  cursor: pointer;
+}
+
+.generate-code-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.invite-code-text {
+  font-family: 'Monaco', 'Consolas', monospace;
+  background: rgba(0, 217, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #00d9ff;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.available {
+  background: rgba(72, 187, 120, 0.15);
+  color: #68d391;
+}
+
+.status-badge.used {
+  background: rgba(160, 174, 192, 0.15);
+  color: #a0aec0;
+}
+
+.used-time {
+  color: #718096;
+  font-size: 0.8rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: #4a5568;
+}
+
+.empty-state svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #718096;
+}
+
+.empty-state .hint {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  color: #4a5568;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-page {

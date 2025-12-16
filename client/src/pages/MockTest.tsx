@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { mockTestAPI, testAPI, studyAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
 import '../components/LatexRenderer.css';
@@ -44,6 +45,7 @@ interface MockTestConfig {
 
 const MockTest: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [config, setConfig] = useState<MockTestConfig | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -89,11 +91,11 @@ const MockTest: React.FC = () => {
       setTimeLeft(configData.durationMinutes * 60);
     } catch (error) {
       console.error('加载模拟测试配置失败:', error);
-      alert('加载模拟测试配置失败，请重试');
+      alert(t.mockTest.loadConfigFailed);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (isLoading) {
@@ -121,12 +123,12 @@ const MockTest: React.FC = () => {
       setStarted(false);
     } catch (error) {
       console.error('提交失败:', error);
-      alert('提交失败，请重试');
+      alert(t.mockTest.submitFailed);
     } finally {
       setSubmitting(false);
       submittingRef.current = false;
     }
-  }, [config, answers]);
+  }, [config, answers, t]);
 
   useEffect(() => {
     if (started && timeLeft > 0) {
@@ -180,10 +182,10 @@ const MockTest: React.FC = () => {
   
   const getDifficultyLabel = (difficulty?: string) => {
     switch (difficulty) {
-      case 'easy': return '简单';
-      case 'medium': return '中等';
-      case 'hard': return '困难';
-      default: return '中等';
+      case 'easy': return t.mockTest.difficulty.easy;
+      case 'medium': return t.mockTest.difficulty.medium;
+      case 'hard': return t.mockTest.difficulty.hard;
+      default: return t.mockTest.difficulty.medium;
     }
   };
 
@@ -197,10 +199,10 @@ const MockTest: React.FC = () => {
   };
 
   const getScoreLevel = (percentage: number) => {
-    if (percentage >= 90) return { level: '优秀', class: 'excellent', icon: Trophy };
-    if (percentage >= 80) return { level: '良好', class: 'good', icon: Target };
-    if (percentage >= 60) return { level: '及格', class: 'pass', icon: Sparkles };
-    return { level: '需加强', class: 'fail', icon: BookMarked };
+    if (percentage >= 90) return { level: t.mockTest.scoreLevel.excellent, class: 'excellent', icon: Trophy };
+    if (percentage >= 80) return { level: t.mockTest.scoreLevel.good, class: 'good', icon: Target };
+    if (percentage >= 60) return { level: t.mockTest.scoreLevel.pass, class: 'pass', icon: Sparkles };
+    return { level: t.mockTest.scoreLevel.fail, class: 'fail', icon: BookMarked };
   };
 
   const getTimeClass = () => {
@@ -214,7 +216,7 @@ const MockTest: React.FC = () => {
       <div className="test-page">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p className="loading-text">正在加载模拟测试...</p>
+          <p className="loading-text">{t.mockTest.loading}</p>
         </div>
       </div>
     );
@@ -229,15 +231,15 @@ const MockTest: React.FC = () => {
             <div className="locked-icon">
               <Lock size={64} strokeWidth={1.5} />
             </div>
-            <h2 className="result-title">模拟测试未解锁</h2>
-            <p className="result-subtitle">您需要先完成基础测试才能开始模拟测试</p>
+            <h2 className="result-title">{t.mockTest.locked}</h2>
+            <p className="result-subtitle">{t.mockTest.needBasicTestFirst}</p>
             
             <div className="unlock-info">
               <div className="unlock-step">
                 <div className="step-number completed">1</div>
                 <div className="step-content">
-                  <h4>注册账号</h4>
-                  <p>已完成</p>
+                  <h4>{t.mockTest.unlockSteps.register}</h4>
+                  <p>{t.mockTest.unlockSteps.completed}</p>
                 </div>
                 <span className="step-check">
                   <Check size={16} strokeWidth={3} />
@@ -247,16 +249,16 @@ const MockTest: React.FC = () => {
               <div className="unlock-step current">
                 <div className="step-number">2</div>
                 <div className="step-content">
-                  <h4>完成基础测试</h4>
-                  <p>了解您的当前水平</p>
+                  <h4>{t.mockTest.unlockSteps.basicTest}</h4>
+                  <p>{t.mockTest.unlockSteps.basicTestDesc}</p>
                 </div>
               </div>
               <div className="step-connector"></div>
               <div className="unlock-step">
                 <div className="step-number">3</div>
                 <div className="step-content">
-                  <h4>开始模拟测试</h4>
-                  <p>模拟真实考试环境</p>
+                  <h4>{t.mockTest.unlockSteps.mockTest}</h4>
+                  <p>{t.mockTest.unlockSteps.mockTestDesc}</p>
                 </div>
               </div>
             </div>
@@ -267,13 +269,13 @@ const MockTest: React.FC = () => {
                 className="btn btn-primary btn-glow"
               >
                 <CheckSquare size={20} />
-                前往基础测试
+                {t.mockTest.goToBasicTest}
               </button>
               <button
                 onClick={() => navigate('/')}
                 className="btn btn-outline"
               >
-                返回首页
+                {t.mockTest.backToHome}
               </button>
             </div>
           </div>
@@ -289,9 +291,9 @@ const MockTest: React.FC = () => {
           <div className="empty-icon">
             <ClipboardList size={48} />
           </div>
-          <h3>未找到模拟测试配置</h3>
-          <p>请稍后再试</p>
-          <button onClick={() => navigate('/')} className="btn btn-primary">返回首页</button>
+          <h3>{t.mockTest.configNotFound}</h3>
+          <p>{t.mockTest.tryLater}</p>
+          <button onClick={() => navigate('/')} className="btn btn-primary">{t.mockTest.backToHome}</button>
         </div>
       </div>
     );
@@ -309,8 +311,8 @@ const MockTest: React.FC = () => {
                 <div key={i} className="confetti" style={{ '--delay': `${i * 0.08}s`, '--x': `${Math.random() * 100}%` } as React.CSSProperties}></div>
               ))}
             </div>
-            <h2 className="result-title">🎊 模拟测试完成！</h2>
-            <p className="result-subtitle">您已完成本次模拟考试</p>
+            <h2 className="result-title">{t.mockTest.mockTestCompleted}</h2>
+            <p className="result-subtitle">{t.mockTest.completedThisMock}</p>
             
             <div className="score-display">
               <div className="score-ring animate" style={{ '--score-percent': `${result.percentage}%` } as React.CSSProperties}>
@@ -324,41 +326,41 @@ const MockTest: React.FC = () => {
               </div>
               <div className="score-details">
                 <div className="score-detail-item">
-                  <span className="detail-label">正确题数</span>
+                  <span className="detail-label">{t.mockTest.correctCount}</span>
                   <span className="detail-value">{result.score} / {result.total}</span>
                 </div>
                 <div className="score-detail-item">
-                  <span className="detail-label">评定等级</span>
+                  <span className="detail-label">{t.mockTest.rating}</span>
                   <span className={`detail-value level-${scoreInfo.class}`}>{scoreInfo.level}</span>
                 </div>
                 <div className="score-detail-item">
-                  <span className="detail-label">考试时长</span>
-                  <span className="detail-value">{config.durationMinutes} 分钟</span>
+                  <span className="detail-label">{t.mockTest.examDuration}</span>
+                  <span className="detail-value">{config.durationMinutes} {t.mockTest.minutes}</span>
                 </div>
               </div>
             </div>
 
             <div className="result-tip">
               {result.percentage >= 80 ? (
-                <p>🌟 出色的表现！您已经准备好参加 CSCA 正式考试了！</p>
+                <p>{t.mockTest.resultTips.excellent}</p>
               ) : result.percentage >= 60 ? (
-                <p>💪 继续努力！建议回顾学习训练内容，巩固薄弱知识点。</p>
+                <p>{t.mockTest.resultTips.good}</p>
               ) : (
-                <p>📖 不要气馁！建议重新学习相关章节，多做练习后再来挑战。</p>
+                <p>{t.mockTest.resultTips.needImprove}</p>
               )}
             </div>
 
             <div className="result-actions">
               <button onClick={() => window.location.reload()} className="btn btn-primary">
                 <RefreshCw size={20} />
-                再次测试
+                {t.mockTest.retryTest}
               </button>
               <button onClick={() => navigate('/study')} className="btn btn-secondary">
                 <BookOpen size={20} />
-                继续学习
+                {t.mockTest.continueLearning}
               </button>
               <button onClick={() => navigate('/')} className="btn btn-outline">
-                返回首页
+                {t.mockTest.backToHomeBtn}
               </button>
             </div>
           </div>
@@ -377,7 +379,7 @@ const MockTest: React.FC = () => {
                 <FileText size={48} strokeWidth={1.5} />
               </div>
               <h2>{config.name}</h2>
-              <p className="intro-subtitle">CSCA 模拟考试</p>
+              <p className="intro-subtitle">{t.mockTest.cscaMockExam}</p>
             </div>
             
             <div className="intro-info">
@@ -387,8 +389,8 @@ const MockTest: React.FC = () => {
                     <Clock size={24} />
                   </div>
                   <div className="info-content">
-                    <span className="info-label">考试时长</span>
-                    <span className="info-value">{config.durationMinutes} 分钟</span>
+                    <span className="info-label">{t.mockTest.examDurationLabel}</span>
+                    <span className="info-value">{config.durationMinutes} {t.mockTest.minutes}</span>
                   </div>
                 </div>
                 <div className="info-card">
@@ -396,30 +398,30 @@ const MockTest: React.FC = () => {
                     <FileText size={24} />
                   </div>
                   <div className="info-content">
-                    <span className="info-label">题目数量</span>
-                    <span className="info-value">{config.totalQuestions} 题</span>
+                    <span className="info-label">{t.mockTest.questionCount}</span>
+                    <span className="info-value">{config.totalQuestions} {t.mockTest.questionsUnit}</span>
                   </div>
                 </div>
               </div>
 
               <div className="rules-section">
-                <h4>考试须知</h4>
+                <h4>{t.mockTest.examRules}</h4>
                 <ul className="rules-list">
                   <li>
                     <Timer size={16} className="rule-icon" />
-                    <span>考试开始后计时器将自动启动，时间到自动提交</span>
+                    <span>{t.mockTest.rules.timer}</span>
                   </li>
                   <li>
                     <FileText size={16} className="rule-icon" />
-                    <span>可以随时切换题目，未作答的题目会标记提示</span>
+                    <span>{t.mockTest.rules.switch}</span>
                   </li>
                   <li>
                     <AlertTriangle size={16} className="rule-icon" />
-                    <span>剩余 5 分钟时会有警告提示，请合理安排时间</span>
+                    <span>{t.mockTest.rules.warning}</span>
                   </li>
                   <li>
                     <Target size={16} className="rule-icon" />
-                    <span>模拟考试按照 CSCA 官方标准进行，请认真作答</span>
+                    <span>{t.mockTest.rules.standard}</span>
                   </li>
                 </ul>
               </div>
@@ -428,10 +430,10 @@ const MockTest: React.FC = () => {
             <div className="intro-actions">
               <button onClick={handleStart} className="btn btn-primary btn-large btn-glow">
                 <Play size={24} />
-                开始考试
+                {t.mockTest.startExam}
               </button>
               <button onClick={() => navigate('/study')} className="btn btn-outline">
-                返回学习
+                {t.mockTest.backToStudy}
               </button>
             </div>
           </div>
@@ -451,11 +453,11 @@ const MockTest: React.FC = () => {
           <div className="header-left">
             <div className="test-type-badge mock">
               <FileText size={18} />
-              <span>模拟测试</span>
+              <span>{t.mockTest.mockTestBadge}</span>
             </div>
             <div className="progress-info">
-              <span className="progress-text">第 {currentIndex + 1} 题 / 共 {config.totalQuestions} 题</span>
-              <span className="answered-text">已答 {getAnsweredCount()} 题</span>
+              <span className="progress-text">{t.mockTest.question} {currentIndex + 1} / {t.mockTest.total} {config.totalQuestions} {t.mockTest.question}</span>
+              <span className="answered-text">{t.mockTest.answered} {getAnsweredCount()} {t.mockTest.question}</span>
             </div>
           </div>
           
@@ -464,7 +466,7 @@ const MockTest: React.FC = () => {
               <Clock size={20} />
             </div>
             <div className="timer-content">
-              <span className="timer-label">剩余时间</span>
+              <span className="timer-label">{t.mockTest.remainingTime}</span>
               <span className="timer-value">{formatTime(timeLeft)}</span>
             </div>
           </div>
@@ -485,7 +487,7 @@ const MockTest: React.FC = () => {
             <div className="question-meta">
               <span className="question-category">
                 <BookOpen size={14} />
-                {currentQuestion.category || '综合'}
+                {currentQuestion.category || t.mockTest.comprehensive}
               </span>
               <span className={`question-difficulty ${getDifficultyClass(currentQuestion.difficulty)}`}>
                 {getDifficultyLabel(currentQuestion.difficulty)}
@@ -536,7 +538,7 @@ const MockTest: React.FC = () => {
             className="btn btn-nav btn-prev"
           >
             <ChevronLeft size={20} />
-            上一题
+            {t.mockTest.prevQuestion}
           </button>
           
           <div className="question-nav-dots">
@@ -548,7 +550,7 @@ const MockTest: React.FC = () => {
                 className={`nav-dot ${answers[index] !== -1 ? 'answered' : ''} ${
                   index === currentIndex ? 'active' : ''
                 }`}
-                title={`第 ${index + 1} 题${answers[index] !== -1 ? ' (已答)' : ''}`}
+                title={`${t.mockTest.question} ${index + 1}${answers[index] !== -1 ? ` (${t.mockTest.answered})` : ''}`}
               >
                 {index + 1}
               </button>
@@ -564,11 +566,11 @@ const MockTest: React.FC = () => {
               {submitting ? (
                 <>
                   <span className="btn-spinner"></span>
-                  提交中...
+                  {t.mockTest.submitting}
                 </>
               ) : (
                 <>
-                  提交答案
+                  {t.mockTest.submitAnswer}
                   <CheckSquare size={20} />
                 </>
               )}
@@ -579,7 +581,7 @@ const MockTest: React.FC = () => {
               disabled={timeLeft === 0}
               className="btn btn-nav btn-next"
             >
-              下一题
+              {t.mockTest.nextQuestion}
               <ChevronRight size={20} />
             </button>
           )}
@@ -590,14 +592,3 @@ const MockTest: React.FC = () => {
 };
 
 export default MockTest;
-
-
-
-
-
-
-
-
-
-
-

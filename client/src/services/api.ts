@@ -55,7 +55,23 @@ export const authAPI = {
       password,
       nationality,
       source,
-      inviteCode
+      inviteCode,
+      userType: 'student'
+    });
+    return response.data;
+  },
+  registerInstitution: async (
+    username: string,
+    email: string,
+    password: string,
+    inviteCode: string
+  ) => {
+    const response = await api.post('/auth/register', {
+      username,
+      email,
+      password,
+      inviteCode,
+      userType: 'institution'
     });
     return response.data;
   }

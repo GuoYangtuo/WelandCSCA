@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Home from './pages/Home';
 import BasicTest from './pages/BasicTest';
 import MockTest from './pages/MockTest';
@@ -11,21 +12,23 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/basic-test" element={<BasicTest />} />
-            <Route path="/mock-test" element={<MockTest />} />
-            <Route path="/study" element={<Study />} />
-            <Route path="/question-upload" element={<QuestionUpload />} />
-            <Route path="/admin" element={<Admin />} />
-            {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
-          </Routes>
-        </Layout>
-      </Router>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/basic-test" element={<BasicTest />} />
+              <Route path="/mock-test" element={<MockTest />} />
+              <Route path="/study" element={<Study />} />
+              <Route path="/question-upload" element={<QuestionUpload />} />
+              <Route path="/admin" element={<Admin />} />
+              {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+            </Routes>
+          </Layout>
+        </Router>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

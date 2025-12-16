@@ -19,6 +19,12 @@ interface AuthContextType {
     source: string,
     inviteCode?: string
   ) => Promise<void>;
+  registerInstitution: (
+    username: string,
+    email: string,
+    password: string,
+    inviteCode: string
+  ) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -98,6 +104,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('user', JSON.stringify(response.user));
   };
 
+  const registerInstitution = async (
+    username: string,
+    email: string,
+    password: string,
+    inviteCode: string
+  ) => {
+    const response = await authAPI.registerInstitution(username, email, password, inviteCode);
+    setToken(response.token);
+    setUser(response.user);
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -112,6 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         token,
         login,
         register,
+        registerInstitution,
         logout,
         isAuthenticated: !!token,
         isLoading,

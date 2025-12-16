@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { questionAPI, testAPI, studyAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
 import '../components/LatexRenderer.css';
@@ -30,6 +31,7 @@ interface Question {
 
 const BasicTest: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -72,11 +74,11 @@ const BasicTest: React.FC = () => {
       setAnswers(new Array(questionsData.length).fill(-1));
     } catch (error) {
       console.error('加载题目失败:', error);
-      alert('加载题目失败，请重试');
+      alert(t.basicTest.loadQuestionsFailed);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (isLoading) {
@@ -113,7 +115,7 @@ const BasicTest: React.FC = () => {
 
   const handleSubmit = async () => {
     if (answers.some(a => a === -1)) {
-      if (!confirm('还有未作答的题目，确定要提交吗？')) {
+      if (!confirm(t.basicTest.unansweredConfirm)) {
         return;
       }
     }
@@ -125,7 +127,7 @@ const BasicTest: React.FC = () => {
       setResult(response.data);
     } catch (error) {
       console.error('提交失败:', error);
-      alert('提交失败，请重试');
+      alert(t.basicTest.submitFailed);
     } finally {
       setSubmitting(false);
     }
@@ -135,10 +137,10 @@ const BasicTest: React.FC = () => {
   
   const getDifficultyLabel = (difficulty?: string) => {
     switch (difficulty) {
-      case 'easy': return '简单';
-      case 'medium': return '中等';
-      case 'hard': return '困难';
-      default: return '中等';
+      case 'easy': return t.basicTest.difficulty.easy;
+      case 'medium': return t.basicTest.difficulty.medium;
+      case 'hard': return t.basicTest.difficulty.hard;
+      default: return t.basicTest.difficulty.medium;
     }
   };
 
@@ -152,10 +154,10 @@ const BasicTest: React.FC = () => {
   };
 
   const getScoreLevel = (percentage: number) => {
-    if (percentage >= 90) return { level: '优秀', class: 'excellent', icon: Trophy };
-    if (percentage >= 80) return { level: '良好', class: 'good', icon: Target };
-    if (percentage >= 60) return { level: '及格', class: 'pass', icon: Sparkles };
-    return { level: '需加强', class: 'fail', icon: BookMarked };
+    if (percentage >= 90) return { level: t.basicTest.scoreLevel.excellent, class: 'excellent', icon: Trophy };
+    if (percentage >= 80) return { level: t.basicTest.scoreLevel.good, class: 'good', icon: Target };
+    if (percentage >= 60) return { level: t.basicTest.scoreLevel.pass, class: 'pass', icon: Sparkles };
+    return { level: t.basicTest.scoreLevel.fail, class: 'fail', icon: BookMarked };
   };
 
   if (isLoading || loading) {
@@ -163,7 +165,7 @@ const BasicTest: React.FC = () => {
       <div className="test-page">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p className="loading-text">正在加载题目...</p>
+          <p className="loading-text">{t.basicTest.loading}</p>
         </div>
       </div>
     );
@@ -182,10 +184,10 @@ const BasicTest: React.FC = () => {
               <span className="badge-icon">
                 <Check size={16} strokeWidth={3} />
               </span>
-              <span>已完成</span>
+              <span>{t.basicTest.completed}</span>
             </div>
-            <h2 className="result-title">基础测试成绩</h2>
-            <p className="result-subtitle">您已完成基础测试，现在可以开始学习训练了</p>
+            <h2 className="result-title">{t.basicTest.basicTestScore}</h2>
+            <p className="result-subtitle">{t.basicTest.canStartLearning}</p>
             
             <div className="score-display">
               <div className="score-ring" style={{ '--score-percent': `${completedResult.percentage}%` } as React.CSSProperties}>
@@ -199,16 +201,16 @@ const BasicTest: React.FC = () => {
               </div>
               <div className="score-details">
                 <div className="score-detail-item">
-                  <span className="detail-label">正确题数</span>
+                  <span className="detail-label">{t.basicTest.correctCount}</span>
                   <span className="detail-value">{completedResult.score} / {completedResult.totalQuestions}</span>
                 </div>
                 <div className="score-detail-item">
-                  <span className="detail-label">评定等级</span>
+                  <span className="detail-label">{t.basicTest.rating}</span>
                   <span className={`detail-value level-${scoreInfo.class}`}>{scoreInfo.level}</span>
                 </div>
                 <div className="score-detail-item">
-                  <span className="detail-label">完成时间</span>
-                  <span className="detail-value">{date.toLocaleString('zh-CN')}</span>
+                  <span className="detail-label">{t.basicTest.completedTime}</span>
+                  <span className="detail-value">{date.toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
                 </div>
               </div>
             </div>
@@ -216,14 +218,14 @@ const BasicTest: React.FC = () => {
             <div className="result-actions">
               <button onClick={() => navigate('/study')} className="btn btn-primary btn-glow">
                 <BookOpen size={20} />
-                开始学习训练
+                {t.basicTest.startStudyTraining}
               </button>
-              <button onClick={() => navigate('/mock-test')} className="btn btn-secondary">
+              <button onClick={() => navigate('/mock-test')} className="btn btn-secondary-test">
                 <FileText size={20} />
-                模拟测试
+                {t.basicTest.mockTest}
               </button>
               <button onClick={() => navigate('/')} className="btn btn-outline">
-                返回首页
+                {t.basicTest.backToHome}
               </button>
             </div>
           </div>
@@ -244,8 +246,8 @@ const BasicTest: React.FC = () => {
                 <div key={i} className="confetti" style={{ '--delay': `${i * 0.1}s`, '--x': `${Math.random() * 100}%` } as React.CSSProperties}></div>
               ))}
             </div>
-            <h2 className="result-title">🎉 测试完成！</h2>
-            <p className="result-subtitle">恭喜您完成了基础测试</p>
+            <h2 className="result-title">{t.basicTest.testCompleted}</h2>
+            <p className="result-subtitle">{t.basicTest.congratsCompleted}</p>
             
             <div className="score-display">
               <div className="score-ring animate" style={{ '--score-percent': `${result.percentage}%` } as React.CSSProperties}>
@@ -259,11 +261,11 @@ const BasicTest: React.FC = () => {
               </div>
               <div className="score-details">
                 <div className="score-detail-item">
-                  <span className="detail-label">正确题数</span>
+                  <span className="detail-label">{t.basicTest.correctCount}</span>
                   <span className="detail-value">{result.score} / {result.total}</span>
                 </div>
                 <div className="score-detail-item">
-                  <span className="detail-label">评定等级</span>
+                  <span className="detail-label">{t.basicTest.rating}</span>
                   <span className={`detail-value level-${scoreInfo.class}`}>{scoreInfo.level}</span>
                 </div>
               </div>
@@ -271,21 +273,21 @@ const BasicTest: React.FC = () => {
 
             <div className="result-tip">
               {result.percentage >= 80 ? (
-                <p>🌟 表现优异！您已经具备了良好的基础，可以开始学习训练提升更多知识。</p>
+                <p>{t.basicTest.resultTips.excellent}</p>
               ) : result.percentage >= 60 ? (
-                <p>💡 不错的开始！建议通过学习训练巩固薄弱环节。</p>
+                <p>{t.basicTest.resultTips.good}</p>
               ) : (
-                <p>📖 还需要加油！建议认真完成学习训练，打好基础。</p>
+                <p>{t.basicTest.resultTips.needImprove}</p>
               )}
             </div>
 
             <div className="result-actions">
               <button onClick={() => navigate('/study')} className="btn btn-primary btn-glow">
                 <BookOpen size={20} />
-                开始学习训练
+                {t.basicTest.startStudyTraining}
               </button>
               <button onClick={() => navigate('/')} className="btn btn-outline">
-                返回首页
+                {t.basicTest.backToHome}
               </button>
             </div>
           </div>
@@ -301,9 +303,9 @@ const BasicTest: React.FC = () => {
           <div className="empty-icon">
             <FileText size={48} />
           </div>
-          <h3>暂无题目</h3>
-          <p>题库正在建设中，请稍后再来</p>
-          <button onClick={() => navigate('/')} className="btn btn-primary">返回首页</button>
+          <h3>{t.basicTest.noQuestions}</h3>
+          <p>{t.basicTest.questionBankBuilding}</p>
+          <button onClick={() => navigate('/')} className="btn btn-primary">{t.basicTest.backToHome}</button>
         </div>
       </div>
     );
@@ -320,11 +322,11 @@ const BasicTest: React.FC = () => {
           <div className="header-left">
             <div className="test-type-badge">
               <CheckSquare size={18} />
-              <span>基础测试</span>
+              <span>{t.basicTest.basicTestBadge}</span>
             </div>
             <div className="progress-info">
-              <span className="progress-text">第 {currentIndex + 1} 题 / 共 {questions.length} 题</span>
-              <span className="answered-text">已答 {getAnsweredCount()} 题</span>
+              <span className="progress-text">{t.basicTest.question} {currentIndex + 1} / {t.basicTest.total} {questions.length} {t.basicTest.question}</span>
+              <span className="answered-text">{t.basicTest.answered} {getAnsweredCount()} {t.basicTest.question}</span>
             </div>
           </div>
           <div className="progress-container">
@@ -343,7 +345,7 @@ const BasicTest: React.FC = () => {
             <div className="question-meta">
               <span className="question-category">
                 <BookOpen size={14} />
-                {currentQuestion.category || '综合'}
+                {currentQuestion.category || t.basicTest.comprehensive}
               </span>
               <span className={`question-difficulty ${getDifficultyClass(currentQuestion.difficulty)}`}>
                 {getDifficultyLabel(currentQuestion.difficulty)}
@@ -393,7 +395,7 @@ const BasicTest: React.FC = () => {
             className="btn btn-nav btn-prev"
           >
             <ChevronLeft size={20} />
-            上一题
+            {t.basicTest.prevQuestion}
           </button>
           
           <div className="question-nav-dots">
@@ -404,7 +406,7 @@ const BasicTest: React.FC = () => {
                 className={`nav-dot ${answers[index] !== -1 ? 'answered' : ''} ${
                   index === currentIndex ? 'active' : ''
                 }`}
-                title={`第 ${index + 1} 题${answers[index] !== -1 ? ' (已答)' : ''}`}
+                title={`${t.basicTest.question} ${index + 1}${answers[index] !== -1 ? ` (${t.basicTest.answered})` : ''}`}
               >
                 {index + 1}
               </button>
@@ -420,18 +422,18 @@ const BasicTest: React.FC = () => {
               {submitting ? (
                 <>
                   <span className="btn-spinner"></span>
-                  提交中...
+                  {t.basicTest.submitting}
                 </>
               ) : (
                 <>
-                  提交答案
+                  {t.basicTest.submitAnswer}
                   <CheckSquare size={20} />
                 </>
               )}
             </button>
           ) : (
             <button onClick={handleNext} className="btn btn-nav btn-next">
-              下一题
+              {t.basicTest.nextQuestion}
               <ChevronRight size={20} />
             </button>
           )}
@@ -442,14 +444,3 @@ const BasicTest: React.FC = () => {
 };
 
 export default BasicTest;
-
-
-
-
-
-
-
-
-
-
-

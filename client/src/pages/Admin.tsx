@@ -18,7 +18,9 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle,
-  Loader
+  Loader,
+  Key,
+  Copy
 } from 'lucide-react';
 import './Admin.css';
 
@@ -59,7 +61,18 @@ interface Lesson {
   order_index: number;
 }
 
-type TabType = 'questions' | 'tests' | 'chapters' | 'lessons';
+interface InvitationCode {
+  id: number;
+  code: string;
+  description: string | null;
+  is_used: boolean;
+  used_by: string | null;
+  used_by_username: string | null;
+  used_at: string | null;
+  created_at: string;
+}
+
+type TabType = 'questions' | 'tests' | 'chapters' | 'lessons' | 'inviteCodes';
 
 const Admin: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -91,6 +104,12 @@ const Admin: React.FC = () => {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [newLesson, setNewLesson] = useState<Partial<Lesson> | null>(null);
   const [lessonChapterFilter, setLessonChapterFilter] = useState('');
+
+  // Invitation codes state
+  const [invitationCodes, setInvitationCodes] = useState<InvitationCode[]>([]);
+  const [showUsedCodes, setShowUsedCodes] = useState(false);
+  const [newCodeDescription, setNewCodeDescription] = useState('');
+  const [generatingCode, setGeneratingCode] = useState(false);
 
   // Check admin status
   useEffect(() => {
@@ -163,6 +182,17 @@ const Admin: React.FC = () => {
     }
   }, [lessonChapterFilter]);
 
+  const loadInvitationCodes = useCallback(async () => {
+    try {
+      const response = await api.get('/admin/invitation-codes', {
+        params: { showUsed: showUsedCodes }
+      });
+      setInvitationCodes(response.data.data);
+    } catch (error) {
+      console.error('加载邀请码失败:', error);
+    }
+  }, [showUsedCodes]);
+
   useEffect(() => {
     if (!isAdmin) return;
     
@@ -180,8 +210,11 @@ const Admin: React.FC = () => {
         loadChapters();
         loadLessons();
         break;
+      case 'inviteCodes':
+        loadInvitationCodes();
+        break;
     }
-  }, [activeTab, isAdmin, loadQuestions, loadTestResults, loadChapters, loadLessons]);
+  }, [activeTab, isAdmin, loadQuestions, loadTestResults, loadChapters, loadLessons, loadInvitationCodes]);
 
   // Question operations
   const handleSaveQuestion = async () => {
@@ -300,6 +333,40 @@ const Admin: React.FC = () => {
     }
   };
 
+  // Invitation code operations
+  const handleGenerateCode = async () => {
+    setGeneratingCode(true);
+    try {
+      const response = await api.post('/admin/invitation-codes', {
+        description: newCodeDescription || null
+      });
+      setMessage({ type: 'success', text: `邀请码生成成功: ${response.data.data.code}` });
+      setNewCodeDescription('');
+      loadInvitationCodes();
+    } catch (error) {
+      setMessage({ type: 'error', text: '生成邀请码失败' });
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const handleDeleteCode = async (id: number) => {
+    if (!confirm('确定要删除这个邀请码吗？')) return;
+    
+    try {
+      await api.delete(`/admin/invitation-codes/${id}`);
+      setMessage({ type: 'success', text: '邀请码删除成功' });
+      loadInvitationCodes();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || '删除失败' });
+    }
+  };
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setMessage({ type: 'success', text: '邀请码已复制到剪贴板' });
+  };
+
   // Render loading state
   if (authLoading || loading) {
     return (
@@ -381,6 +448,13 @@ const Admin: React.FC = () => {
           >
             <Users size={18} />
             课时管理
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'inviteCodes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('inviteCodes')}
+          >
+            <Key size={18} />
+            邀请码管理
           </button>
         </nav>
 
@@ -707,6 +781,114 @@ const Admin: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Invitation Codes Tab */}
+          {activeTab === 'inviteCodes' && (
+            <div className="tab-content">
+              <div className="content-header">
+                <div className="header-left">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={showUsedCodes}
+                      onChange={(e) => {
+                        setShowUsedCodes(e.target.checked);
+                        setTimeout(() => loadInvitationCodes(), 0);
+                      }}
+                    />
+                    <span>显示已使用的邀请码</span>
+                  </label>
+                </div>
+                <div className="generate-code-form">
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="备注说明（可选）"
+                    value={newCodeDescription}
+                    onChange={(e) => setNewCodeDescription(e.target.value)}
+                    style={{ width: '200px' }}
+                  />
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleGenerateCode}
+                    disabled={generatingCode}
+                  >
+                    <Key size={18} />
+                    {generatingCode ? '生成中...' : '生成邀请码'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>邀请码</th>
+                      <th>备注</th>
+                      <th>状态</th>
+                      <th>使用者</th>
+                      <th>创建时间</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invitationCodes.map((code) => (
+                      <tr key={code.id}>
+                        <td>
+                          <code className="invite-code-text">{code.code}</code>
+                        </td>
+                        <td>{code.description || '-'}</td>
+                        <td>
+                          <span className={`status-badge ${code.is_used ? 'used' : 'available'}`}>
+                            {code.is_used ? '已使用' : '可用'}
+                          </span>
+                        </td>
+                        <td>
+                          {code.is_used ? (
+                            <span>
+                              {code.used_by_username || code.used_by?.substring(0, 8)}
+                              {code.used_at && (
+                                <span className="used-time">
+                                  {' '}({new Date(code.used_at).toLocaleDateString('zh-CN')})
+                                </span>
+                              )}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td>{new Date(code.created_at).toLocaleString('zh-CN')}</td>
+                        <td className="actions-cell">
+                          <button 
+                            className="btn-action edit" 
+                            onClick={() => handleCopyCode(code.code)}
+                            title="复制邀请码"
+                          >
+                            <Copy size={16} />
+                          </button>
+                          {!code.is_used && (
+                            <button 
+                              className="btn-action delete" 
+                              onClick={() => handleDeleteCode(code.id)}
+                              title="删除邀请码"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {invitationCodes.length === 0 && (
+                <div className="empty-state">
+                  <Key size={48} />
+                  <p>暂无邀请码</p>
+                  <p className="hint">点击上方按钮生成新的邀请码</p>
+                </div>
+              )}
             </div>
           )}
         </main>

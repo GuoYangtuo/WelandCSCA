@@ -220,6 +220,19 @@
   text-decoration: underline;
 }
 
+.register-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.footer-divider {
+  color: #ccc;
+  font-size: 0.85rem;
+}
+
 /* 隐藏滚动条但保持滚动功能 */
 .modal-content {
   -ms-overflow-style: none;  /* IE and Edge */
@@ -229,3 +242,4 @@
 .modal-content::-webkit-scrollbar {
   display: none;  /* Chrome, Safari, Opera */
 }
+

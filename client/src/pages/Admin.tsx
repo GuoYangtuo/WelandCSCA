@@ -735,7 +735,7 @@ const Admin: React.FC = () => {
                   <label>选项</label>
                   {editingQuestion.options.map((opt, i) => (
                     <div key={i} className="option-edit-row">
-                      <span className={`option-label ${editingQuestion.correct_answer === i ? 'correct' : ''}`}>
+                      <span className="option-label">
                         {String.fromCharCode(65 + i)}
                       </span>
                       <input

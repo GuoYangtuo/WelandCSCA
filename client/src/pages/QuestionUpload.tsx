@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Upload, Plus, Trash2, Save, FileJson, AlertCircle, CheckCircle, X, 
-  Eye, EyeOff, Image, Scan, Edit3, Loader2
+  Image, Scan, Edit3, Loader2
 } from 'lucide-react';
 import { difyAPI, adminAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
@@ -51,8 +51,6 @@ const QuestionUpload: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [jsonInput, setJsonInput] = useState('');
   const [showJsonImport, setShowJsonImport] = useState(false);
-  const [previewIndices, setPreviewIndices] = useState<Set<number>>(new Set());
-  const [_editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // 图片上传处理
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,8 +110,6 @@ const QuestionUpload: React.FC = () => {
       
       if (result.success && result.data.questions.length > 0) {
         setQuestions(result.data.questions);
-        // 默认开启所有题目的 LaTeX 预览
-        setPreviewIndices(new Set(result.data.questions.map((_: QuestionForm, i: number) => i)));
         setMessage({ 
           type: 'success', 
           text: `成功解析出 ${result.data.questions.length} 道题目，请审核确认` 
@@ -228,8 +224,6 @@ const QuestionUpload: React.FC = () => {
     setUploadedImages([]);
     setQuestions([]);
     setMessage(null);
-    setPreviewIndices(new Set());
-    setEditingIndex(null);
   };
 
   if (!isAuthenticated) {
@@ -419,21 +413,6 @@ const QuestionUpload: React.FC = () => {
                   <div className="question-form-header">
                     <span className="question-number">题目 {qIndex + 1}</span>
                     <div className="question-form-actions">
-                      <button
-                        className={`btn btn-icon ${previewIndices.has(qIndex) ? 'btn-primary' : 'btn-outline'}`}
-                        onClick={() => {
-                          const newSet = new Set(previewIndices);
-                          if (newSet.has(qIndex)) {
-                            newSet.delete(qIndex);
-                          } else {
-                            newSet.add(qIndex);
-                          }
-                          setPreviewIndices(newSet);
-                        }}
-                        title={previewIndices.has(qIndex) ? "关闭预览" : "预览LaTeX公式"}
-                      >
-                        {previewIndices.has(qIndex) ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
                       <button 
                         className="btn btn-icon btn-danger"
                         onClick={() => removeQuestion(qIndex)}
@@ -444,42 +423,117 @@ const QuestionUpload: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* LaTeX预览区域 */}
-                  {previewIndices.has(qIndex) && (
-                    <div className="latex-preview-section">
-                      <div className="preview-header">
-                        <Eye size={16} />
-                        <span>LaTeX公式预览</span>
+                  <div className="question-editor-layout">
+                    {/* 左侧编辑区域 */}
+                    <div className="editor-panel">
+                      <div className="form-group">
+                        <label>题目内容 * <span className="label-hint">（支持LaTeX）</span></label>
+                        <textarea
+                          className="form-input"
+                          placeholder="请输入题目内容，如：求 $x^2 + 2x + 1 = 0$ 的解"
+                          value={question.question_text}
+                          onChange={(e) => updateQuestion(qIndex, 'question_text', e.target.value)}
+                          rows={3}
+                        />
                       </div>
-                      <div className="preview-content">
+
+                      <div className="form-group">
+                        <label>选项 * <span className="label-hint">（支持LaTeX）</span></label>
+                        <div className="options-grid">
+                          {question.options.map((option, oIndex) => (
+                            <div key={oIndex} className="option-input-wrapper">
+                              <span className="option-label">
+                                {String.fromCharCode(65 + oIndex)}
+                              </span>
+                              <input
+                                type="text"
+                                className="form-input"
+                                placeholder={`选项 ${String.fromCharCode(65 + oIndex)}`}
+                                value={option}
+                                onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
+                              />
+                              <button
+                                className={`correct-btn ${question.correct_answer === oIndex ? 'active' : ''}`}
+                                onClick={() => updateQuestion(qIndex, 'correct_answer', oIndex)}
+                                title="设为正确答案"
+                              >
+                                <CheckCircle size={18} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>分类</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            placeholder="如：数学、语文、地理..."
+                            value={question.category}
+                            onChange={(e) => updateQuestion(qIndex, 'category', e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>难度</label>
+                          <select
+                            className="form-input"
+                            value={question.difficulty}
+                            onChange={(e) => updateQuestion(qIndex, 'difficulty', e.target.value)}
+                          >
+                            <option value="easy">简单</option>
+                            <option value="medium">中等</option>
+                            <option value="hard">困难</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label>解析说明 <span className="label-hint">（支持LaTeX）</span></label>
+                        <textarea
+                          className="form-input"
+                          placeholder="可选：输入题目解析"
+                          value={question.explanation}
+                          onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 右侧预览区域 */}
+                    <div className="preview-panel">
+                      <div className="preview-panel-content">
                         <div className="preview-item">
-                          <span className="preview-label">题目：</span>
+                          <span className="preview-label">题目</span>
                           <div className="preview-text">
                             {question.question_text ? (
                               <LatexRenderer>{question.question_text}</LatexRenderer>
                             ) : (
-                              <span className="preview-placeholder">暂无内容</span>
+                              <span className="preview-placeholder">等待输入...</span>
                             )}
                           </div>
                         </div>
                         <div className="preview-item">
-                          <span className="preview-label">选项：</span>
+                          <span className="preview-label">选项</span>
                           <div className="preview-options">
                             {question.options.map((opt, i) => (
                               <div key={i} className={`preview-option ${question.correct_answer === i ? 'correct' : ''}`}>
                                 <span className="preview-option-letter">{String.fromCharCode(65 + i)}</span>
-                                {opt ? (
-                                  <LatexRenderer>{opt}</LatexRenderer>
-                                ) : (
-                                  <span className="preview-placeholder">暂无内容</span>
-                                )}
+                                <div className="preview-option-content">
+                                  {opt ? (
+                                    <LatexRenderer>{opt}</LatexRenderer>
+                                  ) : (
+                                    <span className="preview-placeholder">-</span>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </div>
                         </div>
                         {question.explanation && (
                           <div className="preview-item">
-                            <span className="preview-label">解析：</span>
+                            <span className="preview-label">解析</span>
                             <div className="preview-text">
                               <LatexRenderer>{question.explanation}</LatexRenderer>
                             </div>
@@ -487,83 +541,9 @@ const QuestionUpload: React.FC = () => {
                         )}
                       </div>
                       <div className="latex-hint">
-                        <span>💡 提示：使用 <code>$...$</code> 表示行内公式，<code>$$...$$</code> 表示块级公式</span>
+                        💡 <code>$...$</code> 行内公式 &nbsp;|&nbsp; <code>$$...$$</code> 块级公式
                       </div>
                     </div>
-                  )}
-
-                  <div className="form-group">
-                    <label>题目内容 * <span className="label-hint">（支持LaTeX公式）</span></label>
-                    <textarea
-                      className="form-input"
-                      placeholder="请输入题目内容，支持LaTeX公式，如：求 $x^2 + 2x + 1 = 0$ 的解"
-                      value={question.question_text}
-                      onChange={(e) => updateQuestion(qIndex, 'question_text', e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>选项 * <span className="label-hint">（支持LaTeX公式）</span></label>
-                    <div className="options-grid">
-                      {question.options.map((option, oIndex) => (
-                        <div key={oIndex} className="option-input-wrapper">
-                          <span className={`option-label ${question.correct_answer === oIndex ? 'correct' : ''}`}>
-                            {String.fromCharCode(65 + oIndex)}
-                          </span>
-                          <input
-                            type="text"
-                            className="form-input"
-                            placeholder={`选项 ${String.fromCharCode(65 + oIndex)}，如：$x = 1$`}
-                            value={option}
-                            onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
-                          />
-                          <button
-                            className={`correct-btn ${question.correct_answer === oIndex ? 'active' : ''}`}
-                            onClick={() => updateQuestion(qIndex, 'correct_answer', oIndex)}
-                            title="设为正确答案"
-                          >
-                            <CheckCircle size={18} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>分类</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="如：数学、语文、地理..."
-                        value={question.category}
-                        onChange={(e) => updateQuestion(qIndex, 'category', e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>难度</label>
-                      <select
-                        className="form-input"
-                        value={question.difficulty}
-                        onChange={(e) => updateQuestion(qIndex, 'difficulty', e.target.value)}
-                      >
-                        <option value="easy">简单</option>
-                        <option value="medium">中等</option>
-                        <option value="hard">困难</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>解析说明 <span className="label-hint">（支持LaTeX公式）</span></label>
-                    <textarea
-                      className="form-input"
-                      placeholder="可选：输入题目解析，如：根据公式 $ax^2 + bx + c = 0$..."
-                      value={question.explanation}
-                      onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                      rows={2}
-                    />
                   </div>
                 </div>
               ))}

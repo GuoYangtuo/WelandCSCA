@@ -5,7 +5,7 @@
 }
 
 .upload-container {
-  max-width: 960px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -422,32 +422,65 @@
   gap: 0.5rem;
 }
 
-/* LaTeX Preview Section */
-.latex-preview-section {
-  background: rgba(0, 217, 255, 0.05);
-  border: 1px solid rgba(0, 217, 255, 0.2);
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-bottom: 1.25rem;
-  animation: slideIn 0.3s ease;
+/* Editor Layout - Side by Side */
+.question-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  min-height: 400px;
 }
 
-.preview-header {
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-panel {
+  background: rgba(0, 217, 255, 0.03);
+  border: 1px solid rgba(0, 217, 255, 0.15);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-panel-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  background: rgba(0, 217, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 217, 255, 0.15);
   color: #00d9ff;
-  font-weight: 500;
-  margin-bottom: 1rem;
+  font-weight: 600;
   font-size: 0.9rem;
 }
 
-.preview-content {
+.preview-panel-content {
+  flex: 1;
+  padding: 1.25rem;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
+.preview-panel .latex-hint {
+  padding: 0.75rem 1.25rem;
+  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.preview-option-content {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* Preview Panel Styles */
 .preview-item {
   display: flex;
   flex-direction: column;
@@ -455,18 +488,21 @@
 }
 
 .preview-label {
-  color: #a0aec0;
-  font-size: 0.8rem;
-  font-weight: 500;
+  color: #00d9ff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .preview-text {
   color: #e2e8f0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.7;
-  padding: 0.75rem 1rem;
-  background: rgba(0, 0, 0, 0.2);
+  padding: 0.875rem 1rem;
+  background: rgba(0, 0, 0, 0.25);
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .preview-placeholder {
@@ -482,54 +518,53 @@
 
 .preview-option {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: rgba(0, 0, 0, 0.2);
+  padding: 0.625rem 0.875rem;
+  background: rgba(0, 0, 0, 0.25);
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: #e2e8f0;
   transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
 .preview-option.correct {
-  background: rgba(72, 187, 120, 0.15);
-  border: 1px solid rgba(72, 187, 120, 0.3);
+  background: rgba(72, 187, 120, 0.12);
+  border-color: rgba(72, 187, 120, 0.35);
 }
 
 .preview-option-letter {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
   color: #a0aec0;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   flex-shrink: 0;
 }
 
 .preview-option.correct .preview-option-letter {
-  background: rgba(72, 187, 120, 0.3);
+  background: rgba(72, 187, 120, 0.25);
   color: #68d391;
 }
 
 .latex-hint {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #718096;
 }
 
 .latex-hint code {
   background: rgba(0, 217, 255, 0.1);
   color: #00d9ff;
-  padding: 0.15rem 0.4rem;
+  padding: 0.1rem 0.35rem;
   border-radius: 4px;
   font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 /* Label hint */
@@ -617,11 +652,6 @@ select.form-input {
   transition: all 0.2s ease;
 }
 
-.option-label.correct {
-  background: rgba(72, 187, 120, 0.2);
-  border-color: rgba(72, 187, 120, 0.5);
-  color: #68d391;
-}
 
 .option-input-wrapper .form-input {
   flex: 1;
@@ -770,9 +800,25 @@ select.form-input {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .question-editor-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .preview-panel {
+    order: -1;
+    max-height: 350px;
+  }
+}
+
 @media (max-width: 768px) {
   .upload-page {
     padding: 1rem;
+  }
+
+  .upload-container {
+    max-width: 100%;
   }
 
   .upload-header {
@@ -828,5 +874,9 @@ select.form-input {
 
   .parse-actions .btn {
     width: 100%;
+  }
+
+  .preview-panel {
+    max-height: 300px;
   }
 }

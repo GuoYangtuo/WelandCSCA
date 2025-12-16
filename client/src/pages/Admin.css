@@ -600,12 +600,6 @@ textarea.form-input {
   flex-shrink: 0;
 }
 
-.option-label.correct {
-  background: rgba(72, 187, 120, 0.2);
-  border-color: rgba(72, 187, 120, 0.5);
-  color: #68d391;
-}
-
 .option-edit-row .form-input {
   flex: 1;
 }

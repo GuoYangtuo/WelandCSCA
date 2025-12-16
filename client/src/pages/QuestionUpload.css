@@ -474,6 +474,29 @@
   color: #718096;
 }
 
+.preview-panel-footer {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.preview-panel-footer .btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.preview-panel-footer .btn-danger:hover {
+  background: rgba(245, 101, 101, 0.25);
+  transform: translateY(-1px);
+}
+
 .preview-option-content {
   flex: 1;
   min-width: 0;

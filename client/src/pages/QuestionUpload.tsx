@@ -89,7 +89,7 @@ const QuestionUpload: React.FC = () => {
     }
 
     setParsing(true);
-    setParseProgress('正在上传图片到服务器...');
+    setParseProgress('上传图片到服务器...');
     setMessage(null);
 
     try {
@@ -103,7 +103,7 @@ const QuestionUpload: React.FC = () => {
       
       const imageUrls = uploadResult.data.urls;
       
-      setParseProgress('正在AI识别解析...');
+      setParseProgress('正在解析...');
       
       // 2. 调用Dify API
       const result = await difyAPI.parseQuestions(imageUrls);
@@ -383,7 +383,7 @@ const QuestionUpload: React.FC = () => {
                     ) : (
                       <>
                         <Scan size={18} />
-                        AI解析题目
+                        解析题目
                       </>
                     )}
                   </button>
@@ -412,15 +412,6 @@ const QuestionUpload: React.FC = () => {
                 <div key={qIndex} className="question-form-card">
                   <div className="question-form-header">
                     <span className="question-number">题目 {qIndex + 1}</span>
-                    <div className="question-form-actions">
-                      <button 
-                        className="btn btn-icon btn-danger"
-                        onClick={() => removeQuestion(qIndex)}
-                        title="删除此题"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
                   </div>
 
                   <div className="question-editor-layout">
@@ -542,6 +533,16 @@ const QuestionUpload: React.FC = () => {
                       </div>
                       <div className="latex-hint">
                         💡 <code>$...$</code> 行内公式 &nbsp;|&nbsp; <code>$$...$$</code> 块级公式
+                      </div>
+                      <div className="preview-panel-footer">
+                        <button 
+                          className="btn btn-icon btn-danger"
+                          onClick={() => removeQuestion(qIndex)}
+                          title="删除此题"
+                        >
+                          <Trash2 size={18} />
+                          删除此题
+                        </button>
                       </div>
                     </div>
                   </div>

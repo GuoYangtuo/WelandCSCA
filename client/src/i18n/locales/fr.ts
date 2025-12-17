@@ -263,6 +263,13 @@ export const fr = {
       physics: 'Programme de physique',
       chemistry: 'Programme de chimie',
     },
+    contactUs: 'Nous contacter',
+    contact: {
+      email: 'Email',
+      address: 'Adresse du bureau',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'Shanghai, Chine 200041',
+    },
   },
 
   // Study 学习训练页面

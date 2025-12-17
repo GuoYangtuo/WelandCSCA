@@ -263,6 +263,13 @@ export const en = {
       physics: 'Physics Syllabus',
       chemistry: 'Chemistry Syllabus',
     },
+    contactUs: 'Contact Us',
+    contact: {
+      email: 'Email',
+      address: 'Office Address',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'Shanghai, China 200041',
+    },
   },
 
   // Study 学习训练页面

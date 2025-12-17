@@ -263,6 +263,13 @@ export const ru = {
       physics: 'Программа по физике',
       chemistry: 'Программа по химии',
     },
+    contactUs: 'Связаться с нами',
+    contact: {
+      email: 'Электронная почта',
+      address: 'Адрес офиса',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'Шанхай, Китай 200041',
+    },
   },
 
   // Study 学习训练页面

@@ -263,6 +263,13 @@ export const ar = {
       physics: 'منهج الفيزياء',
       chemistry: 'منهج الكيمياء',
     },
+    contactUs: 'اتصل بنا',
+    contact: {
+      email: 'البريد الإلكتروني',
+      address: 'عنوان المكتب',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'شنغهاي، الصين 200041',
+    },
   },
 
   // Study 学习训练页面

@@ -263,6 +263,13 @@ export const zh = {
       physics: '物理考试大纲',
       chemistry: '化学考试大纲',
     },
+    contactUs: '联系我们',
+    contact: {
+      email: '邮箱',
+      address: '办公地址',
+      addressLine1: '上海市古北路628号8层',
+      addressLine2: '中国 上海 200041',
+    },
   },
 
   // Study 学习训练页面

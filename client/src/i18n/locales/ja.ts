@@ -263,6 +263,13 @@ export const ja = {
       physics: '物理試験大綱',
       chemistry: '化学試験大綱',
     },
+    contactUs: 'お問い合わせ',
+    contact: {
+      email: 'メール',
+      address: 'オフィス所在地',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'Shanghai, China 200041',
+    },
   },
 
   // Study 学习训练页面

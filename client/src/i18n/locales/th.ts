@@ -263,6 +263,13 @@ export const th = {
       physics: 'หลักสูตรฟิสิกส์',
       chemistry: 'หลักสูตรเคมี',
     },
+    contactUs: 'ติดต่อเรา',
+    contact: {
+      email: 'อีเมล',
+      address: 'ที่อยู่สำนักงาน',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'เซี่ยงไฮ้ จีน 200041',
+    },
   },
 
   // Study 学习训练页面

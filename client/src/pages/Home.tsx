@@ -543,6 +543,15 @@ const Home: React.FC = () => {
                 <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012823663162.pdf" target="_blank" rel="noopener noreferrer" onClick={handleSyllabusClick}>{t.home.syllabus.chemistry}</a></li>
               </ul>
             </div>
+            <div className="footer-col">
+              <h4>{t.home.contactUs}</h4>
+              <ul>
+                <li><strong>{t.home.contact.email}:</strong> <a href="mailto:csca@weland.group">csca@weland.group</a></li>
+                <li><strong>{t.home.contact.address}:</strong></li>
+                <li>{t.home.contact.addressLine1}</li>
+                <li>{t.home.contact.addressLine2}</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

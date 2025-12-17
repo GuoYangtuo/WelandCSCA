@@ -263,6 +263,13 @@ export const vi = {
       physics: 'Đề cương thi Vật lý',
       chemistry: 'Đề cương thi Hóa học',
     },
+    contactUs: 'Liên hệ',
+    contact: {
+      email: 'Email',
+      address: 'Địa chỉ văn phòng',
+      addressLine1: '8F, No.628 GuBei Road',
+      addressLine2: 'Thượng Hải, Trung Quốc 200041',
+    },
   },
 
   // Study 学习训练页面

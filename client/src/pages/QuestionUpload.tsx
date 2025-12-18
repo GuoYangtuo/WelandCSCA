@@ -59,7 +59,7 @@ const QuestionUpload: React.FC = () => {
   const [mode, setMode] = useState<'upload' | 'manual'>('upload');
   
   // 上传类型：'image' = 图片, 'pdf' = PDF
-  const [uploadType, setUploadType] = useState<'image' | 'pdf'>('image');
+  const [uploadType, setUploadType] = useState<'image' | 'pdf'>('pdf');
   
   // 图片上传相关状态
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -287,7 +287,7 @@ const QuestionUpload: React.FC = () => {
         options: q.options || ['', '', '', ''],
         correct_answer: 0,  // 暂时设为0
         explanation: '',
-        category: '',
+        category: q.category || '',  // 使用阿里云识别出的分类
         difficulty: 'medium',
         knowledge_points: [],
         analyzeStatus: initialAnalyzeStatus
@@ -549,20 +549,20 @@ const QuestionUpload: React.FC = () => {
             {/* 上传类型切换 */}
             <div className="upload-type-switch">
               <button 
-                className={`upload-type-btn ${uploadType === 'image' ? 'active' : ''}`}
-                onClick={() => setUploadType('image')}
-                disabled={parsing}
-              >
-                <Image size={18} />
-                图片上传
-              </button>
-              <button 
                 className={`upload-type-btn ${uploadType === 'pdf' ? 'active' : ''}`}
                 onClick={() => setUploadType('pdf')}
                 disabled={parsing}
               >
                 <FileText size={18} />
                 PDF上传
+              </button>
+              <button 
+                className={`upload-type-btn ${uploadType === 'image' ? 'active' : ''}`}
+                onClick={() => setUploadType('image')}
+                disabled={parsing}
+              >
+                <Image size={18} />
+                图片上传
               </button>
             </div>
 
@@ -805,13 +805,17 @@ const QuestionUpload: React.FC = () => {
                       <div className="form-row">
                         <div className="form-group">
                           <label>分类</label>
-                          <input
-                            type="text"
+                          <select
                             className="form-input"
-                            placeholder="如：数学、语文、地理..."
                             value={question.category}
                             onChange={(e) => updateQuestion(qIndex, 'category', e.target.value)}
-                          />
+                          >
+                            <option value="">请选择分类</option>
+                            <option value="中文">中文</option>
+                            <option value="数学">数学</option>
+                            <option value="物理">物理</option>
+                            <option value="化学">化学</option>
+                          </select>
                         </div>
                         <div className="form-group">
                           <label>难度</label>
@@ -869,6 +873,14 @@ const QuestionUpload: React.FC = () => {
                             ))}
                           </div>
                         </div>
+                        {question.category && (
+                          <div className="preview-item">
+                            <span className="preview-label">分类</span>
+                            <div className="preview-text">
+                              <span className="category-tag">{question.category}</span>
+                            </div>
+                          </div>
+                        )}
                         {question.explanation && (
                           <div className="preview-item">
                             <span className="preview-label">解析</span>

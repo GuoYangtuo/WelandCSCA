@@ -199,7 +199,8 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
   "questions": [
     {
       "question_text": "题目文本",
-      "options": ["选项A", "选项B", "选项C", "选项D"]
+      "options": ["选项A", "选项B", "选项C", "选项D"],
+      "category": "分类"
     }
   ]
 }
@@ -209,7 +210,8 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
 2. 如果图片中有多道题目，请全部提取
 3. 只输出JSON，不要有其他文字
 4. 如有公式请使用LaTeX格式，用$...$包裹
-5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组`
+5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组
+6. category 必须是以下四个分类之一：中文、数学、物理、化学。根据题目内容判断所属学科分类`
   });
 
   const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
@@ -354,10 +356,12 @@ router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest
     // 调用带重试机制的API
     const result = await callDashscopeWithRetry(imageUrls, dashscopeApiKey, 3, 1000);
 
-    // 标准化题目数据格式（只返回题目和选项，不包含答案）
+    // 标准化题目数据格式（返回题目、选项和分类，不包含答案）
+    const validCategories = ['中文', '数学', '物理', '化学'];
     const questions = result.questions.map((item: any) => ({
       question_text: item.question_text || '',
-      options: item.options || ['', '', '', '']
+      options: item.options || ['', '', '', ''],
+      category: validCategories.includes(item.category) ? item.category : ''
     }));
 
     // 识别成功后删除图片文件

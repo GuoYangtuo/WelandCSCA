@@ -299,6 +299,9 @@ export const es = {
     loadLessonFailed: 'Error al cargar el contenido de la lección, por favor intenta de nuevo',
     needBasicTest: 'Por favor completa la prueba básica primero para ver el contenido de la lección',
     confirmGoBasicTest: 'Necesitas completar la prueba básica primero para ver el contenido de la lección. ¿Ir a la página de prueba básica?',
+    lessonDocument: 'Documento de la lección',
+    viewDocument: 'Ver en línea',
+    downloadDocument: 'Descargar documento',
   },
 
   // BasicTest 基础测试页面

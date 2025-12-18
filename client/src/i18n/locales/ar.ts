@@ -299,6 +299,9 @@ export const ar = {
     loadLessonFailed: 'فشل تحميل محتوى الدرس، يرجى المحاولة مرة أخرى',
     needBasicTest: 'يرجى إكمال الاختبار الأساسي أولاً لعرض محتوى الدرس',
     confirmGoBasicTest: 'تحتاج لإكمال الاختبار الأساسي أولاً لعرض محتوى الدرس، هل تريد الانتقال إلى صفحة الاختبار الأساسي؟',
+    lessonDocument: 'مستند الدرس',
+    viewDocument: 'عرض عبر الإنترنت',
+    downloadDocument: 'تحميل المستند',
   },
 
   // BasicTest 基础测试页面

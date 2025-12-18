@@ -299,6 +299,9 @@ export const vi = {
     loadLessonFailed: 'Tải nội dung bài học thất bại, vui lòng thử lại',
     needBasicTest: 'Vui lòng hoàn thành bài kiểm tra cơ bản để xem nội dung bài học',
     confirmGoBasicTest: 'Bạn cần hoàn thành bài kiểm tra cơ bản trước khi xem nội dung bài học. Bạn có muốn đến trang bài kiểm tra cơ bản không?',
+    lessonDocument: 'Tài liệu bài học',
+    viewDocument: 'Xem trực tuyến',
+    downloadDocument: 'Tải tài liệu',
   },
 
   // BasicTest 基础测试页面

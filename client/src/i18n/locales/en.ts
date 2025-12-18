@@ -299,6 +299,9 @@ export const en = {
     loadLessonFailed: 'Failed to load lesson content, please try again',
     needBasicTest: 'Please complete the basic test first to view lesson content',
     confirmGoBasicTest: 'You need to complete the basic test first to view lesson content. Go to basic test page?',
+    lessonDocument: 'Lesson Document',
+    viewDocument: 'View Online',
+    downloadDocument: 'Download Document',
   },
 
   // BasicTest 基础测试页面

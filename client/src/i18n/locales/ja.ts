@@ -299,6 +299,9 @@ export const ja = {
     loadLessonFailed: '課の内容の読み込みに失敗しました。再度お試しください',
     needBasicTest: '課の内容を閲覧するには、まず基礎テストを完了する必要があります',
     confirmGoBasicTest: '課の内容を閲覧するには、まず基礎テストを完了する必要があります。基礎テストページに移動しますか？',
+    lessonDocument: '課のドキュメント',
+    viewDocument: 'オンラインで表示',
+    downloadDocument: 'ドキュメントをダウンロード',
   },
 
   // BasicTest 基础测试页面

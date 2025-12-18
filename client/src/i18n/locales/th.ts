@@ -299,6 +299,9 @@ export const th = {
     loadLessonFailed: 'โหลดเนื้อหาบทเรียนล้มเหลว กรุณาลองใหม่',
     needBasicTest: 'กรุณาทำแบบทดสอบพื้นฐานก่อนดูเนื้อหาบทเรียน',
     confirmGoBasicTest: 'คุณต้องทำแบบทดสอบพื้นฐานก่อนดูเนื้อหาบทเรียน ต้องการไปหน้าแบบทดสอบพื้นฐานหรือไม่?',
+    lessonDocument: 'เอกสารบทเรียน',
+    viewDocument: 'ดูออนไลน์',
+    downloadDocument: 'ดาวน์โหลดเอกสาร',
   },
 
   // BasicTest 基础测试页面

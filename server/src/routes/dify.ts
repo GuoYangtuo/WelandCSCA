@@ -281,7 +281,7 @@ async function callDashscopeWithRetry(
     try {
       console.log(`调用 Dashscope API，第 ${attempt} 次尝试，图片URLs:`, imageUrls);
       
-      const responseData = await callDashscopeApi(["http://csca.weland.group/uploads/question-1765848116684-136096574.jpg"], apiKey);
+      const responseData = await callDashscopeApi(imageUrls, apiKey);
       const parsedResult = extractJsonFromResponse(responseData);
       
       // 验证结果格式
@@ -312,6 +312,27 @@ async function callDashscopeWithRetry(
   throw lastError || new Error('所有重试均失败');
 }
 
+// 从URL中提取文件名并删除本地文件
+function cleanupImageFiles(imageUrls: string[]) {
+  let deletedCount = 0;
+  for (const url of imageUrls) {
+    try {
+      // 从URL中提取文件名 (例如: http://xxx/uploads/question-xxx.jpg -> question-xxx.jpg)
+      const filename = path.basename(url);
+      const filePath = path.join(uploadDir, filename);
+      
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        deletedCount++;
+        console.log(`已删除图片: ${filename}`);
+      }
+    } catch (err) {
+      console.error(`删除图片失败: ${url}`, err);
+    }
+  }
+  return deletedCount;
+}
+
 // 阿里云 Dashscope API 接口 - 调用OCR识别题目
 router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
@@ -338,6 +359,10 @@ router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest
       question_text: item.question_text || '',
       options: item.options || ['', '', '', '']
     }));
+
+    // 识别成功后删除图片文件
+    const deletedCount = cleanupImageFiles(imageUrls);
+    console.log(`识别完成，已清理 ${deletedCount} 个图片文件`);
 
     res.json({
       success: true,

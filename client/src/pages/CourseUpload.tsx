@@ -11,7 +11,6 @@ import {
   X,
   ChevronDown,
   ChevronRight,
-  GripVertical,
   AlertCircle,
   CheckCircle,
   Loader2,
@@ -173,7 +172,6 @@ const CourseUpload: React.FC = () => {
 
   // 课时操作
   const handleAddLesson = (chapterId: number) => {
-    const chapter = chapters.find(c => c.id === chapterId);
     const chapterLessons = lessons.filter(l => l.chapter_id === chapterId);
     
     setEditMode('lesson');

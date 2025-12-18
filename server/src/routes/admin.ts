@@ -1,8 +1,52 @@
 import express, { Response } from 'express';
 import { randomBytes } from 'crypto';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { cscaPool, pool } from '../config/database';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { adminAuth } from '../middleware/adminAuth';
+
+// 配置文档上传存储
+const documentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../../uploads/documents');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `document-${uniqueSuffix}${ext}`);
+  }
+});
+
+const documentUpload = multer({
+  storage: documentStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB限制
+  fileFilter: (req, file, cb) => {
+    // 允许的文件类型：PDF、Word、PPT等
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('不支持的文件类型'));
+    }
+  }
+});
 
 const router = express.Router();
 
@@ -15,6 +59,8 @@ router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: 
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = (page - 1) * limit;
     const search = req.query.search as string;
+    const category = req.query.category as string;
+    const difficulty = req.query.difficulty as string;
 
     let query = 'SELECT * FROM questions WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) as total FROM questions WHERE 1=1';
@@ -26,6 +72,20 @@ router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: 
       countQuery += ' AND question_text LIKE ?';
       params.push(`%${search}%`);
       countParams.push(`%${search}%`);
+    }
+
+    if (category) {
+      query += ' AND category = ?';
+      countQuery += ' AND category = ?';
+      params.push(category);
+      countParams.push(category);
+    }
+
+    if (difficulty) {
+      query += ' AND difficulty = ?';
+      countQuery += ' AND difficulty = ?';
+      params.push(difficulty);
+      countParams.push(difficulty);
     }
 
     query += ' ORDER BY id DESC LIMIT ? OFFSET ?';
@@ -368,18 +428,63 @@ router.get('/lessons', authenticate, adminAuth, async (req: AuthRequest, res: Re
   }
 });
 
+// 上传课时文档
+router.post('/lessons/upload-document', authenticate, adminAuth, documentUpload.single('document'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: '请选择要上传的文件' });
+    }
+
+    const documentUrl = `/uploads/documents/${req.file.filename}`;
+    // 修复中文文件名乱码问题：multer 的 originalname 使用 Latin1 编码，需转换为 UTF-8
+    const documentName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+
+    res.json({
+      success: true,
+      message: '文档上传成功',
+      data: {
+        documentUrl,
+        documentName
+      }
+    });
+  } catch (error) {
+    console.error('上传文档错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 删除课时文档
+router.delete('/lessons/document/:filename', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, '../../uploads/documents', filename);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    res.json({
+      success: true,
+      message: '文档删除成功'
+    });
+  } catch (error) {
+    console.error('删除文档错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
 // 添加课时
 router.post('/lessons', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { chapter_id, title, content, order_index } = req.body;
+    const { chapter_id, title, content, order_index, document_url, document_name } = req.body;
 
     if (!chapter_id || !title || !content) {
       return res.status(400).json({ message: '请提供完整的课时信息' });
     }
 
     const [result] = await cscaPool.query(
-      'INSERT INTO lessons (chapter_id, title, content, order_index) VALUES (?, ?, ?, ?)',
-      [chapter_id, title, content, order_index || 0]
+      'INSERT INTO lessons (chapter_id, title, content, document_url, document_name, order_index) VALUES (?, ?, ?, ?, ?, ?)',
+      [chapter_id, title, content, document_url || null, document_name || null, order_index || 0]
     );
 
     res.json({
@@ -397,11 +502,11 @@ router.post('/lessons', authenticate, adminAuth, async (req: AuthRequest, res: R
 router.put('/lessons/:id', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { chapter_id, title, content, order_index } = req.body;
+    const { chapter_id, title, content, order_index, document_url, document_name } = req.body;
 
     const [result] = await cscaPool.query(
-      'UPDATE lessons SET chapter_id = ?, title = ?, content = ?, order_index = ? WHERE id = ?',
-      [chapter_id, title, content, order_index, id]
+      'UPDATE lessons SET chapter_id = ?, title = ?, content = ?, document_url = ?, document_name = ?, order_index = ? WHERE id = ?',
+      [chapter_id, title, content, document_url || null, document_name || null, order_index, id]
     );
 
     if ((result as any).affectedRows === 0) {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
+import api, { adminAPI } from '../services/api';
 import {
   BookOpen,
   Plus,
@@ -18,7 +18,11 @@ import {
   FolderPlus,
   FileText,
   Eye,
-  Layers
+  Layers,
+  Upload,
+  File,
+  FileImage,
+  FileSpreadsheet
 } from 'lucide-react';
 import './CourseUpload.css';
 
@@ -35,6 +39,8 @@ interface Lesson {
   chapter_title?: string;
   title: string;
   content: string;
+  document_url?: string;
+  document_name?: string;
   order_index: number;
 }
 
@@ -60,6 +66,10 @@ const CourseUpload: React.FC = () => {
   const [editingChapter, setEditingChapter] = useState<Partial<Chapter> | null>(null);
   const [editingLesson, setEditingLesson] = useState<Partial<Lesson> | null>(null);
   const [isNewItem, setIsNewItem] = useState(false);
+
+  // 文档上传状态
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 权限检查
   useEffect(() => {
@@ -252,6 +262,68 @@ const CourseUpload: React.FC = () => {
     setEditingChapter(null);
     setEditingLesson(null);
     setIsNewItem(false);
+  };
+
+  // 文档上传处理
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const result = await adminAPI.uploadLessonDocument(file);
+      if (result.success) {
+        setEditingLesson({
+          ...editingLesson,
+          document_url: result.data.documentUrl,
+          document_name: result.data.documentName
+        });
+        setMessage({ type: 'success', text: '文档上传成功' });
+      }
+    } catch (error) {
+      console.error('文档上传失败:', error);
+      setMessage({ type: 'error', text: '文档上传失败' });
+    } finally {
+      setUploading(false);
+      // 清空文件输入，允许重新选择同一文件
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 移除已上传的文档
+  const handleRemoveDocument = async () => {
+    if (!editingLesson?.document_url) return;
+
+    try {
+      // 从URL中提取文件名
+      const filename = editingLesson.document_url.split('/').pop();
+      if (filename) {
+        await adminAPI.deleteLessonDocument(filename);
+      }
+      setEditingLesson({
+        ...editingLesson,
+        document_url: undefined,
+        document_name: undefined
+      });
+      setMessage({ type: 'success', text: '文档已移除，请点击"保存修改"' });
+    } catch (error) {
+      console.error('移除文档失败:', error);
+      setMessage({ type: 'error', text: '移除文档失败' });
+    }
+  };
+
+  // 获取文档图标
+  const getDocumentIcon = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
+      return <FileImage size={20} />;
+    }
+    if (['xls', 'xlsx', 'csv'].includes(ext || '')) {
+      return <FileSpreadsheet size={20} />;
+    }
+    return <File size={20} />;
   };
 
   // 切换章节展开
@@ -592,6 +664,63 @@ const CourseUpload: React.FC = () => {
                       onChange={(e) => setEditingLesson({ ...editingLesson, content: e.target.value })}
                     />
                     <p className="form-hint">支持多段落，每段用换行分隔</p>
+                  </div>
+
+                  <div className="form-group">
+                    <label>课时文档</label>
+                    <div className="document-upload-area">
+                      {editingLesson?.document_url ? (
+                        <div className="uploaded-document">
+                          <div className="document-info">
+                            {getDocumentIcon(editingLesson.document_name || '')}
+                            <span className="document-name">{editingLesson.document_name}</span>
+                          </div>
+                          <div className="document-actions">
+                            <a 
+                              href={editingLesson.document_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="btn-icon"
+                              title="预览文档"
+                            >
+                              <Eye size={16} />
+                            </a>
+                            <button 
+                              className="btn-icon danger" 
+                              onClick={handleRemoveDocument}
+                              title="移除文档"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          className="upload-trigger"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          {uploading ? (
+                            <>
+                              <Loader2 className="spin" size={24} />
+                              <span>上传中...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={24} />
+                              <span>点击上传文档</span>
+                              <span className="upload-hint">支持 PDF、Word、PPT、Excel、图片等格式，最大 50MB</span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                        onChange={handleDocumentUpload}
+                        style={{ display: 'none' }}
+                      />
+                    </div>
                   </div>
                 </div>
 

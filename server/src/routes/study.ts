@@ -71,7 +71,7 @@ router.get('/lessons/:id', authenticate, async (req: AuthRequest, res: Response)
 
     // 获取课时详情
     const [lessons] = await cscaPool.query(
-      'SELECT id, chapter_id, title, content, order_index FROM lessons WHERE id = ?',
+      'SELECT id, chapter_id, title, content, document_url, document_name, order_index FROM lessons WHERE id = ?',
       [lessonId]
     );
 
@@ -88,6 +88,8 @@ router.get('/lessons/:id', authenticate, async (req: AuthRequest, res: Response)
         chapterId: lesson.chapter_id,
         title: lesson.title,
         content: lesson.content,
+        documentUrl: lesson.document_url,
+        documentName: lesson.document_name,
         orderIndex: lesson.order_index
       }
     });

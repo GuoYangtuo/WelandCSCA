@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Upload, Plus, Trash2, Save, FileJson, AlertCircle, CheckCircle, X, 
-  Image, Scan, Edit3, Loader2, RefreshCw, Clock, Brain, FileText
+  Image, Scan, Edit3, Loader2, RefreshCw, Clock, Brain, FileText,
+  Database, Search, Filter, ChevronLeft, ChevronRight, Edit2
 } from 'lucide-react';
 import { difyAPI, adminAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
@@ -36,6 +37,35 @@ interface UploadedPdf {
   size: number;
 }
 
+// 已存在的题目类型（从数据库加载）
+interface ExistingQuestion {
+  id: number;
+  question_text: string;
+  options: string | string[];
+  correct_answer: number;
+  explanation: string | null;
+  category: string | null;
+  difficulty: string;
+  created_at?: string;
+}
+
+// 分类配置
+const CATEGORIES = [
+  { key: 'all', label: '全部', color: '#a0aec0' },
+  { key: '中文', label: '中文', color: '#f56565' },
+  { key: '数学', label: '数学', color: '#48bb78' },
+  { key: '物理', label: '物理', color: '#4299e1' },
+  { key: '化学', label: '化学', color: '#ed8936' },
+];
+
+// 难度配置
+const DIFFICULTIES = [
+  { key: 'all', label: '全部难度' },
+  { key: 'easy', label: '简单' },
+  { key: 'medium', label: '中等' },
+  { key: 'hard', label: '困难' },
+];
+
 const emptyQuestion: QuestionForm = {
   question_text: '',
   options: ['', '', '', ''],
@@ -55,8 +85,8 @@ const QuestionUpload: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   
-  // 模式切换：'upload' = 图片上传解析, 'manual' = 手动输入
-  const [mode, setMode] = useState<'upload' | 'manual'>('upload');
+  // 模式切换：'upload' = 图片上传解析, 'manual' = 手动输入, 'manage' = 题目管理
+  const [mode, setMode] = useState<'upload' | 'manual' | 'manage'>('upload');
   
   // 上传类型：'image' = 图片, 'pdf' = PDF
   const [uploadType, setUploadType] = useState<'image' | 'pdf'>('pdf');
@@ -73,6 +103,173 @@ const QuestionUpload: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [jsonInput, setJsonInput] = useState('');
   const [showJsonImport, setShowJsonImport] = useState(false);
+
+  // ========== 题目管理相关状态 ==========
+  const [existingQuestions, setExistingQuestions] = useState<ExistingQuestion[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [editingQuestion, setEditingQuestion] = useState<ExistingQuestion | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // ========== 题目管理功能 ==========
+  
+  // 加载题目列表
+  const loadQuestions = useCallback(async () => {
+    setLoadingQuestions(true);
+    try {
+      const params: any = {
+        page: currentPage,
+        limit: 10,
+      };
+      if (selectedCategory !== 'all') {
+        params.category = selectedCategory;
+      }
+      if (selectedDifficulty !== 'all') {
+        params.difficulty = selectedDifficulty;
+      }
+      if (searchKeyword.trim()) {
+        params.search = searchKeyword.trim();
+      }
+
+      const result = await adminAPI.getQuestions(params);
+      if (result.success) {
+        setExistingQuestions(result.data.questions);
+        setTotalPages(result.data.pagination.totalPages);
+        setTotalCount(result.data.pagination.total);
+      }
+    } catch (error: any) {
+      console.error('加载题目失败:', error);
+      setMessage({ type: 'error', text: '加载题目失败' });
+    } finally {
+      setLoadingQuestions(false);
+    }
+  }, [currentPage, selectedCategory, selectedDifficulty, searchKeyword]);
+
+  // 当筛选条件变化时重新加载
+  useEffect(() => {
+    if (mode === 'manage') {
+      loadQuestions();
+    }
+  }, [mode, loadQuestions]);
+
+  // 切换分类时重置页码
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  // 切换难度时重置页码
+  const handleDifficultyChange = (difficulty: string) => {
+    setSelectedDifficulty(difficulty);
+    setCurrentPage(1);
+  };
+
+  // 搜索
+  const handleSearch = () => {
+    setCurrentPage(1);
+    loadQuestions();
+  };
+
+  // 删除题目
+  const handleDeleteQuestion = async (id: number) => {
+    if (!window.confirm('确定要删除这道题目吗？此操作不可恢复。')) {
+      return;
+    }
+
+    setDeletingId(id);
+    try {
+      const result = await adminAPI.deleteQuestion(id);
+      if (result.success) {
+        setMessage({ type: 'success', text: '题目删除成功' });
+        loadQuestions();
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || '删除失败' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // 开始编辑题目
+  const handleStartEdit = (question: ExistingQuestion) => {
+    // 确保 options 是数组
+    const options = typeof question.options === 'string' 
+      ? JSON.parse(question.options) 
+      : question.options;
+    setEditingQuestion({ ...question, options });
+  };
+
+  // 取消编辑
+  const handleCancelEdit = () => {
+    setEditingQuestion(null);
+  };
+
+  // 保存编辑
+  const handleSaveEdit = async () => {
+    if (!editingQuestion) return;
+
+    setUploading(true);
+    try {
+      const result = await adminAPI.updateQuestion(editingQuestion.id, {
+        question_text: editingQuestion.question_text,
+        options: editingQuestion.options,
+        correct_answer: editingQuestion.correct_answer,
+        explanation: editingQuestion.explanation,
+        category: editingQuestion.category,
+        difficulty: editingQuestion.difficulty,
+      });
+      if (result.success) {
+        setMessage({ type: 'success', text: '题目更新成功' });
+        setEditingQuestion(null);
+        loadQuestions();
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || '更新失败' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 更新编辑中的题目
+  const updateEditingQuestion = (field: keyof ExistingQuestion, value: any) => {
+    if (editingQuestion) {
+      setEditingQuestion({ ...editingQuestion, [field]: value });
+    }
+  };
+
+  // 更新编辑中的选项
+  const updateEditingOption = (index: number, value: string) => {
+    if (editingQuestion && Array.isArray(editingQuestion.options)) {
+      const newOptions = [...editingQuestion.options];
+      newOptions[index] = value;
+      setEditingQuestion({ ...editingQuestion, options: newOptions });
+    }
+  };
+
+  // 解析选项（从数据库可能是 JSON 字符串）
+  const parseOptions = (options: string | string[]): string[] => {
+    if (Array.isArray(options)) return options;
+    try {
+      return JSON.parse(options);
+    } catch {
+      return ['', '', '', ''];
+    }
+  };
+
+  // 获取难度显示文本
+  const getDifficultyText = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return '简单';
+      case 'medium': return '中等';
+      case 'hard': return '困难';
+      default: return difficulty;
+    }
+  };
 
   // 图片上传处理
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,7 +515,7 @@ const QuestionUpload: React.FC = () => {
         // 未启用 DeepSeek 解析，直接让用户手动填写
         setMessage({ 
           type: 'success', 
-          text: `识别出 ${questionsWithStatus.length} 道题目，请手动填写答案和解析` 
+          text: `识别出 ${questionsWithStatus.length} 道题目，请校对识别结果，并手动填写答案和解析` 
         });
       }
     } else {
@@ -462,7 +659,7 @@ const QuestionUpload: React.FC = () => {
         <header className="upload-header">
           <div className="header-title">
             <Upload size={28} />
-            <h1>题目上传</h1>
+            <h1>题目管理</h1>
           </div>
           <div className="header-actions">
             <div className="mode-switch">
@@ -480,14 +677,23 @@ const QuestionUpload: React.FC = () => {
                 <Edit3 size={16} />
                 手动输入
               </button>
+              <button 
+                className={`mode-btn ${mode === 'manage' ? 'active' : ''}`}
+                onClick={() => setMode('manage')}
+              >
+                <Database size={16} />
+                题库管理
+              </button>
             </div>
-            <button 
-              className="btn btn-outline"
-              onClick={() => setShowJsonImport(!showJsonImport)}
-            >
-              <FileJson size={18} />
-              JSON导入
-            </button>
+            {mode !== 'manage' && (
+              <button 
+                className="btn btn-outline"
+                onClick={() => setShowJsonImport(!showJsonImport)}
+              >
+                <FileJson size={18} />
+                JSON导入
+              </button>
+            )}
             {mode === 'manual' && (
               <button 
                 className="btn btn-primary"
@@ -972,6 +1178,280 @@ const QuestionUpload: React.FC = () => {
             <Edit3 size={48} />
             <h3>暂无题目</h3>
             <p>点击右上角「添加题目」按钮开始手动录入</p>
+          </div>
+        )}
+
+        {/* ========== 题库管理模式 ========== */}
+        {mode === 'manage' && (
+          <div className="manage-section">
+            {/* 分类标签 */}
+            <div className="category-tabs">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.key}
+                  className={`category-tab ${selectedCategory === cat.key ? 'active' : ''}`}
+                  onClick={() => handleCategoryChange(cat.key)}
+                  style={{ '--tab-color': cat.color } as React.CSSProperties}
+                >
+                  {cat.label}
+                  {selectedCategory === cat.key && totalCount > 0 && (
+                    <span className="tab-count">{totalCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* 筛选栏 */}
+            <div className="filter-bar">
+              <div className="filter-left">
+                <div className="search-box">
+                  <Search size={18} />
+                  <input
+                    type="text"
+                    placeholder="搜索题目内容..."
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  {searchKeyword && (
+                    <button className="clear-search" onClick={() => { setSearchKeyword(''); setCurrentPage(1); }}>
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <div className="difficulty-filter">
+                  <Filter size={16} />
+                  <select
+                    value={selectedDifficulty}
+                    onChange={(e) => handleDifficultyChange(e.target.value)}
+                  >
+                    {DIFFICULTIES.map(d => (
+                      <option key={d.key} value={d.key}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button className="btn btn-secondary" onClick={loadQuestions}>
+                <RefreshCw size={16} />
+                刷新
+              </button>
+            </div>
+
+            {/* 题目列表 */}
+            {loadingQuestions ? (
+              <div className="loading-state">
+                <Loader2 size={32} className="spin" />
+                <span>加载中...</span>
+              </div>
+            ) : existingQuestions.length === 0 ? (
+              <div className="empty-state">
+                <Database size={48} />
+                <h3>暂无题目</h3>
+                <p>
+                  {selectedCategory !== 'all' || selectedDifficulty !== 'all' || searchKeyword
+                    ? '没有符合筛选条件的题目'
+                    : '题库中还没有题目，去上传一些吧'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="questions-table">
+                  <div className="table-header">
+                    <span className="col-id">ID</span>
+                    <span className="col-content">题目内容</span>
+                    <span className="col-category">分类</span>
+                    <span className="col-difficulty">难度</span>
+                    <span className="col-actions">操作</span>
+                  </div>
+                  <div className="table-body">
+                    {existingQuestions.map((q) => (
+                      <div key={q.id} className="table-row">
+                        <span className="col-id">#{q.id}</span>
+                        <div className="col-content">
+                          <div className="question-preview-text">
+                            <LatexRenderer>{q.question_text.substring(0, 100) + (q.question_text.length > 100 ? '...' : '')}</LatexRenderer>
+                          </div>
+                          <div className="options-preview">
+                            {parseOptions(q.options).map((_, i) => (
+                              <span key={i} className={`option-tag ${q.correct_answer === i ? 'correct' : ''}`}>
+                                {String.fromCharCode(65 + i)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <span className="col-category">
+                          {q.category ? (
+                            <span className="category-badge" style={{ 
+                              background: `${CATEGORIES.find(c => c.key === q.category)?.color || '#a0aec0'}20`,
+                              color: CATEGORIES.find(c => c.key === q.category)?.color || '#a0aec0'
+                            }}>
+                              {q.category}
+                            </span>
+                          ) : '-'}
+                        </span>
+                        <span className="col-difficulty">
+                          <span className={`difficulty-badge ${q.difficulty}`}>
+                            {getDifficultyText(q.difficulty)}
+                          </span>
+                        </span>
+                        <div className="col-actions">
+                          <button 
+                            className="action-btn edit"
+                            onClick={() => handleStartEdit(q)}
+                            title="编辑"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            className="action-btn delete"
+                            onClick={() => handleDeleteQuestion(q.id)}
+                            disabled={deletingId === q.id}
+                            title="删除"
+                          >
+                            {deletingId === q.id ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 分页 */}
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <button 
+                      className="page-btn"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <span className="page-info">
+                      第 {currentPage} / {totalPages} 页
+                    </span>
+                    <button 
+                      className="page-btn"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ========== 编辑题目弹窗 ========== */}
+        {editingQuestion && (
+          <div className="edit-modal-overlay" onClick={handleCancelEdit}>
+            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="edit-modal-header">
+                <h3>编辑题目 #{editingQuestion.id}</h3>
+                <button className="modal-close" onClick={handleCancelEdit}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="edit-modal-body">
+                <div className="form-group">
+                  <label>题目内容 *</label>
+                  <textarea
+                    className="form-input"
+                    value={editingQuestion.question_text}
+                    onChange={(e) => updateEditingQuestion('question_text', e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>选项 *</label>
+                  <div className="options-grid">
+                    {Array.isArray(editingQuestion.options) && editingQuestion.options.map((option, oIndex) => (
+                      <div key={oIndex} className="option-input-wrapper">
+                        <span className="option-label">
+                          {String.fromCharCode(65 + oIndex)}
+                        </span>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={option}
+                          onChange={(e) => updateEditingOption(oIndex, e.target.value)}
+                        />
+                        <button
+                          className={`correct-btn ${editingQuestion.correct_answer === oIndex ? 'active' : ''}`}
+                          onClick={() => updateEditingQuestion('correct_answer', oIndex)}
+                          title="设为正确答案"
+                        >
+                          <CheckCircle size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>分类</label>
+                    <select
+                      className="form-input"
+                      value={editingQuestion.category || ''}
+                      onChange={(e) => updateEditingQuestion('category', e.target.value)}
+                    >
+                      <option value="">请选择分类</option>
+                      <option value="中文">中文</option>
+                      <option value="数学">数学</option>
+                      <option value="物理">物理</option>
+                      <option value="化学">化学</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>难度</label>
+                    <select
+                      className="form-input"
+                      value={editingQuestion.difficulty}
+                      onChange={(e) => updateEditingQuestion('difficulty', e.target.value)}
+                    >
+                      <option value="easy">简单</option>
+                      <option value="medium">中等</option>
+                      <option value="hard">困难</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>解析说明</label>
+                  <textarea
+                    className="form-input"
+                    value={editingQuestion.explanation || ''}
+                    onChange={(e) => updateEditingQuestion('explanation', e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              </div>
+              <div className="edit-modal-footer">
+                <button className="btn btn-secondary" onClick={handleCancelEdit}>
+                  取消
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleSaveEdit}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 size={16} className="spin" />
+                      保存中...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      保存修改
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

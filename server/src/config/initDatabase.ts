@@ -84,12 +84,30 @@ export async function initDatabase() {
         chapter_id INT NOT NULL COMMENT '所属章节ID',
         title VARCHAR(200) NOT NULL COMMENT '课时标题',
         content TEXT NOT NULL COMMENT '课时内容',
+        document_url VARCHAR(500) NULL COMMENT '文档URL',
+        document_name VARCHAR(200) NULL COMMENT '文档原始文件名',
         order_index INT NOT NULL DEFAULT 0 COMMENT '排序索引',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
         INDEX idx_chapter_order (chapter_id, order_index)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='课时表'
     `);
+
+    // 检查并添加 document_url 和 document_name 字段（如果表已存在但没有这些字段）
+    try {
+      await connection.query(`ALTER TABLE lessons ADD COLUMN document_url VARCHAR(500) NULL COMMENT '文档URL' AFTER content`);
+    } catch (e: any) {
+      if (!e.message.includes('Duplicate column')) {
+        // 忽略列已存在的错误
+      }
+    }
+    try {
+      await connection.query(`ALTER TABLE lessons ADD COLUMN document_name VARCHAR(200) NULL COMMENT '文档原始文件名' AFTER document_url`);
+    } catch (e: any) {
+      if (!e.message.includes('Duplicate column')) {
+        // 忽略列已存在的错误
+      }
+    }
 
     // 创建邀请码表
     await connection.query(`

@@ -172,6 +172,40 @@ export const adminAPI = {
   batchAddQuestions: async (questions: any[]) => {
     const response = await api.post('/admin/questions/batch', { questions });
     return response.data;
+  },
+  getQuestions: async (params?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string; 
+    category?: string; 
+    difficulty?: string 
+  }) => {
+    const response = await api.get('/admin/questions', { params });
+    return response.data;
+  },
+  updateQuestion: async (id: number, question: any) => {
+    const response = await api.put(`/admin/questions/${id}`, question);
+    return response.data;
+  },
+  deleteQuestion: async (id: number) => {
+    const response = await api.delete(`/admin/questions/${id}`);
+    return response.data;
+  },
+  // 课时文档上传
+  uploadLessonDocument: async (file: File) => {
+    const formData = new FormData();
+    formData.append('document', file);
+    const response = await api.post('/admin/lessons/upload-document', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+  // 删除课时文档
+  deleteLessonDocument: async (filename: string) => {
+    const response = await api.delete(`/admin/lessons/document/${filename}`);
+    return response.data;
   }
 };
 

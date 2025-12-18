@@ -299,6 +299,9 @@ export const zh = {
     loadLessonFailed: '加载课时内容失败，请重试',
     needBasicTest: '请先完成基础测试才能查看课时内容',
     confirmGoBasicTest: '您需要先完成基础测试才能查看课时内容，是否前往基础测试页面？',
+    lessonDocument: '课时文档',
+    viewDocument: '在线查看',
+    downloadDocument: '下载文档',
   },
 
   // BasicTest 基础测试页面

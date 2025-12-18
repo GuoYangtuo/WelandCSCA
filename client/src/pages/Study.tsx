@@ -17,7 +17,12 @@ import {
   Lightbulb,
   GraduationCap,
   Compass,
-  PenTool
+  PenTool,
+  Download,
+  File,
+  FileImage,
+  FileSpreadsheet,
+  ExternalLink
 } from 'lucide-react';
 import './Study.css';
 
@@ -40,6 +45,8 @@ interface LessonContent {
   chapterId: number;
   title: string;
   content: string;
+  documentUrl?: string;
+  documentName?: string;
   orderIndex: number;
 }
 
@@ -123,6 +130,33 @@ const Study: React.FC = () => {
   
   const getChapterIcon = (index: number) => {
     return chapterIcons[index % chapterIcons.length];
+  };
+
+  // 获取文档图标
+  const getDocumentIcon = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
+      return <FileImage size={20} />;
+    }
+    if (['xls', 'xlsx', 'csv'].includes(ext || '')) {
+      return <FileSpreadsheet size={20} />;
+    }
+    if (['pdf'].includes(ext || '')) {
+      return <FileText size={20} />;
+    }
+    return <File size={20} />;
+  };
+
+  // 判断是否是图片类型
+  const isImageFile = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '');
+  };
+
+  // 判断是否是PDF
+  const isPdfFile = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    return ext === 'pdf';
   };
 
   if (isLoading || loading) {
@@ -263,6 +297,60 @@ const Study: React.FC = () => {
                 paragraph.trim() && <p key={index}>{paragraph}</p>
               ))}
             </div>
+
+            {/* 课时文档展示 */}
+            {selectedLesson.documentUrl && selectedLesson.documentName && (
+              <div className="lesson-document-section">
+                <h3 className="document-section-title">
+                  <FileText size={20} />
+                  {t.study.lessonDocument || '课时文档'}
+                </h3>
+                <div className="document-content">
+                  {isImageFile(selectedLesson.documentName) ? (
+                    <div className="document-preview image-preview">
+                      <img 
+                        src={selectedLesson.documentUrl} 
+                        alt={selectedLesson.documentName}
+                        onClick={() => window.open(selectedLesson.documentUrl, '_blank')}
+                      />
+                    </div>
+                  ) : isPdfFile(selectedLesson.documentName) ? (
+                    <div className="document-preview pdf-preview">
+                      <iframe
+                        src={selectedLesson.documentUrl}
+                        title={selectedLesson.documentName}
+                      />
+                    </div>
+                  ) : null}
+                  
+                  <div className="document-download-card">
+                    <div className="document-info">
+                      {getDocumentIcon(selectedLesson.documentName)}
+                      <span className="document-name">{selectedLesson.documentName}</span>
+                    </div>
+                    <div className="document-actions">
+                      <a 
+                        href={selectedLesson.documentUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                      >
+                        <ExternalLink size={16} />
+                        {t.study.viewDocument || '在线查看'}
+                      </a>
+                      <a 
+                        href={selectedLesson.documentUrl} 
+                        download={selectedLesson.documentName}
+                        className="btn btn-primary btn-sm"
+                      >
+                        <Download size={16} />
+                        {t.study.downloadDocument || '下载文档'}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <footer className="article-footer">
               <div className="footer-actions">

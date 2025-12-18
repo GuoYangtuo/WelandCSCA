@@ -13,6 +13,12 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// PDF转图片临时目录
+const pdfTempDir = path.join(uploadDir, 'pdf-temp');
+if (!fs.existsSync(pdfTempDir)) {
+  fs.mkdirSync(pdfTempDir, { recursive: true });
+}
+
 // 配置 multer 存储
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -27,7 +33,7 @@ const storage = multer.diskStorage({
 });
 
 // 文件过滤器 - 只允许图片
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const imageFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
@@ -36,12 +42,31 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
+// 文件过滤器 - 只允许PDF
+const pdfFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('只支持 PDF 格式的文件'));
+  }
+};
+
 const upload = multer({
   storage,
-  fileFilter,
+  fileFilter: imageFileFilter,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB
     files: 10 // 最多10个文件
+  }
+});
+
+// PDF上传配置
+const pdfUpload = multer({
+  storage,
+  fileFilter: pdfFileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+    files: 1 // 每次只允许1个PDF
   }
 });
 
@@ -76,6 +101,87 @@ router.post('/upload-images', authenticate, adminAuth, upload.array('images', 10
   }
 });
 
+// 动态导入 ES Module 的辅助函数（绕过 TypeScript 编译转换）
+const dynamicImport = new Function('modulePath', 'return import(modulePath)');
+
+// PDF上传并转换为图片接口
+router.post('/upload-pdf', authenticate, adminAuth, pdfUpload.single('pdf'), async (req: AuthRequest, res: Response) => {
+  try {
+    const file = req.file;
+    
+    if (!file) {
+      return res.status(400).json({ message: '请上传PDF文件' });
+    }
+
+    // 动态导入 pdf-to-img (ES Module)
+    const pdfToImg = await dynamicImport('pdf-to-img');
+    const pdf = pdfToImg.pdf;
+    
+    const pdfPath = file.path;
+    const imageUrls: string[] = [];
+    const generatedFiles: string[] = [];
+
+    // 获取服务器基础URL
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = process.env.SERVER_URL || `${protocol}://${host}`;
+
+    console.log(`开始转换PDF: ${pdfPath}`);
+
+    // 转换PDF为图片
+    let pageIndex = 0;
+    const document = await pdf(pdfPath, { scale: 2.0 }); // scale 2.0 获得更清晰的图片
+    
+    for await (const image of document) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const imageFilename = `pdf-page-${pageIndex + 1}-${uniqueSuffix}.png`;
+      const imagePath = path.join(uploadDir, imageFilename);
+      
+      // 保存图片
+      fs.writeFileSync(imagePath, image);
+      
+      const imageUrl = `${baseUrl}/uploads/${imageFilename}`;
+      imageUrls.push(imageUrl);
+      generatedFiles.push(imageFilename);
+      
+      console.log(`转换完成: 第 ${pageIndex + 1} 页 -> ${imageFilename}`);
+      pageIndex++;
+      
+      // 限制最多转换10页
+      if (pageIndex >= 10) {
+        console.log('已达到最大页数限制(10页)，停止转换');
+        break;
+      }
+    }
+
+    // 删除原PDF文件
+    fs.unlinkSync(pdfPath);
+
+    if (imageUrls.length === 0) {
+      return res.status(400).json({ message: 'PDF文件没有可转换的页面' });
+    }
+
+    console.log(`PDF转换完成，共 ${imageUrls.length} 页`);
+
+    res.json({
+      success: true,
+      data: {
+        urls: imageUrls,
+        count: imageUrls.length,
+        files: generatedFiles
+      }
+    });
+
+  } catch (error: any) {
+    console.error('PDF转换错误:', error);
+    // 清理上传的PDF文件
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ message: error.message || 'PDF转换失败' });
+  }
+});
+
 // 调用阿里云 Dashscope API 解析图片中的题目
 async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<any> {
   // 构建消息内容：多张图片 + 提示词
@@ -102,7 +208,8 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
 1. 只提取题目内容和选项，不需要判断正确答案
 2. 如果图片中有多道题目，请全部提取
 3. 只输出JSON，不要有其他文字
-4. 如有公式请使用LaTeX格式，用$...$包裹`
+4. 如有公式请使用LaTeX格式，用$...$包裹
+5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组`
   });
 
   const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {

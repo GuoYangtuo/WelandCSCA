@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Upload, Plus, Trash2, Save, FileJson, AlertCircle, CheckCircle, X, 
-  Image, Scan, Edit3, Loader2, RefreshCw, Clock, Brain
+  Image, Scan, Edit3, Loader2, RefreshCw, Clock, Brain, FileText
 } from 'lucide-react';
 import { difyAPI, adminAPI } from '../services/api';
 import LatexRenderer from '../components/LatexRenderer';
@@ -30,6 +30,12 @@ interface UploadedImage {
   serverUrl?: string; // 上传到服务器后的URL
 }
 
+interface UploadedPdf {
+  file: File;
+  name: string;
+  size: number;
+}
+
 const emptyQuestion: QuestionForm = {
   question_text: '',
   options: ['', '', '', ''],
@@ -47,12 +53,17 @@ const ENABLE_DEEPSEEK_ANALYZE = import.meta.env.VITE_ENABLE_DEEPSEEK_ANALYZE ===
 const QuestionUpload: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   
   // 模式切换：'upload' = 图片上传解析, 'manual' = 手动输入
   const [mode, setMode] = useState<'upload' | 'manual'>('upload');
   
+  // 上传类型：'image' = 图片, 'pdf' = PDF
+  const [uploadType, setUploadType] = useState<'image' | 'pdf'>('image');
+  
   // 图片上传相关状态
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [uploadedPdf, setUploadedPdf] = useState<UploadedPdf | null>(null);
   const [parsing, setParsing] = useState(false);
   const [parseProgress, setParseProgress] = useState('');
   
@@ -90,6 +101,43 @@ const QuestionUpload: React.FC = () => {
       newImages.splice(index, 1);
       return newImages;
     });
+  };
+
+  // PDF文件选择处理
+  const handlePdfSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setMessage({ type: 'error', text: '请选择PDF文件' });
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'PDF文件大小不能超过50MB' });
+      return;
+    }
+
+    setUploadedPdf({
+      file,
+      name: file.name,
+      size: file.size
+    });
+    
+    if (pdfInputRef.current) {
+      pdfInputRef.current.value = '';
+    }
+  };
+
+  const removePdf = () => {
+    setUploadedPdf(null);
+  };
+
+  // 格式化文件大小
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   // 使用DeepSeek解析单个题目
@@ -152,7 +200,7 @@ const QuestionUpload: React.FC = () => {
     }
   };
 
-  // 调用Dify API解析题目
+  // 调用Dify API解析题目（图片）
   const handleParse = async () => {
     if (uploadedImages.length === 0) {
       setMessage({ type: 'error', text: '请先上传图片' });
@@ -174,57 +222,7 @@ const QuestionUpload: React.FC = () => {
       
       const imageUrls = uploadResult.data.urls;
       
-      setParseProgress('正在识别题目...');
-      
-      // 2. 调用阿里云API识别图片中的题目（只返回题目和选项）
-      const result = await difyAPI.parseQuestions(imageUrls);
-      
-      if (result.success && result.data.questions.length > 0) {
-        // 根据环境变量决定初始状态
-        const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';
-        
-        const questionsWithStatus: QuestionForm[] = result.data.questions.map((q: any) => ({
-          question_text: q.question_text || '',
-          options: q.options || ['', '', '', ''],
-          correct_answer: 0,  // 暂时设为0
-          explanation: '',
-          category: '',
-          difficulty: 'medium',
-          knowledge_points: [],
-          analyzeStatus: initialAnalyzeStatus
-        }));
-        
-        setQuestions(questionsWithStatus);
-        
-        if (ENABLE_DEEPSEEK_ANALYZE) {
-          // 启用了 DeepSeek 解析，逐个调用
-          setMessage({ 
-            type: 'success', 
-            text: `识别出 ${questionsWithStatus.length} 道题目，正在逐题生成答案和解析...` 
-          });
-          
-          // 3. 逐个调用DeepSeek解析每道题
-          for (let i = 0; i < questionsWithStatus.length; i++) {
-            await analyzeQuestionWithDeepSeek(i, {
-              question_text: questionsWithStatus[i].question_text,
-              options: questionsWithStatus[i].options
-            });
-          }
-          
-          setMessage({ 
-            type: 'success', 
-            text: `全部 ${questionsWithStatus.length} 道题目解析完成，请审核确认` 
-          });
-        } else {
-          // 未启用 DeepSeek 解析，直接让用户手动填写
-          setMessage({ 
-            type: 'success', 
-            text: `识别出 ${questionsWithStatus.length} 道题目，请手动填写答案和解析` 
-          });
-        }
-      } else {
-        setMessage({ type: 'error', text: '未能解析出题目，请检查图片内容' });
-      }
+      await parseQuestionsFromImages(imageUrls);
     } catch (error: any) {
       console.error('解析错误:', error);
       setMessage({ 
@@ -234,6 +232,97 @@ const QuestionUpload: React.FC = () => {
     } finally {
       setParsing(false);
       setParseProgress('');
+    }
+  };
+
+  // 处理PDF上传并解析
+  const handlePdfParse = async () => {
+    if (!uploadedPdf) {
+      setMessage({ type: 'error', text: '请先上传PDF文件' });
+      return;
+    }
+
+    setParsing(true);
+    setParseProgress('上传PDF并转换为图片...');
+    setMessage(null);
+
+    try {
+      // 1. 上传PDF到服务器，后端会转换为图片
+      const uploadResult = await difyAPI.uploadPdf(uploadedPdf.file);
+      
+      if (!uploadResult.success || !uploadResult.data.urls.length) {
+        throw new Error('PDF转换失败');
+      }
+      
+      const imageUrls = uploadResult.data.urls;
+      setParseProgress(`PDF转换完成（共${imageUrls.length}页），正在识别题目...`);
+      
+      // 2. 调用题目识别
+      await parseQuestionsFromImages(imageUrls);
+    } catch (error: any) {
+      console.error('PDF解析错误:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || 'PDF解析失败，请重试' 
+      });
+    } finally {
+      setParsing(false);
+      setParseProgress('');
+    }
+  };
+
+  // 从图片URL解析题目（共用逻辑）
+  const parseQuestionsFromImages = async (imageUrls: string[]) => {
+    setParseProgress('正在识别题目...');
+    
+    // 调用阿里云API识别图片中的题目（只返回题目和选项）
+    const result = await difyAPI.parseQuestions(imageUrls);
+    
+    if (result.success && result.data.questions.length > 0) {
+      // 根据环境变量决定初始状态
+      const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';
+      
+      const questionsWithStatus: QuestionForm[] = result.data.questions.map((q: any) => ({
+        question_text: q.question_text || '',
+        options: q.options || ['', '', '', ''],
+        correct_answer: 0,  // 暂时设为0
+        explanation: '',
+        category: '',
+        difficulty: 'medium',
+        knowledge_points: [],
+        analyzeStatus: initialAnalyzeStatus
+      }));
+      
+      setQuestions(questionsWithStatus);
+      
+      if (ENABLE_DEEPSEEK_ANALYZE) {
+        // 启用了 DeepSeek 解析，逐个调用
+        setMessage({ 
+          type: 'success', 
+          text: `识别出 ${questionsWithStatus.length} 道题目，正在逐题生成答案和解析...` 
+        });
+        
+        // 逐个调用DeepSeek解析每道题
+        for (let i = 0; i < questionsWithStatus.length; i++) {
+          await analyzeQuestionWithDeepSeek(i, {
+            question_text: questionsWithStatus[i].question_text,
+            options: questionsWithStatus[i].options
+          });
+        }
+        
+        setMessage({ 
+          type: 'success', 
+          text: `全部 ${questionsWithStatus.length} 道题目解析完成，请审核确认` 
+        });
+      } else {
+        // 未启用 DeepSeek 解析，直接让用户手动填写
+        setMessage({ 
+          type: 'success', 
+          text: `识别出 ${questionsWithStatus.length} 道题目，请手动填写答案和解析` 
+        });
+      }
+    } else {
+      setMessage({ type: 'error', text: '未能解析出题目，请检查文件内容' });
     }
   };
 
@@ -350,6 +439,7 @@ const QuestionUpload: React.FC = () => {
   const handleReset = () => {
     uploadedImages.forEach(img => URL.revokeObjectURL(img.preview));
     setUploadedImages([]);
+    setUploadedPdf(null);
     setQuestions([]);
     setMessage(null);
   };
@@ -453,70 +543,166 @@ const QuestionUpload: React.FC = () => {
           </div>
         )}
 
-        {/* 图片上传模式 */}
+        {/* 图片/PDF上传模式 */}
         {mode === 'upload' && (
           <div className="image-upload-section">
-            <div className="upload-zone">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageSelect}
-                className="file-input"
-                disabled={uploadedImages.length >= 10}
-              />
-              <div className="upload-zone-content">
-                <Image size={48} className="upload-icon" />
-                <h3>点击或拖拽上传图片</h3>
-                <p>支持 JPG、PNG、WebP 格式，最多 10 张</p>
-                <p className="upload-count">已上传 {uploadedImages.length}/10 张</p>
-              </div>
+            {/* 上传类型切换 */}
+            <div className="upload-type-switch">
+              <button 
+                className={`upload-type-btn ${uploadType === 'image' ? 'active' : ''}`}
+                onClick={() => setUploadType('image')}
+                disabled={parsing}
+              >
+                <Image size={18} />
+                图片上传
+              </button>
+              <button 
+                className={`upload-type-btn ${uploadType === 'pdf' ? 'active' : ''}`}
+                onClick={() => setUploadType('pdf')}
+                disabled={parsing}
+              >
+                <FileText size={18} />
+                PDF上传
+              </button>
             </div>
 
-            {uploadedImages.length > 0 && (
-              <div className="images-preview">
-                <div className="images-grid">
-                  {uploadedImages.map((img, index) => (
-                    <div key={index} className="image-item">
-                      <img src={img.preview} alt={`预览 ${index + 1}`} />
-                      <button 
-                        className="image-remove-btn"
-                        onClick={() => removeImage(index)}
-                      >
-                        <X size={14} />
-                      </button>
-                      <span className="image-index">{index + 1}</span>
+            {/* 图片上传区 */}
+            {uploadType === 'image' && (
+              <>
+                <div className="upload-zone">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageSelect}
+                    className="file-input"
+                    disabled={uploadedImages.length >= 10}
+                  />
+                  <div className="upload-zone-content">
+                    <Image size={48} className="upload-icon" />
+                    <h3>点击或拖拽上传图片</h3>
+                    <p>支持 JPG、PNG、WebP 格式，最多 10 张</p>
+                    <p className="upload-count">已上传 {uploadedImages.length}/10 张</p>
+                  </div>
+                </div>
+
+                {uploadedImages.length > 0 && (
+                  <div className="images-preview">
+                    <div className="images-grid">
+                      {uploadedImages.map((img, index) => (
+                        <div key={index} className="image-item">
+                          <img src={img.preview} alt={`预览 ${index + 1}`} />
+                          <button 
+                            className="image-remove-btn"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X size={14} />
+                          </button>
+                          <span className="image-index">{index + 1}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="parse-actions">
-                  <button 
-                    className="btn btn-secondary"
-                    onClick={handleReset}
-                    disabled={parsing}
-                  >
-                    清空重置
-                  </button>
-                  <button 
-                    className="btn btn-primary btn-parse"
-                    onClick={handleParse}
-                    disabled={parsing || uploadedImages.length === 0}
-                  >
-                    {parsing ? (
-                      <>
-                        <Loader2 size={18} className="spin" />
-                        {parseProgress}
-                      </>
+                    <div className="parse-actions">
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={handleReset}
+                        disabled={parsing}
+                      >
+                        清空重置
+                      </button>
+                      <button 
+                        className="btn btn-primary btn-parse"
+                        onClick={handleParse}
+                        disabled={parsing || uploadedImages.length === 0}
+                      >
+                        {parsing ? (
+                          <>
+                            <Loader2 size={18} className="spin" />
+                            {parseProgress}
+                          </>
+                        ) : (
+                          <>
+                            <Scan size={18} />
+                            解析题目
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* PDF上传区 */}
+            {uploadType === 'pdf' && (
+              <>
+                <div className="upload-zone">
+                  <input
+                    ref={pdfInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handlePdfSelect}
+                    className="file-input"
+                    disabled={!!uploadedPdf}
+                  />
+                  <div className="upload-zone-content">
+                    <FileText size={48} className="upload-icon" />
+                    <h3>点击或拖拽上传PDF文件</h3>
+                    <p>支持 PDF 格式，最大 50MB，最多转换 10 页</p>
+                    {uploadedPdf ? (
+                      <p className="upload-count">已选择文件</p>
                     ) : (
-                      <>
-                        <Scan size={18} />
-                        解析题目
-                      </>
+                      <p className="upload-count">未选择文件</p>
                     )}
-                  </button>
+                  </div>
                 </div>
-              </div>
+
+                {uploadedPdf && (
+                  <div className="pdf-preview">
+                    <div className="pdf-info">
+                      <FileText size={32} className="pdf-icon" />
+                      <div className="pdf-details">
+                        <span className="pdf-name">{uploadedPdf.name}</span>
+                        <span className="pdf-size">{formatFileSize(uploadedPdf.size)}</span>
+                      </div>
+                      <button 
+                        className="pdf-remove-btn"
+                        onClick={removePdf}
+                        disabled={parsing}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                    <div className="parse-actions">
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={handleReset}
+                        disabled={parsing}
+                      >
+                        清空重置
+                      </button>
+                      <button 
+                        className="btn btn-primary btn-parse"
+                        onClick={handlePdfParse}
+                        disabled={parsing || !uploadedPdf}
+                      >
+                        {parsing ? (
+                          <>
+                            <Loader2 size={18} className="spin" />
+                            {parseProgress}
+                          </>
+                        ) : (
+                          <>
+                            <Scan size={18} />
+                            解析PDF题目
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

@@ -6,6 +6,7 @@ import BasicTest from './pages/BasicTest';
 import MockTest from './pages/MockTest';
 import Study from './pages/Study';
 import QuestionUpload from './pages/QuestionUpload';
+import CourseUpload from './pages/CourseUpload';
 import Admin from './pages/Admin';
 import Layout from './components/Layout';
 import './App.css'; 
@@ -22,6 +23,7 @@ function App() {
               <Route path="/mock-test" element={<MockTest />} />
               <Route path="/study" element={<Study />} />
               <Route path="/question-upload" element={<QuestionUpload />} />
+              <Route path="/course-upload" element={<CourseUpload />} />
               <Route path="/admin" element={<Admin />} />
               {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
             </Routes>

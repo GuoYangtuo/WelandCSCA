@@ -135,6 +135,18 @@ export const difyAPI = {
     });
     return response.data;
   },
+  // 上传PDF并转换为图片
+  uploadPdf: async (file: File) => {
+    const formData = new FormData();
+    formData.append('pdf', file);
+    const response = await api.post('/dify/upload-pdf', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 120000 // PDF转换可能需要较长时间，设置2分钟超时
+    });
+    return response.data;
+  },
   // 解析题目（只返回题目和选项）
   parseQuestions: async (imageUrls: string[]) => {
     const response = await api.post('/dify/parse-questions', { imageUrls });

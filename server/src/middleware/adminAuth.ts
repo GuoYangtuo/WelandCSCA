@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { pool } from '../config/database';
 import { AuthRequest } from './auth';
 
-// 管理员认证中间件 - 仅允许用户名为admin的用户访问
+// 管理员认证中间件 - 仅允许指定的管理员用户访问（admin, SNM）
 export const adminAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId;
@@ -23,8 +23,9 @@ export const adminAuth = async (req: AuthRequest, res: Response, next: NextFunct
 
     const user = (users as any[])[0];
 
-    // 检查是否为admin用户
-    if (user.username !== 'admin') {
+    // 检查是否为管理员用户（admin 或 SNM）
+    const adminUsers = ['admin', 'SNM'];
+    if (!adminUsers.includes(user.username)) {
       return res.status(403).json({ message: '无权限访问，仅管理员可用' });
     }
 

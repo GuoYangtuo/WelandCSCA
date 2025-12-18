@@ -211,7 +211,8 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
 3. 只输出JSON，不要有其他文字
 4. 如有公式请使用LaTeX格式，用$...$包裹
 5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组
-6. category 必须是以下四个分类之一：中文、数学、物理、化学。根据题目内容判断所属学科分类`
+6. category 必须是以下四个分类之一：中文、数学、物理、化学。根据题目内容判断所属学科分类
+7. 注意输出结果中的反斜杠需要转义，如\n需写为\\n`
   });
 
   const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {

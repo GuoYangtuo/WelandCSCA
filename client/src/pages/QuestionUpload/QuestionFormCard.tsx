@@ -25,43 +25,6 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
 }) => {
   return (
     <div className={`question-form-card ${question.analyzeStatus === 'pending' ? 'status-pending' : ''} ${question.analyzeStatus === 'analyzing' ? 'status-analyzing' : ''} ${question.analyzeStatus === 'error' ? 'status-error' : ''}`}>
-      <div className="question-form-header">
-        <span className="question-number">题目 {index + 1}</span>
-        <div className="analyze-status">
-          {question.analyzeStatus === 'pending' && (
-            <span className="status-badge pending">
-              <Clock size={14} />
-              等待解析
-            </span>
-          )}
-          {question.analyzeStatus === 'analyzing' && (
-            <span className="status-badge analyzing">
-              <Loader2 size={14} className="spin" />
-              正在解析...
-            </span>
-          )}
-          {question.analyzeStatus === 'completed' && (
-            <span className="status-badge completed">
-              <CheckCircle size={14} />
-              解析完成
-            </span>
-          )}
-          {question.analyzeStatus === 'error' && (
-            <span className="status-badge error">
-              <AlertCircle size={14} />
-              解析失败
-              <button 
-                className="retry-btn"
-                onClick={() => onRetryAnalyze(index)}
-                title="重新解析"
-              >
-                <RefreshCw size={14} />
-              </button>
-            </span>
-          )}
-        </div>
-      </div>
-
       <div className="question-editor-layout">
         {/* 左侧编辑区域 */}
         <div className="editor-panel">
@@ -257,6 +220,39 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
             💡 <code>$...$</code> 行内公式 &nbsp;|&nbsp; <code>$$...$$</code> 块级公式
           </div>
           <div className="preview-panel-footer">
+            <div className="analyze-status">
+              {question.analyzeStatus === 'pending' && (
+                <span className="status-badge pending">
+                  <Clock size={14} />
+                  等待解析
+                </span>
+              )}
+              {question.analyzeStatus === 'analyzing' && (
+                <span className="status-badge analyzing">
+                  <Loader2 size={14} className="spin" />
+                  正在解析...
+                </span>
+              )}
+              {question.analyzeStatus === 'completed' && (
+                <span className="status-badge completed">
+                  <CheckCircle size={14} />
+                  解析完成
+                </span>
+              )}
+              {question.analyzeStatus === 'error' && (
+                <span className="status-badge error">
+                  <AlertCircle size={14} />
+                  解析失败
+                  <button 
+                    className="retry-btn"
+                    onClick={() => onRetryAnalyze(index)}
+                    title="重新解析"
+                  >
+                    <RefreshCw size={14} />
+                  </button>
+                </span>
+              )}
+            </div>
             <button 
               className="btn btn-danger"
               onClick={() => onRemove(index)}

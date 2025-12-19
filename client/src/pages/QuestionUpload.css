@@ -443,52 +443,6 @@
   margin: 0;
 }
 
-/* JSON Import */
-.json-import-section {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.json-import-section h3 {
-  color: #fff;
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-}
-
-.json-hint {
-  color: #a0aec0;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.json-input {
-  width: 100%;
-  min-height: 200px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 1rem;
-  color: #e2e8f0;
-  font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 0.875rem;
-  resize: vertical;
-}
-
-.json-input:focus {
-  outline: none;
-  border-color: #00d9ff;
-}
-
-.json-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
 /* Question Form Cards */
 .questions-list {
   display: flex;
@@ -1322,7 +1276,7 @@ select.form-input {
 
 .table-header {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 80px 100px;
+  grid-template-columns: 60px 1fr 80px 120px 70px 90px;
   gap: 1rem;
   padding: 0.875rem 1.25rem;
   background: rgba(0, 217, 255, 0.05);
@@ -1341,7 +1295,7 @@ select.form-input {
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 80px 100px;
+  grid-template-columns: 60px 1fr 80px 120px 70px 90px;
   gap: 1rem;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -1404,11 +1358,31 @@ select.form-input {
 }
 
 .col-category,
+.col-knowledge,
 .col-difficulty,
 .col-actions {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.col-knowledge {
+  min-width: 0;
+}
+
+.knowledge-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(159, 122, 234, 0.15);
+  color: #b794f4;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
 }
 
 .category-badge {
@@ -1610,7 +1584,7 @@ select.form-input {
 @media (max-width: 900px) {
   .table-header,
   .table-row {
-    grid-template-columns: 60px 1fr 80px 70px 80px;
+    grid-template-columns: 50px 1fr 70px 100px 60px 80px;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
   }
@@ -1660,6 +1634,7 @@ select.form-input {
   }
 
   .col-category,
+  .col-knowledge,
   .col-difficulty {
     justify-content: flex-start;
   }

@@ -116,16 +116,16 @@ router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: 
 // 添加新题目
 router.post('/questions', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { question_text, options, correct_answer, explanation, category, difficulty } = req.body;
+    const { question_text, options, correct_answer, explanation, category, difficulty, knowledge_point } = req.body;
 
     if (!question_text || !options || correct_answer === undefined) {
       return res.status(400).json({ message: '缺少必要参数' });
     }
 
     const [result] = await cscaPool.query(
-      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [question_text, JSON.stringify(options), correct_answer, explanation || null, category || null, difficulty || 'medium']
+      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty, knowledge_point) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [question_text, JSON.stringify(options), correct_answer, explanation || null, category || null, difficulty || 'medium', knowledge_point || null]
     );
 
     res.json({
@@ -143,12 +143,12 @@ router.post('/questions', authenticate, adminAuth, async (req: AuthRequest, res:
 router.put('/questions/:id', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { question_text, options, correct_answer, explanation, category, difficulty } = req.body;
+    const { question_text, options, correct_answer, explanation, category, difficulty, knowledge_point } = req.body;
 
     const [result] = await cscaPool.query(
       `UPDATE questions SET question_text = ?, options = ?, correct_answer = ?, 
-       explanation = ?, category = ?, difficulty = ? WHERE id = ?`,
-      [question_text, JSON.stringify(options), correct_answer, explanation, category, difficulty, id]
+       explanation = ?, category = ?, difficulty = ?, knowledge_point = ? WHERE id = ?`,
+      [question_text, JSON.stringify(options), correct_answer, explanation, category, difficulty, knowledge_point || null, id]
     );
 
     if ((result as any).affectedRows === 0) {
@@ -201,14 +201,15 @@ router.post('/questions/batch', authenticate, adminAuth, async (req: AuthRequest
       q.correct_answer,
       q.explanation || null,
       q.category || null,
-      q.difficulty || 'medium'
+      q.difficulty || 'medium',
+      q.knowledge_point || null
     ]);
 
-    const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+    const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ');
     const flatValues = values.flat();
 
     await cscaPool.query(
-      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty) 
+      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty, knowledge_point) 
        VALUES ${placeholders}`,
       flatValues
     );

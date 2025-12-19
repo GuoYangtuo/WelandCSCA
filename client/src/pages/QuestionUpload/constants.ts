@@ -117,5 +117,5 @@ export const emptyQuestion: QuestionForm = {
 };
 
 // 是否启用 DeepSeek 自动解析（从环境变量读取）
-export const ENABLE_DEEPSEEK_ANALYZE = import.meta.env.VITE_ENABLE_DEEPSEEK_ANALYZE === 'true';
+export const ENABLE_DEEPSEEK_ANALYZE = true;//import.meta.env.VITE_ENABLE_DEEPSEEK_ANALYZE === 'true';
 

@@ -1,0 +1,122 @@
+Date : 2025-12-19 18:08:17
+Directory : g:\WelandCSCA
+Total : 67 files,  22703 codes, 690 comments, 2246 blanks, all 25639 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| CSS            |         10 |      6,058 |        197 |      1,080 |      7,335 |
+| TypeScript JSX |         18 |      5,715 |        141 |        487 |      6,343 |
+| TypeScript     |         28 |      5,543 |        335 |        549 |      6,427 |
+| JSON           |          5 |      4,636 |          0 |          7 |      4,643 |
+| Markdown       |          2 |        572 |          0 |         96 |        668 |
+| PowerShell     |          1 |         55 |          9 |         10 |         74 |
+| Batch          |          1 |         54 |          3 |          9 |         66 |
+| YAML           |          1 |         52 |          4 |          7 |         63 |
+| HTML           |          1 |         18 |          1 |          1 |         20 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                    | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                       |         67 |     22,703 |        690 |      2,246 |     25,639 |
+| . (Files)                                                               |          4 |        681 |         12 |        115 |        808 |
+| .github                                                                 |          1 |         52 |          4 |          7 |         63 |
+| .github\workflows                                                       |          1 |         52 |          4 |          7 |         63 |
+| client                                                                  |         47 |     17,776 |        534 |      1,760 |     20,070 |
+| client (Files)                                                          |          5 |      2,115 |          1 |         10 |      2,126 |
+| client\src                                                              |         42 |     15,661 |        533 |      1,750 |     17,944 |
+| client\src (Files)                                                      |          5 |        325 |         15 |         62 |        402 |
+| client\src\components                                                   |          5 |        845 |         28 |        155 |      1,028 |
+| client\src\contexts                                                     |          2 |        168 |          0 |         26 |        194 |
+| client\src\i18n                                                         |         10 |      3,562 |        162 |        150 |      3,874 |
+| client\src\i18n (Files)                                                 |          1 |         34 |          0 |          6 |         40 |
+| client\src\i18n\locales                                                 |          9 |      3,528 |        162 |        144 |      3,834 |
+| client\src\pages                                                        |         19 |     10,570 |        319 |      1,344 |     12,233 |
+| client\src\pages (Files)                                                |         12 |      9,079 |        253 |      1,207 |     10,539 |
+| client\src\pages\QuestionUpload                                         |          7 |      1,491 |         66 |        137 |      1,694 |
+| client\src\services                                                     |          1 |        191 |          9 |         13 |        213 |
+| server                                                                  |         15 |      4,194 |        140 |        364 |      4,698 |
+| server (Files)                                                          |          2 |      2,558 |          0 |          2 |      2,560 |
+| server\src                                                              |         13 |      1,636 |        140 |        362 |      2,138 |
+| server\src (Files)                                                      |          1 |         30 |          7 |         12 |         49 |
+| server\src\config                                                       |          2 |        201 |         19 |         33 |        253 |
+| server\src\middleware                                                   |          2 |         45 |          3 |         16 |         64 |
+| server\src\routes                                                       |          8 |      1,360 |        111 |        301 |      1,772 |
++-------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                | language       | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| g:\WelandCSCA\.github\workflows\main.yaml                               | YAML           |         52 |          4 |          7 |         63 |
+| g:\WelandCSCA\CUCAS-CSCA.md                                             | Markdown       |        463 |          0 |         47 |        510 |
+| g:\WelandCSCA\README.md                                                 | Markdown       |        109 |          0 |         49 |        158 |
+| g:\WelandCSCA\client\index.html                                         | HTML           |         18 |          1 |          1 |         20 |
+| g:\WelandCSCA\client\package-lock.json                                  | JSON           |      2,042 |          0 |          1 |      2,043 |
+| g:\WelandCSCA\client\package.json                                       | JSON           |         26 |          0 |          1 |         27 |
+| g:\WelandCSCA\client\src\App.css                                        | CSS            |        208 |          6 |         36 |        250 |
+| g:\WelandCSCA\client\src\App.tsx                                        | TypeScript JSX |         34 |          1 |          4 |         39 |
+| g:\WelandCSCA\client\src\components\AuthModal.css                       | CSS            |        213 |          1 |         32 |        246 |
+| g:\WelandCSCA\client\src\components\AuthModal.tsx                       | TypeScript JSX |        431 |         13 |         38 |        482 |
+| g:\WelandCSCA\client\src\components\LatexRenderer.css                   | CSS            |         44 |          6 |         39 |         89 |
+| g:\WelandCSCA\client\src\components\LatexRenderer.tsx                   | TypeScript JSX |         50 |          7 |         38 |         95 |
+| g:\WelandCSCA\client\src\components\Layout.tsx                          | TypeScript JSX |        107 |          1 |          8 |        116 |
+| g:\WelandCSCA\client\src\contexts\AuthContext.tsx                       | TypeScript JSX |        134 |          0 |         16 |        150 |
+| g:\WelandCSCA\client\src\contexts\LanguageContext.tsx                   | TypeScript JSX |         34 |          0 |         10 |         44 |
+| g:\WelandCSCA\client\src\i18n\index.ts                                  | TypeScript     |         34 |          0 |          6 |         40 |
+| g:\WelandCSCA\client\src\i18n\locales\ar.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\en.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\es.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\fr.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\ja.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\ru.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\th.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\vi.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\i18n\locales\zh.ts                             | TypeScript     |        392 |         18 |         16 |        426 |
+| g:\WelandCSCA\client\src\index.css                                      | CSS            |         68 |          6 |         14 |         88 |
+| g:\WelandCSCA\client\src\main.tsx                                       | TypeScript JSX |          9 |          0 |          4 |         13 |
+| g:\WelandCSCA\client\src\pages\Admin.css                                | CSS            |        690 |         21 |        122 |        833 |
+| g:\WelandCSCA\client\src\pages\Admin.tsx                                | TypeScript JSX |      1,006 |         26 |         72 |      1,104 |
+| g:\WelandCSCA\client\src\pages\BasicTest.tsx                            | TypeScript JSX |        410 |          4 |         33 |        447 |
+| g:\WelandCSCA\client\src\pages\CourseUpload.css                         | CSS            |        706 |         17 |        130 |        853 |
+| g:\WelandCSCA\client\src\pages\CourseUpload.tsx                         | TypeScript JSX |        670 |         24 |         58 |        752 |
+| g:\WelandCSCA\client\src\pages\Home.css                                 | CSS            |      1,148 |         17 |        186 |      1,351 |
+| g:\WelandCSCA\client\src\pages\Home.tsx                                 | TypeScript JSX |        531 |         10 |         16 |        557 |
+| g:\WelandCSCA\client\src\pages\MockTest.tsx                             | TypeScript JSX |        548 |          4 |         43 |        595 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload.css                       | CSS            |      1,391 |         32 |        231 |      1,654 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\EditQuestionModal.tsx     | TypeScript JSX |        151 |          2 |          9 |        162 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\ImageUploadSection.tsx    | TypeScript JSX |        240 |          6 |         23 |        269 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\QuestionFormCard.tsx      | TypeScript JSX |        250 |          4 |         11 |        265 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\QuestionManageSection.tsx | TypeScript JSX |        320 |         18 |         26 |        364 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\constants.ts              | TypeScript     |         92 |         16 |          9 |        117 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\index.tsx                 | TypeScript JSX |        401 |         14 |         52 |        467 |
+| g:\WelandCSCA\client\src\pages\QuestionUpload\types.ts                  | TypeScript     |         37 |          6 |          7 |         50 |
+| g:\WelandCSCA\client\src\pages\Study.css                                | CSS            |        663 |         44 |        123 |        830 |
+| g:\WelandCSCA\client\src\pages\Study.tsx                                | TypeScript JSX |        389 |          7 |         26 |        422 |
+| g:\WelandCSCA\client\src\pages\Test.css                                 | CSS            |        927 |         47 |        167 |      1,141 |
+| g:\WelandCSCA\client\src\services\api.ts                                | TypeScript     |        191 |          9 |         13 |        213 |
+| g:\WelandCSCA\client\src\vite-env.d.ts                                  | TypeScript     |          6 |          2 |          4 |         12 |
+| g:\WelandCSCA\client\tsconfig.node.json                                 | JSON           |         10 |          0 |          3 |         13 |
+| g:\WelandCSCA\client\vite.config.ts                                     | TypeScript     |         19 |          0 |          4 |         23 |
+| g:\WelandCSCA\server\package-lock.json                                  | JSON           |      2,519 |          0 |          1 |      2,520 |
+| g:\WelandCSCA\server\package.json                                       | JSON           |         39 |          0 |          1 |         40 |
+| g:\WelandCSCA\server\src\config\database.ts                             | TypeScript     |         22 |          0 |          7 |         29 |
+| g:\WelandCSCA\server\src\config\initDatabase.ts                         | TypeScript     |        179 |         19 |         26 |        224 |
+| g:\WelandCSCA\server\src\index.ts                                       | TypeScript     |         30 |          7 |         12 |         49 |
+| g:\WelandCSCA\server\src\middleware\adminAuth.ts                        | TypeScript     |         27 |          3 |          9 |         39 |
+| g:\WelandCSCA\server\src\middleware\auth.ts                             | TypeScript     |         18 |          0 |          7 |         25 |
+| g:\WelandCSCA\server\src\routes\admin.ts                                | TypeScript     |        524 |         33 |        106 |        663 |
+| g:\WelandCSCA\server\src\routes\auth.ts                                 | TypeScript     |        119 |         18 |         31 |        168 |
+| g:\WelandCSCA\server\src\routes\dify.ts                                 | TypeScript     |        431 |         41 |         92 |        564 |
+| g:\WelandCSCA\server\src\routes\index.ts                                | TypeScript     |         17 |          0 |          6 |         23 |
+| g:\WelandCSCA\server\src\routes\mockTest.ts                             | TypeScript     |         37 |          3 |         10 |         50 |
+| g:\WelandCSCA\server\src\routes\questions.ts                            | TypeScript     |         54 |          2 |         16 |         72 |
+| g:\WelandCSCA\server\src\routes\study.ts                                | TypeScript     |        112 |          9 |         21 |        142 |
+| g:\WelandCSCA\server\src\routes\tests.ts                                | TypeScript     |         66 |          5 |         19 |         90 |
+| g:\WelandCSCA\start-dev.bat                                             | Batch          |         54 |          3 |          9 |         66 |
+| g:\WelandCSCA\start-dev.ps1                                             | PowerShell     |         55 |          9 |         10 |         74 |
+| Total                                                                   |                |     22,703 |        690 |      2,246 |     25,639 |
++-------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

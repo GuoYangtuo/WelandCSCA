@@ -1081,6 +1081,28 @@ select.form-input {
   font-weight: 500;
 }
 
+/* 知识点未匹配警告 */
+.knowledge-point-warning {
+  background: rgba(237, 137, 54, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem;
+  border: 1px dashed rgba(237, 137, 54, 0.4);
+}
+
+.knowledge-point-warning .preview-label {
+  color: #ed8936;
+}
+
+.knowledge-point-warning .warning-message {
+  color: #ed8936;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.knowledge-point-warning .warning-message span {
+  display: block;
+}
+
 .preview-label svg {
   vertical-align: middle;
   margin-right: 0.25rem;

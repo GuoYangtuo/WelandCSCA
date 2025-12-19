@@ -215,7 +215,7 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
                 </div>
               </div>
             )}
-            {question.knowledge_point && (
+            {question.knowledge_point ? (
               <div className="preview-item">
                 <span className="preview-label">
                   <Brain size={14} />
@@ -227,6 +227,18 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
                   </span>
                 </div>
               </div>
+            ) : (
+              question.analyzeStatus === 'completed' && question.category && (
+                <div className="preview-item knowledge-point-warning">
+                  <span className="preview-label">
+                    <AlertCircle size={14} />
+                    知识点
+                  </span>
+                  <div className="warning-message">
+                    <span>⚠️ 未匹配到考纲知识点，或题目科目识别错误，建议删除此题或手动选择</span>
+                  </div>
+                </div>
+              )
             )}
             {question.analyzeStatus === 'pending' && (
               <div className="analyze-pending-overlay">
@@ -246,7 +258,7 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
           </div>
           <div className="preview-panel-footer">
             <button 
-              className="btn btn-icon btn-danger"
+              className="btn btn-danger"
               onClick={() => onRemove(index)}
               title="删除此题"
             >

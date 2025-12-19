@@ -87,7 +87,12 @@ export const KNOWLEDGE_POINTS: Record<string, KnowledgePointConfig[]> = {
     { key: '工业化工流程分析', label: '工业化工流程分析（如合成氨）' },
   ],
   '中文': [
-    // TODO: 中文知识点待补充
+    { key: '识解汉字', label: '识解汉字' },
+    { key: '选词填空', label: '选词填空' },
+    { key: '辨析词语', label: '辨析词语' },
+    { key: '选词成段', label: '选词成段' },
+    { key: '补全语句', label: '补全语句' },
+    { key: '阅读理解', label: '阅读理解' },
   ],
 };
 

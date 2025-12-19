@@ -35,7 +35,7 @@ const QuestionUpload: React.FC = () => {
   const [message, setMessage] = useState<Message | null>(null);
 
   // 使用DeepSeek解析单个题目
-  const analyzeQuestionWithDeepSeek = async (index: number, question: { question_text: string; options: string[] }) => {
+  const analyzeQuestionWithDeepSeek = async (index: number, question: { question_text: string; options: string[]; category?: string }) => {
     setQuestions(prev => {
       const newQuestions = [...prev];
       if (newQuestions[index]) {
@@ -45,7 +45,8 @@ const QuestionUpload: React.FC = () => {
     });
 
     try {
-      const result = await difyAPI.analyzeQuestion(question);
+      // 传入科目参数，让DeepSeek根据对应科目的知识点列表选择知识点
+      const result = await difyAPI.analyzeQuestion(question, question.category);
       
       if (result.success && result.data) {
         setQuestions(prev => {
@@ -87,7 +88,8 @@ const QuestionUpload: React.FC = () => {
     if (question) {
       analyzeQuestionWithDeepSeek(index, {
         question_text: question.question_text,
-        options: question.options
+        options: question.options,
+        category: question.category
       });
     }
   };
@@ -96,7 +98,7 @@ const QuestionUpload: React.FC = () => {
   const parseQuestionsFromImages = async (imageUrls: string[]) => {
     setParseProgress('正在识别题目...');
     
-    const result = await difyAPI.parseQuestions(imageUrls);
+    const result = await difyAPI.parseQuestions(["http://csca.weland.group/uploads/pdf-page-1-1766053282045-631020747.png"]);
     
     if (result.success && result.data.questions.length > 0) {
       const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';
@@ -123,7 +125,8 @@ const QuestionUpload: React.FC = () => {
         for (let i = 0; i < questionsWithStatus.length; i++) {
           await analyzeQuestionWithDeepSeek(i, {
             question_text: questionsWithStatus[i].question_text,
-            options: questionsWithStatus[i].options
+            options: questionsWithStatus[i].options,
+            category: questionsWithStatus[i].category
           });
         }
         
@@ -138,7 +141,7 @@ const QuestionUpload: React.FC = () => {
         });
       }
     } else {
-      setMessage({ type: 'error', text: '未能解析出题目，请检查文件内容' });
+      setMessage({ type: 'error', text: '未能解析出选择题，请检查文件内容' });
     }
   };
 

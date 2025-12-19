@@ -7,6 +7,76 @@ import fs from 'fs';
 
 const router = express.Router();
 
+// 知识点配置：按科目分组，key为简称（存入数据库）
+interface KnowledgePointConfig {
+  key: string;      // 简称，存入数据库
+  label: string;    // 详细描述
+}
+
+const KNOWLEDGE_POINTS: Record<string, KnowledgePointConfig[]> = {
+  '数学': [
+    { key: '集合', label: '集合（集合的定义、运算及表示方法）' },
+    { key: '不等式', label: '不等式（不等式的基本性质与解法，一元二次不等式、分式不等式等）' },
+    { key: '函数', label: '函数（函数的概念与性质，定义域、值域、单调性、奇偶性等）' },
+    { key: '基本初等函数', label: '基本初等函数（幂函数、指数函数、对数函数、三角函数）' },
+    { key: '数列', label: '数列（等差数列、等比数列的通项公式及求和）' },
+    { key: '导数与微积分初步', label: '导数与微积分初步（导数的定义、几何意义及简单应用）' },
+    { key: '平面解析几何', label: '平面解析几何（直线、圆、椭圆、双曲线、抛物线的方程与性质）' },
+    { key: '向量与复数', label: '向量与复数（向量的运算、复数的四则运算）' },
+    { key: '空间几何', label: '空间几何（空间直角坐标系、简单立体图形的性质）' },
+    { key: '古典概型与概率计算', label: '古典概型与概率计算' },
+    { key: '数据的数字特征', label: '数据的数字特征（均值、方差等）' },
+    { key: '正态分布', label: '正态分布（正态分布的基本概念）' },
+  ],
+  '物理': [
+    { key: '运动学', label: '运动学（位移、速度、加速度，匀变速直线运动，自由落体运动）' },
+    { key: '牛顿运动定律', label: '牛顿运动定律及其应用' },
+    { key: '动量与冲量', label: '动量与冲量，动量守恒定律' },
+    { key: '功与能', label: '功与能，机械能守恒定律' },
+    { key: '圆周运动与万有引力', label: '圆周运动与万有引力' },
+    { key: '简谐振动与机械波', label: '简谐振动与机械波' },
+    { key: '静电场', label: '静电场（库仑定律，电场强度，电势）' },
+    { key: '直流电路', label: '直流电路（欧姆定律，串并联电路）' },
+    { key: '磁场', label: '磁场（磁感应强度，安培力，洛伦兹力）' },
+    { key: '电磁感应', label: '电磁感应（法拉第定律，楞次定律）' },
+    { key: '分子动理论', label: '分子动理论' },
+    { key: '理想气体状态方程', label: '理想气体状态方程' },
+    { key: '热力学第一定律', label: '热力学第一定律' },
+    { key: '几何光学', label: '几何光学（反射定律，折射定律）' },
+    { key: '物理光学', label: '物理光学（干涉，衍射）' },
+    { key: '光电效应', label: '光电效应' },
+    { key: '原子结构', label: '原子结构' },
+    { key: '核物理基础', label: '核物理基础' },
+  ],
+  '化学': [
+    { key: '物质分类与状态变化', label: '物质分类与状态变化' },
+    { key: '化学用语与方程式', label: '化学用语与方程式书写' },
+    { key: '溶液浓度与pH计算', label: '溶液浓度与pH计算' },
+    { key: '物质的量计算', label: '物质的量相关计算' },
+    { key: '理想气体状态方程应用', label: '理想气体状态方程应用' },
+    { key: '常见无机物性质', label: '常见无机物性质（单质、氧化物、酸、碱、盐）' },
+    { key: '基础有机化合物', label: '基础有机化合物（烃类及衍生物）' },
+    { key: '氧化还原反应', label: '氧化还原反应判断' },
+    { key: '离子反应与检验', label: '离子反应与检验方法' },
+    { key: '原子结构与元素周期律', label: '原子结构与元素周期律' },
+    { key: '化学键与分子间作用力', label: '化学键与分子间作用力' },
+    { key: '化学反应速率与平衡', label: '化学反应速率与平衡' },
+    { key: '电解质溶液理论', label: '电解质溶液理论' },
+    { key: '实验室安全与仪器', label: '实验室安全与仪器使用' },
+    { key: '气体制备与检验', label: '常见气体制备与检验' },
+    { key: '物质分离提纯', label: '物质分离提纯方法' },
+    { key: '工业化工流程分析', label: '工业化工流程分析（如合成氨）' },
+  ],
+  '中文': [
+    { key: '识解汉字', label: '识解汉字' },
+    { key: '选词填空', label: '选词填空' },
+    { key: '辨析词语', label: '辨析词语' },
+    { key: '选词成段', label: '选词成段' },
+    { key: '补全语句', label: '补全语句' },
+    { key: '阅读理解', label: '阅读理解' },
+  ],
+};
+
 // 确保上传目录存在
 const uploadDir = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -210,9 +280,9 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
 2. 如果图片中有多道题目，请全部提取
 3. 只输出JSON，不要有其他文字
 4. 如有公式请使用LaTeX格式，用$...$包裹
-5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组
+5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组，不要输出填空或主观题！
 6. category 必须是以下四个分类之一：中文、数学、物理、化学。根据题目内容判断所属学科分类
-7. 注意输出结果中的反斜杠需要转义，如\n需写为\\n`
+7. 注意输出结果中的反斜杠需要转义，如\n需写为\\n，\{需写为\\{`
   });
 
   const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
@@ -415,8 +485,29 @@ router.post('/cleanup-images', authenticate, adminAuth, async (req: AuthRequest,
 });
 
 // 调用 DeepSeek API 解析单个题目的详细信息
-async function callDeepSeekApi(question: { question_text: string; options: string[] }, apiKey: string): Promise<any> {
-  const prompt = `你是一位专业的考试题目解析专家。请分析以下选择题，并给出详细解析。
+async function callDeepSeekApi(
+  question: { question_text: string; options: string[] }, 
+  apiKey: string,
+  category?: string
+): Promise<any> {
+  // 获取该科目的知识点列表
+  const knowledgePoints = category && KNOWLEDGE_POINTS[category] ? KNOWLEDGE_POINTS[category] : [];
+  const knowledgePointKeys = knowledgePoints.map(kp => kp.key);
+  
+  // 构建知识点说明文本
+  let knowledgePointInstruction = '';
+  if (knowledgePointKeys.length > 0) {
+    knowledgePointInstruction = `
+8. knowledge_point 必须从以下知识点列表中选择一个（只能选一个，填写简写形式）：
+   可选知识点：${knowledgePointKeys.join('、')}
+9. 请根据题目考察的核心内容，选择最匹配的一个知识点
+10. 如果题目考察的内容与列表中任何知识点都不匹配，knowledge_point 填写空字符串 ""`;
+  } else {
+    knowledgePointInstruction = `
+8. knowledge_point 填写你判断的这道题主要考察的知识点（字符串形式）`;
+  }
+
+  const prompt = `你是一位专业的考试题目解析专家。请分析以下选择题，并按要求给出正确解析。
 
 题目：${question.question_text}
 
@@ -425,23 +516,24 @@ A. ${question.options[0]}
 B. ${question.options[1]}
 C. ${question.options[2]}
 D. ${question.options[3]}
+${category ? `\n科目：${category}` : ''}
 
 请严格按照以下JSON格式返回结果（如有需要，使用$...$包裹LaTeX公式）：
 {
   "correct_answer": 0,
-  "explanation": "详细的解题过程和解析说明",
-  "knowledge_points": ["知识点1", "知识点2"],
+  "explanation": "简短的解题过程和解析说明",
+  "knowledge_point": "知识点简写",
   "difficulty": "easy"
 }
 
 注意：
 1. correct_answer 是正确答案的索引（0=A, 1=B, 2=C, 3=D）
-2. explanation 请给出详细的解题思路和推导过程，支持LaTeX公式
-3. knowledge_points 是这道题考察的知识点列表
-4. difficulty 只能是 "easy"、"medium" 或 "hard" 之一
-5. 只输出JSON，不要有其他文字
-6. 题目只涉及中学简单知识，只输出一种简单解法或解释，禁止提到高等数学或大学知识
-7. 尽可能言简意赅，不要长篇大论或反复怀疑验算`;
+2. explanation 请给出简短的解题思路和推导过程，支持LaTeX公式
+3. difficulty 只能是 "easy"、"medium" 或 "hard" 之一
+4. 只输出JSON，不要有其他文字
+5. 题目只涉及中学简单知识，只输出一种简单解法或解释，禁止提到高等数学或大学知识
+6. 尽可能言简意赅，不要长篇大论或反复怀疑验算，用凝练的几句话描述即可
+7. knowledge_point 只能填写一个知识点（字符串形式）${knowledgePointInstruction}`;
 
   const response = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
@@ -502,7 +594,7 @@ function extractJsonFromDeepSeekResponse(responseData: any): any {
 // DeepSeek API接口 - 解析单个题目的详细信息
 router.post('/analyze-question', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { question } = req.body;
+    const { question, category } = req.body;
 
     if (!question || !question.question_text || !question.options) {
       return res.status(400).json({ message: '请提供完整的题目信息（question_text和options）' });
@@ -513,6 +605,11 @@ router.post('/analyze-question', authenticate, adminAuth, async (req: AuthReques
       return res.status(500).json({ message: 'DeepSeek API Key 未配置，请在环境变量中设置 DEEPSEEK_API_KEY' });
     }
 
+    // 获取该科目的有效知识点列表
+    const validKnowledgePoints = category && KNOWLEDGE_POINTS[category] 
+      ? KNOWLEDGE_POINTS[category].map(kp => kp.key) 
+      : [];
+
     // 调用DeepSeek API
     let lastError: Error | null = null;
     const maxRetries = 3;
@@ -520,16 +617,31 @@ router.post('/analyze-question', authenticate, adminAuth, async (req: AuthReques
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`调用 DeepSeek API 解析题目，第 ${attempt} 次尝试`);
+        console.log(`调用 DeepSeek API 解析题目，第 ${attempt} 次尝试，科目: ${category || '未指定'}`);
         
-        const responseData = await callDeepSeekApi(question, deepseekApiKey);
+        const responseData = await callDeepSeekApi(question, deepseekApiKey, category);
         const parsedResult = extractJsonFromDeepSeekResponse(responseData);
         
+        // 获取knowledge_point，验证是否在有效列表中
+        let knowledgePoint = parsedResult.knowledge_point || '';
+        if (validKnowledgePoints.length > 0 && !validKnowledgePoints.includes(knowledgePoint)) {
+          // 如果返回的知识点不在列表中，尝试模糊匹配
+          const matchedPoint = validKnowledgePoints.find(kp => 
+            knowledgePoint.includes(kp) || kp.includes(knowledgePoint)
+          );
+          if (matchedPoint) {
+            knowledgePoint = matchedPoint;
+          } else {
+            // 如果匹配不到，使用第一个知识点作为默认值（可根据需求调整）
+            console.log(`知识点 "${knowledgePoint}" 不在有效列表中，将保留原值`);
+          }
+        }
+
         // 验证并标准化结果
         const result = {
           correct_answer: parsedResult.correct_answer ?? 0,
           explanation: parsedResult.explanation || '暂无解析',
-          knowledge_points: Array.isArray(parsedResult.knowledge_points) ? parsedResult.knowledge_points : [],
+          knowledge_point: knowledgePoint,
           difficulty: ['easy', 'medium', 'hard'].includes(parsedResult.difficulty) ? parsedResult.difficulty : 'medium'
         };
 

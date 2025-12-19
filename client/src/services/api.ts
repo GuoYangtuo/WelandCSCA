@@ -153,8 +153,8 @@ export const difyAPI = {
     return response.data;
   },
   // 使用DeepSeek解析单个题目的详细信息
-  analyzeQuestion: async (question: { question_text: string; options: string[] }) => {
-    const response = await api.post('/dify/analyze-question', { question });
+  analyzeQuestion: async (question: { question_text: string; options: string[] }, category?: string) => {
+    const response = await api.post('/dify/analyze-question', { question, category });
     return response.data;
   },
   // 清理上传的图片

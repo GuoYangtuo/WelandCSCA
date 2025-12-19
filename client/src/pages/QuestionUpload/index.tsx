@@ -98,7 +98,7 @@ const QuestionUpload: React.FC = () => {
   const parseQuestionsFromImages = async (imageUrls: string[]) => {
     setParseProgress('正在识别题目...');
     
-    const result = await difyAPI.parseQuestions(["http://csca.weland.group/uploads/pdf-page-1-1766053282045-631020747.png"]);
+    const result = await difyAPI.parseQuestions(imageUrls);
     
     if (result.success && result.data.questions.length > 0) {
       const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';

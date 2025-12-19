@@ -255,6 +255,7 @@ export const ru = {
       bandwidth: 'Скорость интернета не менее 20 Мбит/с',
     },
     officialResources: 'Официальные ресурсы',
+    cscaWebsite: 'Сайт CSCA',
     syllabusDownload: 'Скачать программу экзамена',
     syllabus: {
       artsChinese: 'Программа по китайскому (гуманитарные)',

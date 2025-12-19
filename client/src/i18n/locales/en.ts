@@ -255,6 +255,7 @@ export const en = {
       bandwidth: 'At least 20Mbps bandwidth',
     },
     officialResources: 'Official Resources',
+    cscaWebsite: 'CSCA Website',
     syllabusDownload: 'Syllabus Download',
     syllabus: {
       artsChinese: 'Arts Chinese Syllabus',

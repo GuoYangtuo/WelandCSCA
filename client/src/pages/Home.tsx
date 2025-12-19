@@ -529,13 +529,7 @@ const Home: React.FC = () => {
             <div className="footer-col">
               <h4>{t.home.officialResources}</h4>
               <ul>
-                <li><a href="https://www.csca.cn" target="_blank" rel="noopener noreferrer">CSCA官网</a></li>
-                <li><a href="https://www.campuschina.org" target="_blank" rel="noopener noreferrer">Campus China</a></li>
-              </ul>
-            </div>
-            <div className="footer-col">
-              <h4>{t.home.syllabusDownload}</h4>
-              <ul>
+                <li><a href="https://www.csca.cn" target="_blank" rel="noopener noreferrer" onClick={handleSyllabusClick}>{t.home.cscaWebsite}</a></li>
                 <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012552383445.pdf" target="_blank" rel="noopener noreferrer" onClick={handleSyllabusClick}>{t.home.syllabus.artsChinese}</a></li>
                 <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012641117574.pdf" target="_blank" rel="noopener noreferrer" onClick={handleSyllabusClick}>{t.home.syllabus.scienceChinese}</a></li>
                 <li><a href="https://www.cucas.cn/uploads/school/2025/1021/1761012714447954.pdf" target="_blank" rel="noopener noreferrer" onClick={handleSyllabusClick}>{t.home.syllabus.math}</a></li>

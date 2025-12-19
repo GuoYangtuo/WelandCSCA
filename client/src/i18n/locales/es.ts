@@ -255,6 +255,7 @@ export const es = {
       bandwidth: 'Ancho de banda mínimo 20Mbps',
     },
     officialResources: 'Recursos oficiales',
+    cscaWebsite: 'Sitio web de CSCA',
     syllabusDownload: 'Descargar programa del examen',
     syllabus: {
       artsChinese: 'Programa de chino para humanidades',

@@ -255,6 +255,7 @@ export const vi = {
       bandwidth: 'Băng thông không thấp hơn 20Mbps',
     },
     officialResources: 'Tài liệu chính thức',
+    cscaWebsite: 'Trang web CSCA',
     syllabusDownload: 'Tải đề cương thi',
     syllabus: {
       artsChinese: 'Đề cương thi tiếng Trung khối văn',

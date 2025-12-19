@@ -255,6 +255,7 @@ export const th = {
       bandwidth: 'แบนด์วิดท์ไม่ต่ำกว่า 20Mbps',
     },
     officialResources: 'ทรัพยากรอย่างเป็นทางการ',
+    cscaWebsite: 'เว็บไซต์ CSCA',
     syllabusDownload: 'ดาวน์โหลดหลักสูตรสอบ',
     syllabus: {
       artsChinese: 'หลักสูตรภาษาจีนสายศิลป์',

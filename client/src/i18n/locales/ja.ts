@@ -255,6 +255,7 @@ export const ja = {
       bandwidth: '帯域幅20Mbps以上',
     },
     officialResources: '公式リソース',
+    cscaWebsite: 'CSCA公式サイト',
     syllabusDownload: '試験大綱ダウンロード',
     syllabus: {
       artsChinese: '文科中国語試験大綱',

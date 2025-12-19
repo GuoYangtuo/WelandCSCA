@@ -255,6 +255,7 @@ export const zh = {
       bandwidth: '带宽不低于20Mbps',
     },
     officialResources: '官方资源',
+    cscaWebsite: 'CSCA官网',
     syllabusDownload: '考试大纲下载',
     syllabus: {
       artsChinese: '文科中文考试大纲',

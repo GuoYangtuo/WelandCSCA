@@ -255,6 +255,7 @@ export const fr = {
       bandwidth: 'Bande passante minimale 20 Mbps',
     },
     officialResources: 'Ressources officielles',
+    cscaWebsite: 'Site web CSCA',
     syllabusDownload: 'Télécharger le programme',
     syllabus: {
       artsChinese: 'Programme de chinois littéraire',

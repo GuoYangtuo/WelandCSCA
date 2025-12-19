@@ -255,6 +255,7 @@ export const ar = {
       bandwidth: 'سرعة الإنترنت لا تقل عن 20Mbps',
     },
     officialResources: 'الموارد الرسمية',
+    cscaWebsite: 'موقع CSCA',
     syllabusDownload: 'تحميل المنهج الدراسي',
     syllabus: {
       artsChinese: 'منهج اللغة الصينية الأدبية',

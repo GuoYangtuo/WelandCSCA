@@ -15,6 +15,7 @@ interface ImageUploadSectionProps {
   onPdfParse: () => void;
   onReset: () => void;
   setMessage: (msg: { type: 'error' | 'success'; text: string } | null) => void;
+  compactMode?: boolean; // 紧凑模式：只显示操作按钮，不显示上传区域
 }
 
 const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
@@ -30,6 +31,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   onPdfParse,
   onReset,
   setMessage,
+  compactMode = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
@@ -99,6 +101,41 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
+
+  // 紧凑模式：只显示操作按钮
+  if (compactMode) {
+    return (
+      <div className="image-upload-section compact">
+        <div className="compact-actions">
+          <button 
+            className="btn btn-secondary"
+            onClick={onReset}
+            disabled={parsing}
+          >
+            <X size={16} />
+            清空重置
+          </button>
+          <button 
+            className="btn btn-primary btn-parse"
+            onClick={uploadType === 'pdf' ? onPdfParse : onParse}
+            disabled={parsing || (uploadType === 'image' ? uploadedImages.length === 0 : !uploadedPdf)}
+          >
+            {parsing ? (
+              <>
+                <Loader2 size={18} className="spin" />
+                {parseProgress}
+              </>
+            ) : (
+              <>
+                <Scan size={18} />
+                解析题目
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="image-upload-section">

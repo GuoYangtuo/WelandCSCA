@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Upload, Plus, Save, AlertCircle, CheckCircle, X, 
-  Image, Edit3, Database
+  Image, Edit3, Database, LogIn
 } from 'lucide-react';
 import { difyAPI, adminAPI } from '../../services/api';
 import '../../components/LatexRenderer.css';
@@ -13,9 +13,10 @@ import { emptyQuestion, ENABLE_DEEPSEEK_ANALYZE } from './constants';
 import ImageUploadSection from './ImageUploadSection';
 import QuestionFormCard from './QuestionFormCard';
 import QuestionManageSection from './QuestionManageSection';
+import DocumentPreviewPanel from './DocumentPreviewPanel';
 
 const QuestionUpload: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openLoginModal } = useAuth();
   
   // 模式切换：'upload' = 图片上传解析, 'manual' = 手动输入, 'manage' = 题目管理
   const [mode, setMode] = useState<'upload' | 'manual' | 'manage'>('upload');
@@ -305,18 +306,24 @@ const QuestionUpload: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="upload-page">
-        <div className="auth-required">
-          <AlertCircle size={48} />
+      <div className="upload-page fullscreen">
+        <div className="auth-required-card">
+          <div className="auth-required-icon">
+            <AlertCircle size={56} />
+          </div>
           <h2>需要登录</h2>
           <p>请先登录后再使用题目上传功能</p>
+          <button className="auth-login-btn" onClick={openLoginModal}>
+            <LogIn size={20} />
+            <span>立即登录</span>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="upload-page">
+    <div className="upload-page fullscreen">
       <div className="upload-container">
         <header className="upload-header">
           <div className="header-title">
@@ -359,18 +366,8 @@ const QuestionUpload: React.FC = () => {
           </div>
         </header>
 
-        {message && (
-          <div className={`message ${message.type}`}>
-            {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-            <span>{message.text}</span>
-            <button className="message-close" onClick={() => setMessage(null)}>
-              <X size={16} />
-            </button>
-          </div>
-        )}
-
-        {/* 图片/PDF上传模式 */}
-        {mode === 'upload' && (
+        {/* 图片/PDF上传模式 - 无文件时显示上传区 */}
+        {mode === 'upload' && uploadedImages.length === 0 && !uploadedPdf && (
           <ImageUploadSection
             uploadType={uploadType}
             setUploadType={setUploadType}
@@ -387,18 +384,110 @@ const QuestionUpload: React.FC = () => {
           />
         )}
 
-        {/* 解析结果展示 / 手动输入区 */}
-        {questions.length > 0 && (
+        {/* 图片/PDF上传模式 - 有文件时显示左右分栏布局 */}
+        {mode === 'upload' && (uploadedImages.length > 0 || uploadedPdf) && (
+          <div className="split-layout">
+            {/* 左侧: 文档预览面板 */}
+            <div className="split-left">
+              <DocumentPreviewPanel
+                uploadType={uploadType}
+                uploadedImages={uploadedImages}
+                uploadedPdf={uploadedPdf}
+              />
+              {/* 解析操作按钮 */}
+              <div className="preview-actions">
+                <ImageUploadSection
+                  uploadType={uploadType}
+                  setUploadType={setUploadType}
+                  uploadedImages={uploadedImages}
+                  setUploadedImages={setUploadedImages}
+                  uploadedPdf={uploadedPdf}
+                  setUploadedPdf={setUploadedPdf}
+                  parsing={parsing}
+                  parseProgress={parseProgress}
+                  onParse={handleParse}
+                  onPdfParse={handlePdfParse}
+                  onReset={handleReset}
+                  setMessage={setMessage}
+                  compactMode={true}
+                />
+              </div>
+            </div>
+
+            {/* 右侧: 题目编辑列表 */}
+            <div className="split-right">
+              {message && (
+                <div className={`message ${message.type}`}>
+                  {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                  <span>{message.text}</span>
+                  <button className="message-close" onClick={() => setMessage(null)}>
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+              {questions.length > 0 ? (
+                <>
+                  <div className="questions-list">
+                    {questions.map((question, qIndex) => (
+                      <QuestionFormCard
+                        key={qIndex}
+                        question={question}
+                        index={qIndex}
+                        onUpdate={updateQuestion}
+                        onUpdateOption={updateOption}
+                        onRemove={removeQuestion}
+                        onRetryAnalyze={retryAnalyzeQuestion}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="upload-footer">
+                    <span className="question-count">共 {questions.length} 道题目待提交</span>
+                    <div className="footer-actions">
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={addQuestion}
+                      >
+                        <Plus size={18} />
+                        追加题目
+                      </button>
+                      <button
+                        className="btn btn-primary btn-lg"
+                        onClick={handleSubmit}
+                        disabled={uploading}
+                      >
+                        {uploading ? (
+                          <>
+                            <span className="btn-spinner"></span>
+                            提交中...
+                          </>
+                        ) : (
+                          <>
+                            <Save size={20} />
+                            提交入库
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="empty-questions-state">
+                  <div className="empty-icon">📋</div>
+                  <h3>等待解析题目</h3>
+                  <p>点击左侧「解析题目」按钮开始识别</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 手动输入模式下的题目编辑区 */}
+        {mode === 'manual' && questions.length > 0 && (
           <>
             <div className="parsed-header">
-              <h2>
-                {mode === 'upload' ? '📝 解析结果审核' : '📝 题目编辑'}
-              </h2>
-              <p className="parsed-hint">
-                {mode === 'upload' 
-                  ? '请检查并修正以下解析出的题目，确认无误后点击提交入库' 
-                  : '请填写题目信息'}
-              </p>
+              <h2>📝 题目编辑</h2>
+              <p className="parsed-hint">请填写题目信息</p>
             </div>
 
             <div className="questions-list">

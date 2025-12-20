@@ -219,6 +219,15 @@
   flex: 1;
 }
 
+.main-content.full-height {
+  min-height: 100vh;
+}
+
+/* 隐藏导航栏时的布局 */
+.app.no-header {
+  min-height: 100vh;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .header-content {

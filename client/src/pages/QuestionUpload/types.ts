@@ -10,6 +10,7 @@ export interface QuestionForm {
   category: string;
   difficulty: string;
   knowledge_point: string;  // 知识点（单个）
+  source: string;  // 题目来源
   analyzeStatus: AnalyzeStatus;
   analyzeError?: string;
 }
@@ -38,6 +39,7 @@ export interface ExistingQuestion {
   category: string | null;
   difficulty: string;
   knowledge_point: string | null;  // 知识点
+  source: string | null;  // 题目来源
   created_at?: string;
 }
 

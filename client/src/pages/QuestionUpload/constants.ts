@@ -113,6 +113,7 @@ export const emptyQuestion: QuestionForm = {
   category: '',
   difficulty: 'medium',
   knowledge_point: '',
+  source: '',
   analyzeStatus: 'completed'
 };
 

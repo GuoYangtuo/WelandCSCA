@@ -128,6 +128,7 @@ const QuestionManageSection: React.FC<QuestionManageSectionProps> = ({ setMessag
         category: editingQuestion.category,
         difficulty: editingQuestion.difficulty,
         knowledge_point: editingQuestion.knowledge_point,
+        source: editingQuestion.source,
       });
       if (result.success) {
         setMessage({ type: 'success', text: '题目更新成功' });

@@ -47,10 +47,12 @@ export async function initDatabase() {
         category VARCHAR(100) COMMENT '题目分类',
         difficulty VARCHAR(20) DEFAULT 'medium' COMMENT '难度: easy, medium, hard',
         knowledge_point VARCHAR(100) COMMENT '知识点',
+        source VARCHAR(200) COMMENT '题目来源',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_category (category),
         INDEX idx_difficulty (difficulty),
-        INDEX idx_knowledge_point (knowledge_point)
+        INDEX idx_knowledge_point (knowledge_point),
+        INDEX idx_source (source)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='题目表'
     `);
 
@@ -58,6 +60,16 @@ export async function initDatabase() {
     try {
       await connection.query(`ALTER TABLE questions ADD COLUMN knowledge_point VARCHAR(100) COMMENT '知识点' AFTER difficulty`);
       await connection.query(`ALTER TABLE questions ADD INDEX idx_knowledge_point (knowledge_point)`);
+    } catch (e: any) {
+      if (!e.message.includes('Duplicate column') && !e.message.includes('Duplicate key name')) {
+        // 忽略列或索引已存在的错误
+      }
+    }
+
+    // 检查并添加 source 字段（如果表已存在但没有该字段）
+    try {
+      await connection.query(`ALTER TABLE questions ADD COLUMN source VARCHAR(200) COMMENT '题目来源' AFTER knowledge_point`);
+      await connection.query(`ALTER TABLE questions ADD INDEX idx_source (source)`);
     } catch (e: any) {
       if (!e.message.includes('Duplicate column') && !e.message.includes('Duplicate key name')) {
         // 忽略列或索引已存在的错误

@@ -96,13 +96,16 @@ const QuestionUpload: React.FC = () => {
   };
 
   // 从图片URL解析题目（共用逻辑）
-  const parseQuestionsFromImages = async (imageUrls: string[]) => {
+  const parseQuestionsFromImages = async (imageUrls: string[], documentName?: string) => {
     setParseProgress('正在识别题目...');
     
     const result = await difyAPI.parseQuestions(imageUrls);
     
     if (result.success && result.data.questions.length > 0) {
       const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';
+      
+      // 确定题目来源：优先使用传入的文档名称，否则使用第一个图片的文件名
+      const source = documentName || (uploadedImages.length > 0 ? uploadedImages[0].file.name : '');
       
       const questionsWithStatus: QuestionForm[] = result.data.questions.map((q: any) => ({
         question_text: q.question_text || '',
@@ -112,6 +115,7 @@ const QuestionUpload: React.FC = () => {
         category: q.category || '',
         difficulty: 'medium',
         knowledge_point: '',
+        source: source,
         analyzeStatus: initialAnalyzeStatus
       }));
       
@@ -166,7 +170,9 @@ const QuestionUpload: React.FC = () => {
       }
       
       const imageUrls = uploadResult.data.urls;
-      await parseQuestionsFromImages(imageUrls);
+      // 图片上传时，使用第一个图片的文件名作为来源
+      const source = uploadedImages.length > 0 ? uploadedImages[0].file.name : '';
+      await parseQuestionsFromImages(imageUrls, source);
     } catch (error: any) {
       console.error('解析错误:', error);
       setMessage({ 
@@ -200,7 +206,9 @@ const QuestionUpload: React.FC = () => {
       const imageUrls = uploadResult.data.urls;
       setParseProgress(`PDF转换完成（共${imageUrls.length}页），正在识别题目...`);
       
-      await parseQuestionsFromImages(imageUrls);
+      // PDF上传时，使用PDF文件名作为来源
+      const source = uploadedPdf ? uploadedPdf.name : '';
+      await parseQuestionsFromImages(imageUrls, source);
     } catch (error: any) {
       console.error('PDF解析错误:', error);
       setMessage({ 
@@ -214,7 +222,7 @@ const QuestionUpload: React.FC = () => {
   };
 
   const addQuestion = () => {
-    setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''], knowledge_point: '', analyzeStatus: 'completed' }]);
+    setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''], knowledge_point: '', source: '', analyzeStatus: 'completed' }]);
   };
 
   const removeQuestion = (index: number) => {
@@ -274,7 +282,8 @@ const QuestionUpload: React.FC = () => {
         explanation: q.explanation,
         category: q.category,
         difficulty: q.difficulty,
-        knowledge_point: q.knowledge_point
+        knowledge_point: q.knowledge_point,
+        source: q.source || null
       }));
 
       if (questionsToSubmit.length === 1) {

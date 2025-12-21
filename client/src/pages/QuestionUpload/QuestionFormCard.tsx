@@ -26,6 +26,7 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [isEditingOptions, setIsEditingOptions] = useState(false);
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
+  const [isEditingSource, setIsEditingSource] = useState(false);
 
   return (
     <div className={`question-form-card ${question.analyzeStatus === 'pending' ? 'status-pending' : ''} ${question.analyzeStatus === 'analyzing' ? 'status-analyzing' : ''} ${question.analyzeStatus === 'error' ? 'status-error' : ''}`}>
@@ -137,6 +138,35 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
                 <LatexRenderer>{question.explanation}</LatexRenderer>
               ) : (
                 <span className="preview-placeholder">点击编辑解析说明...</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 题目来源 */}
+        <div className="content-section">
+          <div className="content-header">
+            <label>题目来源</label>
+          </div>
+          {isEditingSource ? (
+            <input
+              type="text"
+              className="form-input"
+              placeholder="例如：文档名称、图片文件名等"
+              value={question.source}
+              onChange={(e) => onUpdate(index, 'source', e.target.value)}
+              onBlur={() => setIsEditingSource(false)}
+              autoFocus
+            />
+          ) : (
+            <div 
+              className="preview-content clickable-preview"
+              onClick={() => setIsEditingSource(true)}
+            >
+              {question.source ? (
+                <span>{question.source}</span>
+              ) : (
+                <span className="preview-placeholder">点击编辑题目来源...</span>
               )}
             </div>
           )}

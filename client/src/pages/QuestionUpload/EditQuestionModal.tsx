@@ -129,6 +129,17 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
               rows={2}
             />
           </div>
+
+          <div className="form-group">
+            <label>题目来源</label>
+            <input
+              type="text"
+              className="form-input"
+              value={question.source || ''}
+              onChange={(e) => onUpdateQuestion('source', e.target.value)}
+              placeholder="例如：文档名称、图片文件名等"
+            />
+          </div>
         </div>
         <div className="edit-modal-footer">
           <button className="btn btn-secondary" onClick={onCancel}>

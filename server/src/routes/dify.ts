@@ -264,25 +264,30 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
     type: 'text',
     text: `你是一名数据结构化专家，根据用户输入的图片内容，提取其中的题目为结构化的json格式数据，如有需要，使用$...$包裹latex公式。
 
-请严格按照以下JSON格式输出：
+请严格按照以下 JSON 格式输出：
 {
   "questions": [
     {
       "question_text": "题目文本",
       "options": ["选项A", "选项B", "选项C", "选项D"],
-      "category": "分类"
+      "category": "分类",
+      "correct_answer": 0,
+      "explanation": "解题思路或解析"
     }
   ]
 }
 
 注意：
-1. 只提取题目内容和选项，不需要判断正确答案
+1. 优先提取题目内容、选项，答案与解析仅在图片中明确出现时才返回（若图片中没有与单选题对应的答案或解析，请不要返回 correct_answer 或 explanation 字段）
 2. 如果图片中有多道题目，请全部提取
 3. 只输出JSON，不要有其他文字
 4. 如有公式请使用LaTeX格式，用$...$包裹
 5. 只提取选择题，图片中其它内容不用管，若没有选择题或没有题目，请输出空数组，不要输出多选题，配对匹配型选择题，填空或主观题！只要不是单选一律不管
 6. category 必须是以下四个分类之一：中文、数学、物理、化学。根据题目内容判断所属学科分类
-7. 注意输出结果中的反斜杠需要转义，如\n需写为\\n，\{需写为\\{`
+7. 注意输出结果中的反斜杠需要转义，如\n需写为\\n，\{需写为\\{
+8. correct_answer 是正确答案的索引（0=A, 1=B, 2=C, 3=D），若图片中没有明确说明答案，请返回-1
+9. 若图片中没有明确找到与该道单选题目对应的解析，请返回空字符串
+10. correct_answer 仅当答案出现在对应题目后面时提取，若是成组出现，若五个一组，则忽略，全部返回-1`
   });
 
   const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
@@ -313,6 +318,7 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
 // 从API响应中提取并解析JSON
 function extractJsonFromResponse(responseData: any): any {
   const content = responseData?.choices?.[0]?.message?.content;
+  console.log(content);
   
   if (!content) {
     throw new Error('API 响应中没有内容');
@@ -432,7 +438,10 @@ router.post('/parse-questions', authenticate, adminAuth, async (req: AuthRequest
     const questions = result.questions.map((item: any) => ({
       question_text: item.question_text || '',
       options: item.options || ['', '', '', ''],
-      category: validCategories.includes(item.category) ? item.category : ''
+      category: validCategories.includes(item.category) ? item.category : '',
+      // 如果Dashscope提取出答案或解析，则包含在返回结果中（客户端会根据是否存在这些字段决定后续行为）
+      correct_answer: (typeof item.correct_answer === 'number') ? item.correct_answer : undefined,
+      explanation: item.explanation ? item.explanation : undefined
     }));
 
     // 识别成功后删除图片文件
@@ -486,7 +495,7 @@ router.post('/cleanup-images', authenticate, adminAuth, async (req: AuthRequest,
 
 // 调用 DeepSeek API 解析单个题目的详细信息
 async function callDeepSeekApi(
-  question: { question_text: string; options: string[] }, 
+  question: { question_text: string; options: string[]; correct_answer?: number; explanation?: string }, 
   apiKey: string,
   category?: string
 ): Promise<any> {
@@ -507,7 +516,77 @@ async function callDeepSeekApi(
 8. knowledge_point 填写你判断的这道题主要考察的知识点（字符串形式）`;
   }
 
-  const prompt = `你是一位专业的考试题目解析专家。请分析以下选择题，并按要求给出正确解析。
+  console.log(question);
+
+  // 三种情况处理：
+  // 1) 没有答案没有解析：让 DeepSeek 返回完整的 correct_answer + explanation + knowledge_point + difficulty
+  // 2) 有答案无解析：告诉 DeepSeek 使用提供的 correct_answer（不要重新判断答案），并返回 explanation + knowledge_point + difficulty
+  // 3) 有答案有解析：告诉 DeepSeek 不要修改或重复 correct_answer/explanation，只返回补充字段（knowledge_point + difficulty）
+  const hasProvidedAnswer = (typeof question.correct_answer === 'number');
+  const hasProvidedExplanation = (question.explanation && question.explanation.trim() !== '');
+  const hasProvidedAnswerOnly = hasProvidedAnswer && !hasProvidedExplanation;
+  const hasProvidedAnswerAndExplanation = hasProvidedAnswer && hasProvidedExplanation;
+
+  let prompt: string;
+  if (hasProvidedAnswerAndExplanation) {
+    // 已有答案与解析：仅补充其他字段
+    prompt = `你是一位专业的考试题目解析专家。以下题目已经包含了正确答案与解析，请不要重复输出或修改这两个字段，只需按照要求返回其余所需信息（例如知识点和难度）。
+
+题目：${question.question_text}
+
+选项：
+A. ${question.options[0]}
+B. ${question.options[1]}
+C. ${question.options[2]}
+D. ${question.options[3]}
+${category ? `\n科目：${category}` : ''}
+
+另外已知：
+correct_answer: ${question.correct_answer}
+explanation: "${(question.explanation || '').replace(/"/g, '\\"')}"
+
+请严格按照以下JSON格式返回：
+{
+  "knowledge_point": "知识点简写",
+  "difficulty": "easy"
+}
+
+注意：
+1. **不要**返回 correct_answer 或 explanation 字段
+2. difficulty 只能是 \"easy\"、\"medium\" 或 \"hard\" 之一
+3. 只输出JSON，不要有其他文字
+4. knowledge_point 只能填写一个知识点（字符串形式）${knowledgePointInstruction}`;
+  } else if (hasProvidedAnswerOnly) {
+    // 只有答案：让 DeepSeek 使用该答案生成解析等
+    prompt = `你是一位专业的考试题目解析专家。下列题目已经由图像识别出正确答案，请不要重新判断或改变答案，基于该答案为题目生成简短的解析、知识点和难度。
+
+题目：${question.question_text}
+
+选项：
+A. ${question.options[0]}
+B. ${question.options[1]}
+C. ${question.options[2]}
+D. ${question.options[3]}
+${category ? `\n科目：${category}` : ''}
+
+已知正确答案： ${question.options[question.correct_answer ?? 0]}
+
+请严格按照以下JSON格式返回结果（如有需要，使用$...$包裹LaTeX公式）：
+{
+  "explanation": "简短的解题过程和解析说明",
+  "knowledge_point": "知识点简写",
+  "difficulty": "easy"
+}
+
+注意：
+1. **不要**返回 correct_answer 字段
+2. explanation 请给出简短的解题思路和推导过程，支持LaTeX公式
+3. difficulty 只能是 "easy"、"medium" 或 "hard" 之一
+4. 只输出JSON，不要有其他文字
+5. knowledge_point 只能填写一个知识点（字符串形式）${knowledgePointInstruction}`;
+  } else {
+    // 无答案：返回完整解析
+    prompt = `你是一位专业的考试题目解析专家。请分析以下选择题，并按要求给出正确解析。
 
 题目：${question.question_text}
 
@@ -534,6 +613,9 @@ ${category ? `\n科目：${category}` : ''}
 5. 题目只涉及中学简单知识，只输出一种简单解法或解释，禁止提到高等数学或大学知识
 6. 尽可能言简意赅，不要长篇大论或反复怀疑验算，用凝练的几句话描述即可
 7. knowledge_point 只能填写一个知识点（字符串形式）${knowledgePointInstruction}`;
+  }
+
+  console.log('prompt', prompt);
 
   const response = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
@@ -621,6 +703,7 @@ router.post('/analyze-question', authenticate, adminAuth, async (req: AuthReques
         
         const responseData = await callDeepSeekApi(question, deepseekApiKey, category);
         const parsedResult = extractJsonFromDeepSeekResponse(responseData);
+        console.log('parsedResult', parsedResult);
         
         // 获取knowledge_point，验证是否在有效列表中
         let knowledgePoint = parsedResult.knowledge_point || '';
@@ -637,10 +720,29 @@ router.post('/analyze-question', authenticate, adminAuth, async (req: AuthReques
           }
         }
 
-        // 验证并标准化结果
+        // 验证并标准化结果：优先使用 DeepSeek 返回的字段，其次回退到上游（Dashscope）提供的字段
+        const PREFIX_FROM_DEEPSEEK = '（由于题源没有解析，由AI生成解析，仅供参考）';
+
+        // 如果解析来自 DeepSeek 且题源没有提供解析，则在解释前加上前缀提示
+        let explanationText = '';
+        if (typeof parsedResult.explanation === 'string' && parsedResult.explanation.trim() !== '') {
+          explanationText = parsedResult.explanation;
+          if (!question.explanation || question.explanation.trim() === '') {
+            if (!explanationText.startsWith(PREFIX_FROM_DEEPSEEK)) {
+              explanationText = PREFIX_FROM_DEEPSEEK + explanationText;
+            }
+          }
+        } else if (typeof question.explanation === 'string' && question.explanation.trim() !== '') {
+          explanationText = question.explanation;
+        } else {
+          explanationText = '';
+        }
+
         const result = {
-          correct_answer: parsedResult.correct_answer ?? 0,
-          explanation: parsedResult.explanation || '暂无解析',
+          correct_answer: (typeof parsedResult.correct_answer === 'number')
+            ? parsedResult.correct_answer
+            : (typeof question.correct_answer === 'number' ? question.correct_answer : -1),
+          explanation: explanationText,
           knowledge_point: knowledgePoint,
           difficulty: ['easy', 'medium', 'hard'].includes(parsedResult.difficulty) ? parsedResult.difficulty : 'medium'
         };

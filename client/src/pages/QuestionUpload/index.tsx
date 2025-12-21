@@ -36,7 +36,7 @@ const QuestionUpload: React.FC = () => {
   const [message, setMessage] = useState<Message | null>(null);
 
   // 使用DeepSeek解析单个题目
-  const analyzeQuestionWithDeepSeek = async (index: number, question: { question_text: string; options: string[]; category?: string }) => {
+  const analyzeQuestionWithDeepSeek = async (index: number, question: { question_text: string; options: string[]; category?: string; correct_answer?: number; explanation?: string }) => {
     setQuestions(prev => {
       const newQuestions = [...prev];
       if (newQuestions[index]) {
@@ -47,6 +47,7 @@ const QuestionUpload: React.FC = () => {
 
     try {
       // 传入科目参数，让DeepSeek根据对应科目的知识点列表选择知识点
+      console.log(question);
       const result = await difyAPI.analyzeQuestion(question, question.category);
       
       if (result.success && result.data) {
@@ -55,7 +56,7 @@ const QuestionUpload: React.FC = () => {
           if (newQuestions[index]) {
             newQuestions[index] = {
               ...newQuestions[index],
-              correct_answer: result.data.correct_answer ?? 0,
+              correct_answer: result.data.correct_answer ?? -1,
               explanation: result.data.explanation || '',
               difficulty: result.data.difficulty || 'medium',
               knowledge_point: result.data.knowledge_point || '',
@@ -90,7 +91,9 @@ const QuestionUpload: React.FC = () => {
       analyzeQuestionWithDeepSeek(index, {
         question_text: question.question_text,
         options: question.options,
-        category: question.category
+        category: question.category,
+        correct_answer: question.correct_answer,
+        explanation: question.explanation
       });
     }
   };
@@ -110,8 +113,9 @@ const QuestionUpload: React.FC = () => {
       const questionsWithStatus: QuestionForm[] = result.data.questions.map((q: any) => ({
         question_text: q.question_text || '',
         options: q.options || ['', '', '', ''],
-        correct_answer: 0,
-        explanation: '',
+        // 如果Dashscope返回了答案或解析，则优先使用；否则使用默认值
+        correct_answer: (typeof q.correct_answer === 'number') ? q.correct_answer : -1,
+        explanation: q.explanation || '',
         category: q.category || '',
         difficulty: 'medium',
         knowledge_point: '',
@@ -131,7 +135,9 @@ const QuestionUpload: React.FC = () => {
           await analyzeQuestionWithDeepSeek(i, {
             question_text: questionsWithStatus[i].question_text,
             options: questionsWithStatus[i].options,
-            category: questionsWithStatus[i].category
+            category: questionsWithStatus[i].category,
+            correct_answer: questionsWithStatus[i].correct_answer,
+            explanation: questionsWithStatus[i].explanation
           });
         }
         

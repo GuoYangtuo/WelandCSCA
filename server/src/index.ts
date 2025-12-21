@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
+import { promises as fs } from 'fs';
 import { initDatabase } from './config/initDatabase';
 import routes from './routes';
 
@@ -26,12 +27,48 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'CSCA平台服务运行正常' });
 });
 
+// 清空 uploads 目录中的文件（启动时）
+async function clearUploads() {
+  const uploadsDir = path.join(__dirname, '../uploads');
+  try {
+    const entries = await fs.readdir(uploadsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const entryPath = path.join(uploadsDir, entry.name);
+      if (entry.isDirectory()) {
+        // 删除子目录及其内容
+        // fs.rm is available in recent Node versions; fallback to rmdir if necessary
+        // use force to ignore missing files
+        // @ts-ignore - some environments may not have rm typing
+        if ((fs as any).rm) {
+          await (fs as any).rm(entryPath, { recursive: true, force: true });
+        } else {
+          await fs.rmdir(entryPath, { recursive: true });
+        }
+      } else {
+        await fs.unlink(entryPath).catch(() => {});
+      }
+    }
+    console.log('uploads 目录已清空');
+  } catch (err: any) {
+    if (err && err.code === 'ENOENT') {
+      // 目录不存在，创建之
+      await fs.mkdir(uploadsDir, { recursive: true });
+      console.log('uploads 目录已创建');
+    } else {
+      console.error('清理 uploads 目录失败:', err);
+    }
+  }
+}
+
 // 启动服务器
 async function startServer() {
   try {
     // 初始化数据库
     await initDatabase();
     console.log('数据库初始化完成');
+
+    // 启动前清理 uploads
+    await clearUploads();
 
     // 启动服务器
     app.listen(PORT, () => {

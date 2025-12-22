@@ -10,6 +10,7 @@ export const en = {
     login: 'Login',
     register: 'Register',
     language: 'Language',
+    myCardWallet: 'My Card Wallet',
   },
 
   // AuthModal 登录注册弹窗
@@ -420,6 +421,40 @@ export const en = {
     loadConfigFailed: 'Failed to load mock test configuration, please try again',
     submitFailed: 'Submission failed, please try again',
     checkStatusFailed: 'Failed to check basic test status',
+  },
+
+  // CardWallet 卡包
+  cardWallet: {
+    title: 'My Card Wallet',
+    tabs: {
+      myCards: 'My Cards',
+      purchaseCards: 'Purchase Cards',
+    },
+    myCardsTitle: 'Your Test Cards',
+    walletHint: 'Each test card can be used for one complete subject test',
+    noCards: 'No cards available, purchase now',
+    cardDescription: 'Each card can be used for one complete test',
+    cards: {
+      artsChinese: 'Arts Chinese Test Card',
+      scienceChinese: 'Science Chinese Test Card',
+      math: 'Mathematics Test Card',
+      physics: 'Physics Test Card',
+      chemistry: 'Chemistry Test Card',
+    },
+    features: {
+      aiTest: 'AI-Generated Exam from Question Bank',
+      onlineTest: 'Online Testing',
+      aiAnalysis: 'AI Smart Analysis of Mistakes',
+    },
+    comboTitle: 'Special Combo Packages',
+    comboDescription: 'Includes 1 test card for each subject',
+    combos: {
+      fullPackage: 'Full 5-Subject Package',
+    },
+    save: 'Save',
+    singleCardsTitle: 'Single Subject Test Cards',
+    perCard: 'card',
+    buyNow: 'Buy Now',
   },
 };
 

@@ -11,6 +11,8 @@ export interface QuestionForm {
   difficulty: string;
   knowledge_point: string;  // 知识点（单个）
   source: string;  // 题目来源
+  image_url?: string;  // 题目配图URL
+  image_file?: File;  // 待上传的图片文件
   analyzeStatus: AnalyzeStatus;
   analyzeError?: string;
 }
@@ -41,6 +43,7 @@ export interface ExistingQuestion {
   difficulty: string;
   knowledge_point: string | null;  // 知识点
   source: string | null;  // 题目来源
+  image_url?: string | null;  // 题目配图URL
   created_at?: string;
 }
 

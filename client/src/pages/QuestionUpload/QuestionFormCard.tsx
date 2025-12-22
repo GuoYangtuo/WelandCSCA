@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { 
-  Trash2, CheckCircle, AlertCircle, Loader2, RefreshCw, Clock
+  Trash2, CheckCircle, AlertCircle, Loader2, RefreshCw, Clock, Upload as UploadIcon, X
 } from 'lucide-react';
 import LatexRenderer from '../../components/LatexRenderer';
 import { QuestionForm } from './types';
 import { KNOWLEDGE_POINTS } from './constants';
+import { adminAPI } from '../../services/api';
 
 interface QuestionFormCardProps {
   question: QuestionForm;
@@ -27,6 +28,49 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
   const [isEditingOptions, setIsEditingOptions] = useState(false);
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
   const [isEditingSource, setIsEditingSource] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // 处理图片上传
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件');
+      return;
+    }
+
+    // 检查文件大小（10MB）
+    if (file.size > 10 * 1024 * 1024) {
+      alert('图片大小不能超过10MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await adminAPI.uploadQuestionImage(formData);
+      
+      if (response.data.success) {
+        onUpdate(index, 'image_url', response.data.data.imageUrl);
+        onUpdate(index, 'image_file', file);
+      }
+    } catch (error: any) {
+      console.error('图片上传失败:', error);
+      alert(error.response?.data?.message || '图片上传失败，请重试');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // 移除图片
+  const handleRemoveImage = () => {
+    onUpdate(index, 'image_url', '');
+    onUpdate(index, 'image_file', undefined);
+  };
 
   return (
     <div className={`question-form-card ${question.analyzeStatus === 'pending' ? 'status-pending' : ''} ${question.analyzeStatus === 'analyzing' ? 'status-analyzing' : ''} ${question.analyzeStatus === 'error' ? 'status-error' : ''}`}>
@@ -168,6 +212,56 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
               ) : (
                 <span className="preview-placeholder">点击编辑题目来源...</span>
               )}
+            </div>
+          )}
+        </div>
+
+        {/* 题目配图 */}
+        <div className="content-section">
+          <div className="content-header">
+            <label>题目配图 <span className="label-hint">（可选）</span></label>
+          </div>
+          {question.image_url ? (
+            <div className="question-image-preview">
+              <img 
+                src={question.image_url} 
+                alt="题目配图" 
+                style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }}
+              />
+              <button 
+                className="remove-image-btn"
+                onClick={handleRemoveImage}
+                title="删除图片"
+              >
+                <X size={16} />
+                删除图片
+              </button>
+            </div>
+          ) : (
+            <div className="image-upload-area">
+              <label className="image-upload-label">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  style={{ display: 'none' }}
+                />
+                <div className="upload-placeholder">
+                  {uploadingImage ? (
+                    <>
+                      <Loader2 size={24} className="spin" />
+                      <span>上传中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadIcon size={24} />
+                      <span>点击上传图片</span>
+                      <span className="upload-hint">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</span>
+                    </>
+                  )}
+                </div>
+              </label>
             </div>
           )}
         </div>

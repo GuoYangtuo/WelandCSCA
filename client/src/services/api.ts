@@ -192,6 +192,20 @@ export const adminAPI = {
     const response = await api.delete(`/admin/questions/${id}`);
     return response.data;
   },
+  // 上传题目图片
+  uploadQuestionImage: async (formData: FormData) => {
+    const response = await api.post('/admin/questions/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+  // 删除题目图片
+  deleteQuestionImage: async (filename: string) => {
+    const response = await api.delete(`/admin/questions/image/${filename}`);
+    return response.data;
+  },
   // 课时文档上传
   uploadLessonDocument: async (file: File) => {
     const formData = new FormData();

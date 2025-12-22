@@ -162,6 +162,134 @@
   color: #d4af37;
 }
 
+/* ===== User Menu (登录后显示) ===== */
+.user-menu {
+  position: relative;
+}
+
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.user-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.user-menu-btn svg.rotated {
+  transform: rotate(180deg);
+}
+
+.user-menu-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 180px;
+  z-index: 1000;
+  overflow: visible;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.user-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown-item.logout {
+  color: #ff6b6b;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown-item.logout:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+/* 带二级菜单的项 */
+.user-dropdown-item.with-submenu {
+  padding: 0;
+}
+
+.dropdown-item-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  position: relative;
+}
+
+.submenu-arrow {
+  margin-left: auto;
+}
+
+/* 二级语言菜单 */
+.language-submenu {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 4px);
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 120px;
+  z-index: 1001;
+}
+
+.language-submenu .language-option {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-submenu .language-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.language-submenu .language-option.active {
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+}
+
 /* ===== Buttons ===== */
 .btn {
   padding: 0.5rem 1.5rem;

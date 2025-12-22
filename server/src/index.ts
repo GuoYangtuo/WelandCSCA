@@ -27,15 +27,24 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'CSCA平台服务运行正常' });
 });
 
-// 清空 uploads 目录中的文件（启动时）
+// 清空 uploads 目录中的临时文件（启动时）
+// 注意：保留 question-images 和 documents 目录（持久化文件）
 async function clearUploads() {
   const uploadsDir = path.join(__dirname, '../uploads');
+  // 需要保留的目录列表
+  const preserveDirs = ['question-images', 'documents'];
+  
   try {
     const entries = await fs.readdir(uploadsDir, { withFileTypes: true });
     for (const entry of entries) {
+      // 跳过需要保留的目录
+      if (preserveDirs.includes(entry.name)) {
+        continue;
+      }
+      
       const entryPath = path.join(uploadsDir, entry.name);
       if (entry.isDirectory()) {
-        // 删除子目录及其内容
+        // 删除其他子目录及其内容
         // fs.rm is available in recent Node versions; fallback to rmdir if necessary
         // use force to ignore missing files
         // @ts-ignore - some environments may not have rm typing
@@ -45,10 +54,11 @@ async function clearUploads() {
           await fs.rmdir(entryPath, { recursive: true });
         }
       } else {
+        // 删除临时文件
         await fs.unlink(entryPath).catch(() => {});
       }
     }
-    console.log('uploads 目录已清空');
+    console.log('uploads 临时文件已清空（保留持久化目录）');
   } catch (err: any) {
     if (err && err.code === 'ENOENT') {
       // 目录不存在，创建之

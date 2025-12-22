@@ -76,6 +76,15 @@ export async function initDatabase() {
       }
     }
 
+    // 检查并添加 image_url 字段（如果表已存在但没有该字段）
+    try {
+      await connection.query(`ALTER TABLE questions ADD COLUMN image_url VARCHAR(500) COMMENT '题目配图URL' AFTER source`);
+    } catch (e: any) {
+      if (!e.message.includes('Duplicate column')) {
+        // 忽略列已存在的错误
+      }
+    }
+
     // 创建模拟测试配置表
     await connection.query(`
       CREATE TABLE IF NOT EXISTS mock_test_configs (

@@ -10,6 +10,7 @@ export const zh = {
     login: '登录',
     register: '注册',
     language: '语言',
+    myCardWallet: '我的卡包',
   },
 
   // AuthModal 登录注册弹窗
@@ -420,6 +421,40 @@ export const zh = {
     loadConfigFailed: '加载模拟测试配置失败，请重试',
     submitFailed: '提交失败，请重试',
     checkStatusFailed: '检查基础测试状态失败',
+  },
+
+  // CardWallet 卡包
+  cardWallet: {
+    title: '我的卡包',
+    tabs: {
+      myCards: '我的卡片',
+      purchaseCards: '购买卡片',
+    },
+    myCardsTitle: '您拥有的测试卡',
+    walletHint: '每张测试卡可用于一次完整的科目测试',
+    noCards: '暂无此卡，去购买吧',
+    cardDescription: '每张卡可用于一次完整测试',
+    cards: {
+      artsChinese: '文科中文测试卡',
+      scienceChinese: '理科中文测试卡',
+      math: '数学测试卡',
+      physics: '物理测试卡',
+      chemistry: '化学测试卡',
+    },
+    features: {
+      aiTest: 'AI从题库针对性抽题组卷',
+      onlineTest: '在线测试',
+      aiAnalysis: 'AI智能分析错题，制定个性化提分策略',
+    },
+    comboTitle: '超值组合套餐',
+    comboDescription: '包含所有科目测试卡各1张',
+    combos: {
+      fullPackage: '五科全能套餐',
+    },
+    save: '省',
+    singleCardsTitle: '单科测试卡',
+    perCard: '张',
+    buyNow: '立即购买',
   },
 };
 

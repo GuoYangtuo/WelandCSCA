@@ -48,9 +48,81 @@ const documentUpload = multer({
   }
 });
 
+// 配置题目图片上传存储
+const questionImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../../uploads/question-images');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `question-${uniqueSuffix}${ext}`);
+  }
+});
+
+const questionImageUpload = multer({
+  storage: questionImageStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB限制
+  fileFilter: (req, file, cb) => {
+    // 只允许图片类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('只支持图片格式 (JPEG, PNG, GIF, WebP)'));
+    }
+  }
+});
+
 const router = express.Router();
 
 // ==================== 题目管理 ====================
+
+// 上传题目图片
+router.post('/questions/upload-image', authenticate, adminAuth, questionImageUpload.single('image'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: '请选择要上传的图片' });
+    }
+
+    const imageUrl = `/uploads/question-images/${req.file.filename}`;
+
+    res.json({
+      success: true,
+      message: '图片上传成功',
+      data: {
+        imageUrl
+      }
+    });
+  } catch (error) {
+    console.error('上传图片错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 删除题目图片
+router.delete('/questions/image/:filename', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, '../../uploads/question-images', filename);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    res.json({
+      success: true,
+      message: '图片删除成功'
+    });
+  } catch (error) {
+    console.error('删除图片错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
 
 // 获取所有题目（带分页）
 router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
@@ -124,16 +196,16 @@ router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: 
 // 添加新题目
 router.post('/questions', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source } = req.body;
+    const { question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source, image_url } = req.body;
 
     if (!question_text || !options || correct_answer === undefined) {
       return res.status(400).json({ message: '缺少必要参数' });
     }
 
     const [result] = await cscaPool.query(
-      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [question_text, JSON.stringify(options), correct_answer, explanation || null, category || null, difficulty || 'medium', knowledge_point || null, source || null]
+      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source, image_url) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [question_text, JSON.stringify(options), correct_answer, explanation || null, category || null, difficulty || 'medium', knowledge_point || null, source || null, image_url || null]
     );
 
     res.json({
@@ -151,12 +223,12 @@ router.post('/questions', authenticate, adminAuth, async (req: AuthRequest, res:
 router.put('/questions/:id', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source } = req.body;
+    const { question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source, image_url } = req.body;
 
     const [result] = await cscaPool.query(
       `UPDATE questions SET question_text = ?, options = ?, correct_answer = ?, 
-       explanation = ?, category = ?, difficulty = ?, knowledge_point = ?, source = ? WHERE id = ?`,
-      [question_text, JSON.stringify(options), correct_answer, explanation, category, difficulty, knowledge_point || null, source || null, id]
+       explanation = ?, category = ?, difficulty = ?, knowledge_point = ?, source = ?, image_url = ? WHERE id = ?`,
+      [question_text, JSON.stringify(options), correct_answer, explanation, category, difficulty, knowledge_point || null, source || null, image_url || null, id]
     );
 
     if ((result as any).affectedRows === 0) {
@@ -211,14 +283,15 @@ router.post('/questions/batch', authenticate, adminAuth, async (req: AuthRequest
       q.category || null,
       q.difficulty || 'medium',
       q.knowledge_point || null,
-      q.source || null
+      q.source || null,
+      q.image_url || null
     ]);
 
-    const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+    const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
     const flatValues = values.flat();
 
     await cscaPool.query(
-      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source) 
+      `INSERT INTO questions (question_text, options, correct_answer, explanation, category, difficulty, knowledge_point, source, image_url) 
        VALUES ${placeholders}`,
       flatValues
     );

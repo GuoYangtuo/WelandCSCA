@@ -261,7 +261,7 @@ const QuestionUpload: React.FC = () => {
   };
 
   const addQuestion = () => {
-    setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''], knowledge_point: '', source: '', analyzeStatus: 'completed' }]);
+    setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''], knowledge_point: '', source: '', image_url: '', analyzeStatus: 'completed' }]);
   };
   // 管理页的筛选初始值（由统计面板触发）
   const [manageFilterCategory, setManageFilterCategory] = useState<string>('all');
@@ -326,7 +326,8 @@ const QuestionUpload: React.FC = () => {
         category: q.category,
         difficulty: q.difficulty,
         knowledge_point: q.knowledge_point,
-        source: q.source || null
+        source: q.source || null,
+        image_url: q.image_url || null
       }));
 
       if (questionsToSubmit.length === 1) {

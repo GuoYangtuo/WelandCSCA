@@ -1,7 +1,8 @@
-import React from 'react';
-import { X, Loader2, Save, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Loader2, Save, CheckCircle, Upload as UploadIcon, X as XIcon } from 'lucide-react';
 import { ExistingQuestion } from './types';
 import { KNOWLEDGE_POINTS } from './constants';
+import { adminAPI } from '../../services/api';
 
 interface EditQuestionModalProps {
   question: ExistingQuestion;
@@ -20,6 +21,48 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
   onUpdateQuestion,
   onUpdateOption,
 }) => {
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // 处理图片上传
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件');
+      return;
+    }
+
+    // 检查文件大小（10MB）
+    if (file.size > 10 * 1024 * 1024) {
+      alert('图片大小不能超过10MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await adminAPI.uploadQuestionImage(formData);
+      
+      if (response.data.success) {
+        onUpdateQuestion('image_url', response.data.data.imageUrl);
+      }
+    } catch (error: any) {
+      console.error('图片上传失败:', error);
+      alert(error.response?.data?.message || '图片上传失败，请重试');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // 移除图片
+  const handleRemoveImage = () => {
+    onUpdateQuestion('image_url', '');
+  };
+
   return (
     <div className="edit-modal-overlay" onClick={onCancel}>
       <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
@@ -139,6 +182,53 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
               onChange={(e) => onUpdateQuestion('source', e.target.value)}
               placeholder="例如：文档名称、图片文件名等"
             />
+          </div>
+
+          <div className="form-group">
+            <label>题目配图 <span style={{ fontSize: '0.875rem', color: '#718096' }}>（可选）</span></label>
+            {question.image_url ? (
+              <div className="question-image-preview">
+                <img 
+                  src={question.image_url} 
+                  alt="题目配图" 
+                  style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }}
+                />
+                <button 
+                  className="remove-image-btn"
+                  onClick={handleRemoveImage}
+                  type="button"
+                >
+                  <XIcon size={16} />
+                  删除图片
+                </button>
+              </div>
+            ) : (
+              <div className="image-upload-area">
+                <label className="image-upload-label">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    style={{ display: 'none' }}
+                  />
+                  <div className="upload-placeholder">
+                    {uploadingImage ? (
+                      <>
+                        <Loader2 size={24} className="spin" />
+                        <span>上传中...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadIcon size={24} />
+                        <span>点击上传图片</span>
+                        <span className="upload-hint">支持 JPG、PNG、GIF、WebP 格式，最大 10MB</span>
+                      </>
+                    )}
+                  </div>
+                </label>
+              </div>
+            )}
           </div>
         </div>
         <div className="edit-modal-footer">

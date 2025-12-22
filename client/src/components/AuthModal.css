@@ -30,11 +30,9 @@
 }
 
 .modal-content {
-  background: white;
+  background: #1a1a2e;
   border-radius: 16px;
   padding: 2.5rem;
-  width: 90%;
-  max-width: 420px;
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
@@ -84,7 +82,7 @@
 .modal-content h2 {
   font-family: 'Noto Serif SC', 'Source Han Serif CN', Georgia, serif;
   margin-bottom: 0.75rem;
-  color: #1a1a2e;
+  color: #fff;
   font-size: 1.75rem;
   font-weight: 700;
   text-align: center;

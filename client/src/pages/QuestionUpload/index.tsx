@@ -14,6 +14,7 @@ import ImageUploadSection from './ImageUploadSection';
 import QuestionFormCard from './QuestionFormCard';
 import QuestionManageSection from './QuestionManageSection';
 import DocumentPreviewPanel from './DocumentPreviewPanel';
+import QuestionStatsPanel from './QuestionStatsPanel';
 
 const QuestionUpload: React.FC = () => {
   const { isAuthenticated, openLoginModal } = useAuth();
@@ -262,6 +263,10 @@ const QuestionUpload: React.FC = () => {
   const addQuestion = () => {
     setQuestions([...questions, { ...emptyQuestion, options: ['', '', '', ''], knowledge_point: '', source: '', analyzeStatus: 'completed' }]);
   };
+  // 管理页的筛选初始值（由统计面板触发）
+  const [manageFilterCategory, setManageFilterCategory] = useState<string>('all');
+  const [manageFilterDifficulty, setManageFilterDifficulty] = useState<string>('all');
+  const [manageFilterKnowledgePoint, setManageFilterKnowledgePoint] = useState<string>('');
 
   const removeQuestion = (index: number) => {
     if (questions.length > 0) {
@@ -595,7 +600,23 @@ const QuestionUpload: React.FC = () => {
 
         {/* 题库管理模式 */}
         {mode === 'manage' && (
-          <QuestionManageSection setMessage={setMessage} />
+          <>
+            <QuestionStatsPanel
+              onFilterSelect={(category, knowledge_point, difficulty) => {
+                setManageFilterCategory(category || 'all');
+                setManageFilterKnowledgePoint(knowledge_point || '');
+                setManageFilterDifficulty(difficulty || 'all');
+                // ensure mode is manage
+                setMode('manage');
+              }}
+            />
+            <QuestionManageSection
+              setMessage={setMessage}
+              initialCategory={manageFilterCategory}
+              initialDifficulty={manageFilterDifficulty}
+              initialKnowledgePoint={manageFilterKnowledgePoint}
+            />
+          </>
         )}
       </div>
     </div>

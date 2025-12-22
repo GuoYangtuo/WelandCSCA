@@ -328,6 +328,27 @@
   border-color: rgba(0, 217, 255, 0.3);
   color: #00d9ff;
 }
+/* 全选/全不选 按钮样式（小而不占位） */
+.select-toggle-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #cfeffd;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.select-toggle-btn:hover {
+  background: linear-gradient(135deg, #00d9ff 0%, #0099ff 100%);
+  color: #042033;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 150, 255, 0.18);
+}
 
 .zoom-level {
   color: #718096;
@@ -375,8 +396,29 @@
 }
 
 .preview-image-wrapper.selected {
-  border-color: #00d9ff;
-  box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+  border-color: #00e0ff;
+  border-width: 3px;
+  box-shadow: 0 10px 40px rgba(0, 224, 255, 0.22), 0 2px 8px rgba(0, 0, 0, 0.35);
+  transform: translateY(-6px);
+}
+
+.preview-image-wrapper.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #00d9ff 0%, #00b3ff 100%);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 6px 18px rgba(0, 186, 255, 0.25);
+  z-index: 3;
 }
 
 .preview-image-wrapper .image-number {
@@ -1904,17 +1946,125 @@ select.form-input {
 .knowledge-badge {
   display: inline-flex;
   padding: 0.25rem 0.625rem;
+}
+
+/* 题库统计面板 */
+.stats-panel {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background: rgba(159, 122, 234, 0.15);
-  color: #b794f4;
-  max-width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.stats-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.stats-title {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+.stats-controls select {
+  background: rgba(255,255,255,0.03);
+  color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.stats-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 6px;
+}
+.stats-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.kp-label {
+  width: 220px;
+  color: #cbd5e1;
+  font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: help;
 }
+.stats-bar {
+  position: relative;
+  flex: 1;
+  height: 28px;
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.02);
+  align-items: center;
+}
+.stat-seg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.stat-seg.easy { background: #38b2ac; }
+.stat-seg.medium { background: #f6ad55; }
+.stat-seg.hard { background: #f56565; }
+.seg-text { padding: 0 6px; }
+
+/* bar outer wrapper: keeps label + scaled inner bar + total aligned */
+.bar-outer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-inner {
+  height: 28px;
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.02);
+  align-items: center;
+  transition: width 0.25s ease;
+  min-width: 8px;
+}
+
+.stat-empty {
+  height: 28px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.02);
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.bar-outer .bar-total {
+  position: static;
+  margin-left: 6px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 700;
+}
+.bar-total {
+  position: absolute;
+  right: 8px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+ 
 
 .category-badge {
   display: inline-flex;

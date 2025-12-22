@@ -61,6 +61,7 @@ router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: 
     const search = req.query.search as string;
     const category = req.query.category as string;
     const difficulty = req.query.difficulty as string;
+    const knowledge_point = req.query.knowledge_point as string;
 
     let query = 'SELECT * FROM questions WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) as total FROM questions WHERE 1=1';
@@ -86,6 +87,13 @@ router.get('/questions', authenticate, adminAuth, async (req: AuthRequest, res: 
       countQuery += ' AND difficulty = ?';
       params.push(difficulty);
       countParams.push(difficulty);
+    }
+    
+    if (knowledge_point) {
+      query += ' AND knowledge_point = ?';
+      countQuery += ' AND knowledge_point = ?';
+      params.push(knowledge_point);
+      countParams.push(knowledge_point);
     }
 
     query += ' ORDER BY id DESC LIMIT ? OFFSET ?';
@@ -655,6 +663,126 @@ router.delete('/invitation-codes/:id', authenticate, adminAuth, async (req: Auth
     });
   } catch (error) {
     console.error('删除邀请码错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// ==================== 卡包/卡片管理 ====================
+// 获取所有卡片类型
+router.get('/card-types', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const [types] = await cscaPool.query('SELECT * FROM card_types ORDER BY id');
+    res.json({
+      success: true,
+      data: types
+    });
+  } catch (error) {
+    console.error('获取卡片类型错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 获取某用户的卡片列表
+router.get('/users/:userId/cards', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const [cards] = await cscaPool.query(
+      `SELECT uc.*, ct.code as card_code, ct.name as card_name 
+       FROM user_cards uc 
+       LEFT JOIN card_types ct ON uc.card_type_id = ct.id
+       WHERE uc.user_id = ? ORDER BY uc.created_at DESC`,
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      data: cards
+    });
+  } catch (error) {
+    console.error('获取用户卡片错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 管理员为用户添加卡片（若已有则合并数量）
+router.post('/users/:userId/cards', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { card_code, card_type_id, quantity, expires_at } = req.body;
+
+    if (!card_code && !card_type_id) {
+      return res.status(400).json({ message: '请提供 card_code 或 card_type_id' });
+    }
+
+    // 解析卡类型 ID
+    let resolvedCardTypeId = card_type_id;
+    if (!resolvedCardTypeId) {
+      const [rows] = await cscaPool.query('SELECT id FROM card_types WHERE code = ? LIMIT 1', [card_code]);
+      if ((rows as any[]).length === 0) {
+        return res.status(400).json({ message: '卡片类型不存在' });
+      }
+      resolvedCardTypeId = (rows as any[])[0].id;
+    }
+
+    const qty = parseInt(quantity) || 1;
+
+    // 检查用户是否已有该卡片
+    const [existing] = await cscaPool.query('SELECT * FROM user_cards WHERE user_id = ? AND card_type_id = ? LIMIT 1', [userId, resolvedCardTypeId]);
+    if ((existing as any[]).length > 0) {
+      const existingRow = (existing as any[])[0];
+      const newQty = (existingRow.quantity || 0) + qty;
+      await cscaPool.query('UPDATE user_cards SET quantity = ?, expires_at = ? WHERE id = ?', [newQty, expires_at || existingRow.expires_at, existingRow.id]);
+      return res.json({ success: true, message: '用户卡片数量已更新' });
+    }
+
+    const [result] = await cscaPool.query(
+      'INSERT INTO user_cards (user_id, card_type_id, quantity, expires_at) VALUES (?, ?, ?, ?)',
+      [userId, resolvedCardTypeId, qty, expires_at || null]
+    );
+
+    res.json({
+      success: true,
+      message: '卡片已添加到用户',
+      data: { id: (result as any).insertId }
+    });
+  } catch (error) {
+    console.error('为用户添加卡片错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 更新用户卡片（数量或过期时间）
+router.put('/users/:userId/cards/:id', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { quantity, expires_at } = req.body;
+
+    const [result] = await cscaPool.query('UPDATE user_cards SET quantity = ?, expires_at = ? WHERE id = ?', [quantity, expires_at || null, id]);
+
+    if ((result as any).affectedRows === 0) {
+      return res.status(404).json({ message: '用户卡片不存在' });
+    }
+
+    res.json({ success: true, message: '用户卡片更新成功' });
+  } catch (error) {
+    console.error('更新用户卡片错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 删除用户卡片
+router.delete('/users/:userId/cards/:id', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const [result] = await cscaPool.query('DELETE FROM user_cards WHERE id = ?', [id]);
+
+    if ((result as any).affectedRows === 0) {
+      return res.status(404).json({ message: '用户卡片不存在' });
+    }
+
+    res.json({ success: true, message: '用户卡片已删除' });
+  } catch (error) {
+    console.error('删除用户卡片错误:', error);
     res.status(500).json({ message: '服务器错误' });
   }
 });

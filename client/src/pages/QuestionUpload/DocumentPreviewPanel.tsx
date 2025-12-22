@@ -47,6 +47,13 @@ const DocumentPreviewPanel: React.FC<DocumentPreviewPanelProps> = React.memo(({
     setZoomLevel(100);
   };
 
+  // 全选 / 全不选 切换
+  const areAllSelected = uploadedImages.length > 0 && uploadedImages.every(img => img.selected ?? true);
+  const toggleSelectAll = () => {
+    if (!setUploadedImages) return;
+    setUploadedImages(prev => prev.map(img => ({ ...img, selected: !(areAllSelected) })));
+  };
+
   // 图片预览模式
   if (uploadType === 'image' && uploadedImages.length > 0) {
     return (
@@ -67,6 +74,14 @@ const DocumentPreviewPanel: React.FC<DocumentPreviewPanelProps> = React.memo(({
             </button>
             <button onClick={handleResetZoom} className="zoom-btn" title="重置">
               <RotateCw size={16} />
+            </button>
+            <button 
+              className="btn btn-ghost select-toggle-btn"
+              onClick={toggleSelectAll}
+              title={areAllSelected ? '全不选' : '全选'}
+              style={{ marginLeft: 8 }}
+            >
+              {areAllSelected ? '全不选' : '全选'}
             </button>
           </div>
         </div>
@@ -112,12 +127,24 @@ const DocumentPreviewPanel: React.FC<DocumentPreviewPanelProps> = React.memo(({
       return (
         <div className="document-preview-panel">
           <div className="preview-panel-header">
-            <div className="preview-title">
-              <FileText size={18} />
-              <span>PDF 页面预览</span>
-              <span className="preview-count">({uploadedImages.length} 页)</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className="preview-title" style={{ margin: 0 }}>
+                <FileText size={18} />
+                <span>PDF 页面预览</span>
+                <span className="preview-count">({uploadedImages.length} 页)</span>
+              </div>
+              <div className="pdf-file-name" style={{ marginLeft: 8 }}>{uploadedPdf.name}</div>
             </div>
-            <div className="pdf-file-name">{uploadedPdf.name}</div>
+            <div className="preview-controls">
+              <button 
+                className="btn btn-ghost select-toggle-btn"
+                onClick={toggleSelectAll}
+                title={areAllSelected ? '全不选' : '全选'}
+                style={{ marginLeft: 8 }}
+              >
+                {areAllSelected ? '全不选' : '全选'}
+              </button>
+            </div>
           </div>
           <div 
             className="preview-content images-scroll-container"

@@ -72,7 +72,7 @@ interface InvitationCode {
   created_at: string;
 }
 
-type TabType = 'questions' | 'tests' | 'chapters' | 'lessons' | 'inviteCodes';
+type TabType = 'questions' | 'tests' | 'chapters' | 'lessons' | 'inviteCodes' | 'cardPacks';
 
 const Admin: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -110,6 +110,18 @@ const Admin: React.FC = () => {
   const [showUsedCodes, setShowUsedCodes] = useState(false);
   const [newCodeDescription, setNewCodeDescription] = useState('');
   const [generatingCode, setGeneratingCode] = useState(false);
+
+  // Users & Card packs state
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [cardTypes, setCardTypes] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [userCards, setUserCards] = useState<any[]>([]);
+  const [newCardTypeId, setNewCardTypeId] = useState<number | null>(null);
+  const [newCardQuantity, setNewCardQuantity] = useState<number>(1);
+  const [newCardExpiresAt, setNewCardExpiresAt] = useState<string>('');
+  const [editingUserCard, setEditingUserCard] = useState<any | null>(null);
+  const [editingUserCardQuantity, setEditingUserCardQuantity] = useState<number>(0);
+  const [editingUserCardExpiresAt, setEditingUserCardExpiresAt] = useState<string>('');
 
   // Check admin status
   useEffect(() => {
@@ -213,8 +225,86 @@ const Admin: React.FC = () => {
       case 'inviteCodes':
         loadInvitationCodes();
         break;
+      case 'cardPacks':
+        // load supporting data for card packs
+        (async () => {
+          try {
+            const usersResp = await api.get('/admin/users');
+            setUsersList(usersResp.data.data || []);
+            const typesResp = await api.get('/admin/card-types');
+            setCardTypes(typesResp.data.data || typesResp.data || []);
+          } catch (e) {
+            console.error('加载卡包初始化数据失败', e);
+            setMessage({ type: 'error', text: '加载卡包初始化数据失败' });
+          }
+        })();
+        break;
     }
   }, [activeTab, isAdmin, loadQuestions, loadTestResults, loadChapters, loadLessons, loadInvitationCodes]);
+
+  const loadUserCards = async (userId: string) => {
+    if (!userId) return;
+    try {
+      const resp = await api.get(`/admin/users/${userId}/cards`);
+      setUserCards(resp.data.data);
+    } catch (e) {
+      console.error('加载用户卡片失败', e);
+      setMessage({ type: 'error', text: '加载用户卡片失败' });
+    }
+  };
+
+  const handleAddUserCard = async () => {
+    if (!selectedUserId || (!newCardTypeId)) return setMessage({ type: 'error', text: '请选择用户和卡片类型' });
+    try {
+      await api.post(`/admin/users/${selectedUserId}/cards`, {
+        card_type_id: newCardTypeId,
+        quantity: newCardQuantity,
+        expires_at: newCardExpiresAt || null
+      });
+      setMessage({ type: 'success', text: '已为用户添加卡片' });
+      loadUserCards(selectedUserId);
+    } catch (e: any) {
+      setMessage({ type: 'error', text: e.response?.data?.message || '添加卡片失败' });
+    }
+  };
+
+  const handleUpdateUserCard = async (cardId: number, quantity?: number, expires_at?: string) => {
+    try {
+      await api.put(`/admin/users/${selectedUserId}/cards/${cardId}`, { quantity, expires_at: expires_at || undefined });
+      setMessage({ type: 'success', text: '用户卡片已更新' });
+      loadUserCards(selectedUserId);
+    } catch (e: any) {
+      setMessage({ type: 'error', text: e.response?.data?.message || '更新失败' });
+    }
+  };
+
+  const handleDeleteUserCard = async (cardId: number) => {
+    if (!confirm('确定要删除该用户卡片吗？')) return;
+    try {
+      await api.delete(`/admin/users/${selectedUserId}/cards/${cardId}`);
+      setMessage({ type: 'success', text: '用户卡片已删除' });
+      loadUserCards(selectedUserId);
+    } catch (e: any) {
+      setMessage({ type: 'error', text: e.response?.data?.message || '删除失败' });
+    }
+  };
+
+  const openEditUserCard = (card: any) => {
+    setEditingUserCard(card);
+    setEditingUserCardQuantity(card.quantity || 0);
+    const formattedDate = card.expires_at ? new Date(card.expires_at).toISOString().slice(0,10) : '';
+    setEditingUserCardExpiresAt(formattedDate);
+  };
+
+  const handleSaveUserCard = async () => {
+    if (!editingUserCard) return;
+    try {
+      await handleUpdateUserCard(editingUserCard.id, editingUserCardQuantity, editingUserCardExpiresAt || undefined);
+      setEditingUserCard(null);
+    } catch (e) {
+      // handleUpdateUserCard already sets messages
+    }
+  };
 
   // Question operations
   const handleSaveQuestion = async () => {
@@ -455,6 +545,13 @@ const Admin: React.FC = () => {
           >
             <Key size={18} />
             邀请码管理
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'cardPacks' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cardPacks')}
+          >
+            <Users size={18} />
+            卡包管理
           </button>
         </nav>
 
@@ -891,7 +988,110 @@ const Admin: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* Card Packs Tab */}
+          {activeTab === 'cardPacks' && (
+            <div className="tab-content">
+              <div className="content-header">
+                <div className="header-left">
+                  <select
+                    className="filter-select"
+                    value={selectedUserId}
+                    onChange={(e) => {
+                      setSelectedUserId(e.target.value);
+                      setTimeout(() => loadUserCards(e.target.value), 0);
+                    }}
+                  >
+                    <option value="">选择用户</option>
+                    {usersList.map((u) => (
+                      <option key={u.id} value={u.id}>{u.username} ({u.email})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="header-right">
+                  <select className="filter-select" value={newCardTypeId || ''} onChange={(e) => setNewCardTypeId(e.target.value ? parseInt(e.target.value) : null)}>
+                    <option value="">选择卡片类型</option>
+                    {cardTypes.map((ct) => (
+                      <option key={ct.id} value={ct.id}>{ct.name}</option>
+                    ))}
+                  </select>
+                  <input type="number" className="form-input" value={newCardQuantity} min={1} style={{ width: 90 }} onChange={(e) => setNewCardQuantity(parseInt(e.target.value || '1'))} />
+                  <input type="date" className="form-input" value={newCardExpiresAt} onChange={(e) => setNewCardExpiresAt(e.target.value)} />
+                  <button className="btn btn-primary" onClick={handleAddUserCard}><Plus size={16} /> 添加卡片</button>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>卡名</th>
+                      <th>编码</th>
+                      <th>数量</th>
+                      <th>过期时间</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userCards.map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.id}</td>
+                        <td>{c.card_name || '-'}</td>
+                        <td>{c.card_code || '-'}</td>
+                        <td>{c.quantity ?? '-'}</td>
+                        <td>{c.expires_at ? new Date(c.expires_at).toLocaleDateString('zh-CN') : '-'}</td>
+                        <td className="actions-cell">
+                          <button className="btn-action edit" onClick={() => openEditUserCard(c)} title="编辑">
+                            <Edit2 size={16} />
+                          </button>
+                          <button className="btn-action delete" onClick={() => handleDeleteUserCard(c.id)} title="删除">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </main>
+
+      {/* Edit User Card Modal */}
+      {editingUserCard && (
+        <div className="modal-overlay" onClick={() => setEditingUserCard(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>编辑用户卡片</h3>
+              <button className="modal-close" onClick={() => setEditingUserCard(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>卡名</label>
+                <input type="text" className="form-input" value={editingUserCard.card_name || ''} readOnly />
+              </div>
+              <div className="form-group">
+                <label>数量</label>
+                <input type="number" className="form-input" value={editingUserCardQuantity} min={0} onChange={(e) => setEditingUserCardQuantity(parseInt(e.target.value || '0'))} />
+              </div>
+              <div className="form-group">
+                <label>过期时间</label>
+                <input type="date" className="form-input" value={editingUserCardExpiresAt || ''} onChange={(e) => setEditingUserCardExpiresAt(e.target.value)} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setEditingUserCard(null)}>取消</button>
+              <button className="btn btn-primary" onClick={handleSaveUserCard}>
+                <Save size={16} />
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* Edit Question Modal */}
         {editingQuestion && (

@@ -6,18 +6,22 @@ import {
 import { adminAPI } from '../../services/api';
 import LatexRenderer from '../../components/LatexRenderer';
 import { ExistingQuestion, Message } from './types';
-import { CATEGORIES, DIFFICULTIES, getKnowledgePointLabel } from './constants';
+import { CATEGORIES, DIFFICULTIES, KNOWLEDGE_POINTS, getKnowledgePointLabel } from './constants';
 import EditQuestionModal from './EditQuestionModal';
 
 interface QuestionManageSectionProps {
   setMessage: (msg: Message | null) => void;
+  initialCategory?: string;
+  initialDifficulty?: string;
+  initialKnowledgePoint?: string;
 }
 
-const QuestionManageSection: React.FC<QuestionManageSectionProps> = ({ setMessage }) => {
+const QuestionManageSection: React.FC<QuestionManageSectionProps> = ({ setMessage, initialCategory = 'all', initialDifficulty = 'all', initialKnowledgePoint = '' }) => {
   const [existingQuestions, setExistingQuestions] = useState<ExistingQuestion[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(initialDifficulty);
+  const [selectedKnowledgePoint, setSelectedKnowledgePoint] = useState<string>(initialKnowledgePoint || '');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -39,6 +43,9 @@ const QuestionManageSection: React.FC<QuestionManageSectionProps> = ({ setMessag
       }
       if (selectedDifficulty !== 'all') {
         params.difficulty = selectedDifficulty;
+      }
+      if (selectedKnowledgePoint && selectedKnowledgePoint !== 'all') {
+        params.knowledge_point = selectedKnowledgePoint;
       }
       if (searchKeyword.trim()) {
         params.search = searchKeyword.trim();
@@ -63,15 +70,22 @@ const QuestionManageSection: React.FC<QuestionManageSectionProps> = ({ setMessag
     loadQuestions();
   }, [loadQuestions]);
 
-  // 切换分类时重置页码
+  // 切换分类时重置页码并清理知识点筛选
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
+    setSelectedKnowledgePoint('');
     setCurrentPage(1);
   };
 
   // 切换难度时重置页码
   const handleDifficultyChange = (difficulty: string) => {
     setSelectedDifficulty(difficulty);
+    setCurrentPage(1);
+  };
+
+  // 切换知识点时重置页码
+  const handleKnowledgePointChange = (kp: string) => {
+    setSelectedKnowledgePoint(kp);
     setCurrentPage(1);
   };
 
@@ -223,6 +237,17 @@ const QuestionManageSection: React.FC<QuestionManageSectionProps> = ({ setMessag
             >
               {DIFFICULTIES.map(d => (
                 <option key={d.key} value={d.key}>{d.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="knowledge-filter" style={{ marginLeft: 12 }}>
+            <select
+              value={selectedKnowledgePoint}
+              onChange={(e) => handleKnowledgePointChange(e.target.value)}
+            >
+              <option value="">全部知识点</option>
+              {(KNOWLEDGE_POINTS[selectedCategory] || []).map(k => (
+                <option key={k.key} value={k.key}>{k.key}</option>
               ))}
             </select>
           </div>

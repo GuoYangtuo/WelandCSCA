@@ -784,6 +784,113 @@ textarea.form-input {
   color: #4a5568;
 }
 
+/* Card Packs specific styles */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-right .filter-select {
+  min-width: 220px;
+}
+
+.header-right .form-input {
+  width: auto;
+  min-width: 90px;
+  padding: 0.5rem 0.75rem;
+}
+
+.data-table td input[type="number"],
+.data-table td input[type="date"],
+.data-table td input[type="text"] {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #e2e8f0;
+  padding: 0.5rem;
+  border-radius: 6px;
+  width: 120px;
+}
+
+.data-table td input[type="number"] {
+  text-align: center;
+}
+
+.data-table td input[type="date"] {
+  width: 160px;
+}
+
+.data-table td .form-input[readonly] {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.cardpacks-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #718096;
+}
+
+/* Improve number input appearance: hide native spin buttons and style compact qty inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.modal .form-group input[type="number"] {
+  width: 120px;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.28);
+  color: #e2e8f0;
+}
+
+.qty-controls {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.qty-btn:hover {
+  background: rgba(255,255,255,0.06);
+  transform: translateY(-1px);
+}
+
+/* small screens adjustments for card packs header */
+@media (max-width: 768px) {
+  .header-right {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .header-right .filter-select,
+  .header-right .form-input {
+    min-width: 100%;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-page {

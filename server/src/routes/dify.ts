@@ -216,12 +216,6 @@ router.post('/upload-pdf', authenticate, adminAuth, pdfUpload.single('pdf'), asy
       
       console.log(`转换完成: 第 ${pageIndex + 1} 页 -> ${imageFilename}`);
       pageIndex++;
-      
-      // 限制最多转换10页
-      if (pageIndex >= 10) {
-        console.log('已达到最大页数限制(10页)，停止转换');
-        break;
-      }
     }
 
     // 删除原PDF文件
@@ -287,7 +281,9 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
 7. 注意输出结果中的反斜杠需要转义，如\\n需写为\\\\n，\\{需写为\\\\{
 8. correct_answer 是正确答案的索引（0=A, 1=B, 2=C, 3=D），若图片中没有明确说明答案，请返回-1
 9. 若图片中没有明确找到与该道单选题目对应的解析，请返回空字符串
-10. correct_answer 仅当答案出现在对应题目后面时提取，若是成组出现，若五个一组，则忽略，全部返回-1`
+10. correct_answer 仅当答案出现在对应题目后面时提取，若是成组出现，若五个一组，则忽略，全部返回-1
+11. 题目要提取完整，题号后面，选项前面的全都是题目内容，如果是材料题，材料和问题要拼接起来一起作为question_text输出
+12. 例如题号后是材料文段，五角星后是问题，材料和问题都要放入question_text`
   });
 
   const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
@@ -297,7 +293,7 @@ async function callDashscopeApi(imageUrls: string[], apiKey: string): Promise<an
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'qwen-vl-plus',
+      model: 'qwen-vl-max',
       messages: [
         {
           role: 'user',
@@ -362,14 +358,9 @@ async function callDashscopeWithRetry(
       
       const responseData = await callDashscopeApi(imageUrls, apiKey);
       const parsedResult = extractJsonFromResponse(responseData);
-      
-      // 验证结果格式
-      if (!parsedResult.questions || !Array.isArray(parsedResult.questions)) {
-        throw new Error('返回结果缺少 questions 数组');
-      }
 
       return {
-        questions: parsedResult.questions,
+        questions: parsedResult,
         metadata: {
           model: responseData.model,
           usage: responseData.usage,

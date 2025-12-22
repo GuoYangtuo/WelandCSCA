@@ -148,6 +148,59 @@ export async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='机构邀请码表'
     `);
 
+    // 创建 CSCA 平台专属用户数据表（存储平台特有用户字段）
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS user_csca_data (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36) NOT NULL UNIQUE COMMENT '引用 weland.users.id',
+        extra JSON NULL COMMENT '平台专属的额外用户数据（可扩展）',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CSCA 平台用户专属数据表'
+    `);
+
+    // 创建卡片类型表（包含平台支持的卡种）
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS card_types (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(100) NOT NULL UNIQUE COMMENT '唯一编码，例如 wenke_chinese, like_chinese, math, physics, chemistry',
+        name VARCHAR(200) NOT NULL COMMENT '显示名称',
+        description TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='卡片类型表'
+    `);
+
+    // 创建用户卡片表（记录用户拥有哪些卡）
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS user_cards (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36) NOT NULL COMMENT '引用 weland.users.id',
+        card_type_id INT NOT NULL COMMENT '引用 card_types.id',
+        quantity INT NOT NULL DEFAULT 1 COMMENT '数量',
+        expires_at DATETIME NULL COMMENT '过期时间，NULL代表不过期',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user_cards_user_id (user_id),
+        FOREIGN KEY (card_type_id) REFERENCES card_types(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户卡片持有表'
+    `);
+
+    // 插入默认卡片类型（如果尚不存在）
+    try {
+      await connection.query(`
+        INSERT INTO card_types (code, name, description)
+        VALUES
+          ('wenke_chinese', '文科中文测试卡', '文科中文测试使用的卡'),
+          ('like_chinese', '理科中文测试卡', '理科中文测试使用的卡'),
+          ('math', '数学测试卡', '数学测试使用的卡'),
+          ('physics', '物理测试卡', '物理测试使用的卡'),
+          ('chemistry', '化学测试卡', '化学测试使用的卡')
+        ON DUPLICATE KEY UPDATE name=VALUES(name)
+      `);
+    } catch (e:any) {
+      // 忽略重复插入导致的错误
+    }
+
     console.log('数据库表初始化完成');
 
     // 插入示例题目（如果表为空）

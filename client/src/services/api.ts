@@ -178,7 +178,8 @@ export const adminAPI = {
     limit?: number; 
     search?: string; 
     category?: string; 
-    difficulty?: string 
+    difficulty?: string;
+    knowledge_point?: string;
   }) => {
     const response = await api.get('/admin/questions', { params });
     return response.data;
@@ -205,6 +206,28 @@ export const adminAPI = {
   // 删除课时文档
   deleteLessonDocument: async (filename: string) => {
     const response = await api.delete(`/admin/lessons/document/${filename}`);
+    return response.data;
+  }
+,
+  // 卡片/卡包管理
+  getCardTypes: async () => {
+    const response = await api.get('/admin/card-types');
+    return response.data;
+  },
+  getUserCards: async (userId: string) => {
+    const response = await api.get(`/admin/users/${userId}/cards`);
+    return response.data;
+  },
+  addUserCard: async (userId: string, payload: { card_code?: string; card_type_id?: number; quantity?: number; expires_at?: string }) => {
+    const response = await api.post(`/admin/users/${userId}/cards`, payload);
+    return response.data;
+  },
+  updateUserCard: async (userId: string, cardId: number, payload: { quantity?: number; expires_at?: string }) => {
+    const response = await api.put(`/admin/users/${userId}/cards/${cardId}`, payload);
+    return response.data;
+  },
+  deleteUserCard: async (userId: string, cardId: number) => {
+    const response = await api.delete(`/admin/users/${userId}/cards/${cardId}`);
     return response.data;
   }
 };

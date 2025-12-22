@@ -6,15 +6,16 @@ interface DocumentPreviewPanelProps {
   uploadType: 'image' | 'pdf';
   uploadedImages: UploadedImage[];
   uploadedPdf: UploadedPdf | null;
+  setUploadedImages?: React.Dispatch<React.SetStateAction<UploadedImage[]>>;
 }
 
 const DocumentPreviewPanel: React.FC<DocumentPreviewPanelProps> = React.memo(({
   uploadType,
   uploadedImages,
   uploadedPdf,
+  setUploadedImages,
 }) => {
   const [zoomLevel, setZoomLevel] = React.useState(100);
-  const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
   
   // 缓存 PDF URL，只在 uploadedPdf 文件真正改变时重新创建
   // 使用文件名和大小作为依赖，确保稳定性
@@ -69,20 +70,34 @@ const DocumentPreviewPanel: React.FC<DocumentPreviewPanelProps> = React.memo(({
             </button>
           </div>
         </div>
-        <div className="preview-content images-scroll-container">
+        <div 
+          className="preview-content images-scroll-container"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}
+        >
           {uploadedImages.map((img, index) => (
             <div 
               key={index} 
-              className={`preview-image-wrapper ${selectedImageIndex === index ? 'selected' : ''}`}
-              onClick={() => setSelectedImageIndex(index === selectedImageIndex ? null : index)}
+              className={`preview-image-wrapper ${img.selected ? 'selected' : ''}`}
             >
-              <div className="image-number">{index + 1}</div>
-              <img 
-                src={img.preview} 
-                alt={`预览图片 ${index + 1}`}
-                style={{ width: `${zoomLevel}%` }}
-                className="preview-image"
-              />
+              <div 
+                className="preview-image-click-area"
+                onClick={() => {
+                  if (!setUploadedImages) return;
+                  setUploadedImages(prev => {
+                    const next = [...prev];
+                    next[index] = { ...next[index], selected: !(next[index].selected ?? true) };
+                    return next;
+                  });
+                }}
+              >
+                <div className="image-number">{index + 1}</div>
+                <img 
+                  src={img.preview} 
+                  alt={`预览图片 ${index + 1}`}
+                  style={{ width: `${zoomLevel}%` }}
+                  className="preview-image"
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -90,8 +105,52 @@ const DocumentPreviewPanel: React.FC<DocumentPreviewPanelProps> = React.memo(({
     );
   }
 
-  // PDF 预览模式
+  // PDF 预览模式：如果已将 PDF 转为图片（uploadedImages），则显示图片列表并可选择；
+  // 否则显示 PDF 内嵌预览。
   if (uploadType === 'pdf' && uploadedPdf && pdfUrl) {
+    if (uploadedImages && uploadedImages.length > 0) {
+      return (
+        <div className="document-preview-panel">
+          <div className="preview-panel-header">
+            <div className="preview-title">
+              <FileText size={18} />
+              <span>PDF 页面预览</span>
+              <span className="preview-count">({uploadedImages.length} 页)</span>
+            </div>
+            <div className="pdf-file-name">{uploadedPdf.name}</div>
+          </div>
+          <div 
+            className="preview-content images-scroll-container"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}
+          >
+            {uploadedImages.map((img, index) => (
+              <div key={index} className={`preview-image-wrapper ${img.selected ? 'selected' : ''}`}>
+                <div 
+                  className="preview-image-click-area"
+                  onClick={() => {
+                    if (!setUploadedImages) return;
+                    setUploadedImages(prev => {
+                      const next = [...prev];
+                      next[index] = { ...next[index], selected: !(next[index].selected ?? true) };
+                      return next;
+                    });
+                  }}
+                >
+                  <div className="image-number">{index + 1}</div>
+                  <img 
+                    src={img.preview} 
+                    alt={`PDF 页面 ${index + 1}`}
+                    style={{ width: `${zoomLevel}%` }}
+                    className="preview-image"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="document-preview-panel">
         <div className="preview-panel-header">

@@ -17,9 +17,10 @@ export interface QuestionForm {
 
 // 已上传的图片
 export interface UploadedImage {
-  file: File;
+  file?: File;
   preview: string;
   serverUrl?: string;
+  selected?: boolean;
 }
 
 // 已上传的PDF

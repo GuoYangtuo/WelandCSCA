@@ -14,6 +14,21 @@
             "username": "root",
             "password": "hh20061202",
             "database": "weland"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "8.149.244.179",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "weland aliyun mysql",
+            "database": "weland",
+            "username": "root",
+            "password": "Weland123!"
         }
     ]
 }

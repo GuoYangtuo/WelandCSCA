@@ -40,13 +40,12 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-
-    const remaining = 10 - uploadedImages.length;
-    const filesToAdd = Array.from(files).slice(0, remaining);
+    const filesToAdd = Array.from(files);
 
     const newImages: UploadedImage[] = filesToAdd.map(file => ({
       file,
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
+      selected: true
     }));
 
     setUploadedImages(prev => [...prev, ...newImages]);
@@ -165,18 +164,17 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
           <div className="upload-zone">
             <input
               ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageSelect}
-              className="file-input"
-              disabled={uploadedImages.length >= 10}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageSelect}
+            className="file-input"
             />
             <div className="upload-zone-content">
               <Image size={48} className="upload-icon" />
               <h3>点击或拖拽上传图片</h3>
-              <p>支持 JPG、PNG、WebP 格式，最多 10 张</p>
-              <p className="upload-count">已上传 {uploadedImages.length}/10 张</p>
+              <p>支持 JPG、PNG、WebP 格式，可上传多张图片</p>
+              <p className="upload-count">已上传 {uploadedImages.length} 张</p>
             </div>
           </div>
 
@@ -242,7 +240,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             <div className="upload-zone-content">
               <FileText size={48} className="upload-icon" />
               <h3>点击或拖拽上传PDF文件</h3>
-              <p>支持 PDF 格式，最大 50MB，最多转换 10 页</p>
+              <p>支持 PDF 格式，最大 50MB，可将每页转换为图片进行识别</p>
               {uploadedPdf ? (
                 <p className="upload-count">已选择文件</p>
               ) : (

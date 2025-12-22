@@ -107,8 +107,8 @@ const QuestionUpload: React.FC = () => {
     if (result.success && result.data.questions.length > 0) {
       const initialAnalyzeStatus: AnalyzeStatus = ENABLE_DEEPSEEK_ANALYZE ? 'pending' : 'completed';
       
-      // 确定题目来源：优先使用传入的文档名称，否则使用第一个图片的文件名
-      const source = documentName || (uploadedImages.length > 0 ? uploadedImages[0].file.name : '');
+      // 确定题目来源：优先使用传入的文档名称，否则使用第一个图片的文件名（若存在）
+      const source = documentName || (uploadedImages.length > 0 && uploadedImages[0].file ? uploadedImages[0].file.name : '');
       
       const questionsWithStatus: QuestionForm[] = result.data.questions.map((q: any) => ({
         question_text: q.question_text || '',
@@ -197,29 +197,61 @@ const QuestionUpload: React.FC = () => {
       setMessage({ type: 'error', text: '请先上传PDF文件' });
       return;
     }
+    // 如果还未将 PDF 转换为图片，则先请求后端转换并在前端展示预览（默认全选）
+    if (uploadedImages.length === 0) {
+      setParsing(true);
+      setParseProgress('上传PDF并转换为图片...');
+      setMessage(null);
+
+      try {
+        const uploadResult = await difyAPI.uploadPdf(uploadedPdf.file);
+
+        if (!uploadResult.success || !uploadResult.data.urls.length) {
+          throw new Error('PDF转换失败');
+        }
+
+        const imageUrls: string[] = uploadResult.data.urls;
+        // 将转换得到的图片在前端作为预览展示，默认全部选中
+        const images = imageUrls.map(url => ({
+          preview: url,
+          selected: true
+        }));
+        setUploadedImages(images as any);
+        setParseProgress(`PDF转换完成（共${imageUrls.length}页），请在左侧选择需要识别的页面，然后点击“解析PDF题目”进行识别`);
+      } catch (error: any) {
+        console.error('PDF解析错误:', error);
+        setMessage({
+          type: 'error',
+          text: error.response?.data?.message || 'PDF解析失败，请重试'
+        });
+      } finally {
+        setParsing(false);
+      }
+      return;
+    }
+
+    // 如果已经有转换后的图片，则对选中的页面进行识别
+    const selectedImageUrls = uploadedImages
+      .filter(img => img.selected ?? true)
+      .map(img => img.preview);
+
+    if (selectedImageUrls.length === 0) {
+      setMessage({ type: 'error', text: '请先选择要识别的页面' });
+      return;
+    }
 
     setParsing(true);
-    setParseProgress('上传PDF并转换为图片...');
+    setParseProgress('正在识别题目...');
     setMessage(null);
 
     try {
-      const uploadResult = await difyAPI.uploadPdf(uploadedPdf.file);
-      
-      if (!uploadResult.success || !uploadResult.data.urls.length) {
-        throw new Error('PDF转换失败');
-      }
-      
-      const imageUrls = uploadResult.data.urls;
-      setParseProgress(`PDF转换完成（共${imageUrls.length}页），正在识别题目...`);
-      
-      // PDF上传时，使用PDF文件名作为来源
       const source = uploadedPdf ? uploadedPdf.name : '';
-      await parseQuestionsFromImages(imageUrls, source);
+      await parseQuestionsFromImages(selectedImageUrls, source);
     } catch (error: any) {
       console.error('PDF解析错误:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'PDF解析失败，请重试' 
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'PDF解析失败，请重试'
       });
     } finally {
       setParsing(false);
@@ -408,6 +440,7 @@ const QuestionUpload: React.FC = () => {
                 uploadType={uploadType}
                 uploadedImages={uploadedImages}
                 uploadedPdf={uploadedPdf}
+                setUploadedImages={setUploadedImages}
               />
               {/* 解析操作按钮 */}
               <div className="preview-actions">

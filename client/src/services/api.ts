@@ -89,12 +89,57 @@ export const questionAPI = {
 };
 
 export const testAPI = {
-  submit: async (testType: string, answers: number[], questionIds: number[]) => {
-    const response = await api.post('/tests/submit', { testType, answers, questionIds });
+  submit: async (
+    testType: string, 
+    answers: number[], 
+    questionIds: number[],
+    options?: { subject?: string; difficultyLevel?: string; durationMinutes?: number }
+  ) => {
+    const response = await api.post('/tests/submit', { 
+      testType, 
+      answers, 
+      questionIds,
+      ...options
+    });
     return response.data;
   },
-  getHistory: async (testType?: string) => {
-    const response = await api.get('/tests/history', { params: { testType } });
+  getHistory: async (testType?: string, limit?: number, offset?: number) => {
+    const response = await api.get('/tests/history', { params: { testType, limit, offset } });
+    return response.data;
+  },
+  getDetail: async (examId: number) => {
+    const response = await api.get(`/tests/detail/${examId}`);
+    return response.data;
+  },
+  getAiAnalysisStatus: async (examId: number) => {
+    const response = await api.get(`/tests/ai-analysis-status/${examId}`);
+    return response.data;
+  },
+  getReviewProgress: async (examId: number) => {
+    const response = await api.get(`/tests/review-progress/${examId}`);
+    return response.data;
+  },
+  createReviewProgress: async (examId: number, knowledgePointQueue: string[]) => {
+    const response = await api.post('/tests/review-progress', { examId, knowledgePointQueue });
+    return response.data;
+  },
+  updateReviewProgress: async (progressId: number, data: {
+    currentIndex?: number;
+    completedPoints?: string[];
+    practiceRecords?: Record<string, any>;
+    isCompleted?: boolean;
+  }) => {
+    const response = await api.put(`/tests/review-progress/${progressId}`, data);
+    return response.data;
+  },
+  getPracticeQuestions: async (knowledgePoint: string, category?: string, excludeIds?: number[]) => {
+    const response = await api.get('/tests/practice-questions', { 
+      params: { 
+        knowledgePoint, 
+        category,
+        excludeIds: excludeIds?.join(',')
+      } 
+    });
     return response.data;
   }
 };
@@ -102,6 +147,21 @@ export const testAPI = {
 export const mockTestAPI = {
   getConfig: async () => {
     const response = await api.get('/mock-test/config');
+    return response.data;
+  },
+  // 获取可用科目列表
+  getSubjects: async () => {
+    const response = await api.get('/mock-test/subjects');
+    return response.data;
+  },
+  // 生成模拟测试（按科目动态抽题）
+  generateTest: async (subject: string, difficultyLevel: string = 'medium') => {
+    const response = await api.post('/mock-test/generate', { subject, difficultyLevel });
+    return response.data;
+  },
+  // 获取科目题库统计信息
+  getSubjectStats: async (subject: string) => {
+    const response = await api.get(`/mock-test/stats/${encodeURIComponent(subject)}`);
     return response.data;
   }
 };

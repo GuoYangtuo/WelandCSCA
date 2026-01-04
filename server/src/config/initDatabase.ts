@@ -30,10 +30,74 @@ export async function initDatabase() {
         score INT NOT NULL,
         total_questions INT NOT NULL,
         answers JSON NOT NULL,
+        subject VARCHAR(50) NULL COMMENT '考试科目',
+        difficulty_level VARCHAR(20) NULL COMMENT '难度模式',
+        duration_minutes INT NULL COMMENT '考试时长',
+        question_details JSON NULL COMMENT '题目详情（含知识点、正确答案等）',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_user_id (user_id),
-        INDEX idx_test_type (test_type)
+        INDEX idx_test_type (test_type),
+        INDEX idx_subject (subject)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='测试结果表'
+    `);
+
+    // 检查并添加 test_results 新字段
+    try {
+      await connection.query(`ALTER TABLE test_results ADD COLUMN subject VARCHAR(50) NULL COMMENT '考试科目' AFTER answers`);
+    } catch (e: any) { /* 忽略列已存在的错误 */ }
+    try {
+      await connection.query(`ALTER TABLE test_results ADD COLUMN difficulty_level VARCHAR(20) NULL COMMENT '难度模式' AFTER subject`);
+    } catch (e: any) { /* 忽略列已存在的错误 */ }
+    try {
+      await connection.query(`ALTER TABLE test_results ADD COLUMN duration_minutes INT NULL COMMENT '考试时长' AFTER difficulty_level`);
+    } catch (e: any) { /* 忽略列已存在的错误 */ }
+    try {
+      await connection.query(`ALTER TABLE test_results ADD COLUMN question_details JSON NULL COMMENT '题目详情（含知识点、正确答案等）' AFTER duration_minutes`);
+    } catch (e: any) { /* 忽略列已存在的错误 */ }
+    try {
+      await connection.query(`ALTER TABLE test_results ADD INDEX idx_subject (subject)`);
+    } catch (e: any) { /* 忽略索引已存在的错误 */ }
+    try {
+      await connection.query(`ALTER TABLE test_results ADD COLUMN ai_analysis_status VARCHAR(20) DEFAULT 'pending' COMMENT 'AI分析状态: pending/processing/completed/failed' AFTER question_details`);
+    } catch (e: any) { /* 忽略列已存在的错误 */ }
+    try {
+      await connection.query(`ALTER TABLE test_results ADD COLUMN ai_analysis_error TEXT NULL COMMENT 'AI分析失败原因' AFTER ai_analysis_status`);
+    } catch (e: any) { /* 忽略列已存在的错误 */ }
+
+    // 创建知识点AI分析结果表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS exam_kp_ai_analysis (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        exam_result_id INT NOT NULL COMMENT '关联的考试结果ID',
+        knowledge_point VARCHAR(100) NOT NULL COMMENT '知识点名称',
+        suggested_questions JSON NULL COMMENT '学生可能提问的问题列表',
+        analysis_review TEXT NULL COMMENT '针对性分析复盘',
+        study_advice TEXT NULL COMMENT '复习意见',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_exam_result_id (exam_result_id),
+        INDEX idx_knowledge_point (knowledge_point),
+        UNIQUE KEY uk_exam_kp (exam_result_id, knowledge_point),
+        FOREIGN KEY (exam_result_id) REFERENCES test_results(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识点AI分析结果表'
+    `);
+
+    // 创建复盘进度表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS exam_review_progress (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(36) NOT NULL,
+        exam_result_id INT NOT NULL COMMENT '关联的考试结果ID',
+        knowledge_point_queue JSON NOT NULL COMMENT '待复盘的知识点队列',
+        current_index INT NOT NULL DEFAULT 0 COMMENT '当前复盘进度索引',
+        completed_points JSON NULL COMMENT '已完成的知识点',
+        practice_records JSON NULL COMMENT '练习记录',
+        is_completed BOOLEAN DEFAULT FALSE COMMENT '是否完成全部复盘',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id),
+        INDEX idx_exam_result_id (exam_result_id),
+        FOREIGN KEY (exam_result_id) REFERENCES test_results(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='考试复盘进度表'
     `);
 
     // 创建题目表

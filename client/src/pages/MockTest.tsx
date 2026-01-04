@@ -22,9 +22,18 @@ import {
   BookMarked,
   Timer,
   AlertTriangle,
-  ClipboardList
+  ClipboardList,
+  Beaker,
+  Calculator,
+  Zap,
+  BookA,
+  GraduationCap,
+  ArrowLeft,
+  Settings,
+  BarChart3
 } from 'lucide-react';
 import './Test.css';
+import { MOCK_TEST_SUBJECTS, DIFFICULTY_LEVELS, SUBJECT_QUESTION_CONFIGS } from './MockTest/constants';
 
 interface Question {
   id: number;
@@ -33,28 +42,57 @@ interface Question {
   correct_answer: number;
   category?: string;
   difficulty?: string;
+  knowledge_point?: string;
+  image_url?: string;
 }
 
 interface MockTestConfig {
-  id: number;
+  subject: string;
   name: string;
   durationMinutes: number;
   totalQuestions: number;
+  difficultyLevel: string;
   questions: Question[];
 }
+
+// 科目图标映射
+const getSubjectIcon = (subjectKey: string) => {
+  switch (subjectKey) {
+    case '文科中文': return BookA;
+    case '理科中文': return GraduationCap;
+    case '数学': return Calculator;
+    case '物理': return Zap;
+    case '化学': return Beaker;
+    default: return FileText;
+  }
+};
+
+// ========== 调试开关 ==========
+// 设置为 true 显示调试按钮，false 隐藏
+const DEBUG_MODE = true;
+// ==============================
 
 const MockTest: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  
+  // 页面状态
+  const [pageState, setPageState] = useState<'select' | 'intro' | 'testing' | 'result'>('select');
+  
+  // 科目选择状态
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('medium');
+  
+  // 测试状态
   const [config, setConfig] = useState<MockTestConfig | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [result, setResult] = useState<{ score: number; total: number; percentage: number } | null>(null);
+  const [result, setResult] = useState<{ id?: number; score: number; total: number; percentage: number } | null>(null);
   const [basicTestCompleted, setBasicTestCompleted] = useState(false);
   const submittingRef = useRef(false);
 
@@ -74,29 +112,6 @@ const MockTest: React.FC = () => {
     }
   }, []);
 
-  const loadConfig = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await mockTestAPI.getConfig();
-      const configData = response.data;
-      const questionsData = configData.questions.map((q: any) => ({
-        ...q,
-        options: q.options
-      }));
-      setConfig({
-        ...configData,
-        questions: questionsData
-      });
-      setAnswers(new Array(configData.totalQuestions).fill(-1));
-      setTimeLeft(configData.durationMinutes * 60);
-    } catch (error) {
-      console.error('加载模拟测试配置失败:', error);
-      alert(t.mockTest.loadConfigFailed);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
   useEffect(() => {
     if (isLoading) {
       return;
@@ -107,10 +122,40 @@ const MockTest: React.FC = () => {
     }
     checkBasicTestStatus().then((completed) => {
       if (completed) {
-        loadConfig();
+        setLoading(false);
       }
     });
-  }, [isAuthenticated, isLoading, navigate, checkBasicTestStatus, loadConfig]);
+  }, [isAuthenticated, isLoading, navigate, checkBasicTestStatus]);
+
+  // 生成模拟测试
+  const generateTest = async () => {
+    if (!selectedSubject) return;
+    
+    try {
+      setGenerating(true);
+      const response = await mockTestAPI.generateTest(selectedSubject, selectedDifficulty);
+      const configData = response.data;
+      
+      // 处理题目选项
+      const questionsData = configData.questions.map((q: any) => ({
+        ...q,
+        options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+      }));
+      
+      setConfig({
+        ...configData,
+        questions: questionsData
+      });
+      setAnswers(new Array(configData.totalQuestions).fill(-1));
+      setTimeLeft(configData.durationMinutes * 60);
+      setPageState('intro');
+    } catch (error) {
+      console.error('生成模拟测试失败:', error);
+      alert(t.mockTest?.generateFailed || '生成模拟测试失败，请重试');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const submitTest = useCallback(async () => {
     if (submittingRef.current || !config) return;
@@ -118,9 +163,13 @@ const MockTest: React.FC = () => {
       submittingRef.current = true;
       setSubmitting(true);
       const questionIds = config.questions.map(q => q.id);
-      const response = await testAPI.submit('mock', answers, questionIds);
+      const response = await testAPI.submit('mock', answers, questionIds, {
+        subject: config.subject,
+        difficultyLevel: config.difficultyLevel,
+        durationMinutes: config.durationMinutes
+      });
       setResult(response.data);
-      setStarted(false);
+      setPageState('result');
     } catch (error) {
       console.error('提交失败:', error);
       alert(t.mockTest.submitFailed);
@@ -131,7 +180,7 @@ const MockTest: React.FC = () => {
   }, [config, answers, t]);
 
   useEffect(() => {
-    if (started && timeLeft > 0) {
+    if (pageState === 'testing' && timeLeft > 0) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -143,17 +192,38 @@ const MockTest: React.FC = () => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [started, timeLeft, submitTest]);
+  }, [pageState, timeLeft, submitTest]);
 
-  const handleStart = () => {
-    setStarted(true);
+  const handleStartTest = () => {
+    setPageState('testing');
   };
 
   const handleAnswerSelect = (answerIndex: number) => {
-    if (!started || timeLeft === 0) return;
+    if (pageState !== 'testing' || timeLeft === 0) return;
     const newAnswers = [...answers];
     newAnswers[currentIndex] = answerIndex;
     setAnswers(newAnswers);
+    
+    // 自动跳到下一题（如果不是最后一题）
+    if (currentIndex < (config?.totalQuestions || 0) - 1) {
+      setTimeout(() => {
+        setCurrentIndex(currentIndex + 1);
+      }, 300); // 延迟300ms，让用户看到选中效果
+    }
+  };
+
+  // 调试：一键随机答完所有题目并提交
+  const handleDebugAutoComplete = async () => {
+    if (!config || pageState !== 'testing') return;
+    
+    // 随机生成所有答案
+    const randomAnswers = config.questions.map(() => Math.floor(Math.random() * 4));
+    setAnswers(randomAnswers);
+    
+    // 延迟后自动提交
+    setTimeout(() => {
+      submitTest();
+    }, 500);
   };
 
   const handleNext = () => {
@@ -166,6 +236,15 @@ const MockTest: React.FC = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
+  };
+
+  const handleBackToSelect = () => {
+    setPageState('select');
+    setConfig(null);
+    setCurrentIndex(0);
+    setAnswers([]);
+    setTimeLeft(0);
+    setResult(null);
   };
 
   const formatTime = (seconds: number) => {
@@ -182,10 +261,10 @@ const MockTest: React.FC = () => {
   
   const getDifficultyLabel = (difficulty?: string) => {
     switch (difficulty) {
-      case 'easy': return t.mockTest.difficulty.easy;
-      case 'medium': return t.mockTest.difficulty.medium;
-      case 'hard': return t.mockTest.difficulty.hard;
-      default: return t.mockTest.difficulty.medium;
+      case 'easy': return t.mockTest?.difficulty?.easy || '简单';
+      case 'medium': return t.mockTest?.difficulty?.medium || '中等';
+      case 'hard': return t.mockTest?.difficulty?.hard || '困难';
+      default: return t.mockTest?.difficulty?.medium || '中等';
     }
   };
 
@@ -209,6 +288,28 @@ const MockTest: React.FC = () => {
     if (timeLeft <= 60) return 'critical';
     if (timeLeft <= 300) return 'warning';
     return '';
+  };
+
+  // 获取科目的中文/国际化名称
+  const getSubjectLabel = (subjectKey: string) => {
+    const labelMap: Record<string, string> = {
+      '文科中文': t.mockTest?.subjects?.artsChinese || '文科中文',
+      '理科中文': t.mockTest?.subjects?.scienceChinese || '理科中文',
+      '数学': t.mockTest?.subjects?.math || '数学',
+      '物理': t.mockTest?.subjects?.physics || '物理',
+      '化学': t.mockTest?.subjects?.chemistry || '化学',
+    };
+    return labelMap[subjectKey] || subjectKey;
+  };
+
+  // 获取难度的国际化名称
+  const getDifficultyLevelLabel = (levelKey: string) => {
+    const labelMap: Record<string, string> = {
+      'easy': t.mockTest?.difficultyLevel?.easy || '简单模式',
+      'medium': t.mockTest?.difficultyLevel?.medium || '中等模式',
+      'hard': t.mockTest?.difficultyLevel?.hard || '困难模式',
+    };
+    return labelMap[levelKey] || levelKey;
   };
 
   if (isLoading || loading) {
@@ -284,6 +385,125 @@ const MockTest: React.FC = () => {
     );
   }
 
+  // 科目选择页面
+  if (pageState === 'select') {
+    return (
+      <div className="test-page">
+        <div className="subject-select-container">
+          <div className="subject-select-header">
+            <h1>{t.mockTest?.selectSubject || '选择考试科目'}</h1>
+            <p>{t.mockTest?.selectSubjectDesc || '选择您要进行模拟测试的科目'}</p>
+          </div>
+
+          {/* 科目卡片 */}
+          <div className="subject-cards-grid">
+            {MOCK_TEST_SUBJECTS.map((subject) => {
+              const SubjectIcon = getSubjectIcon(subject.key);
+              const subjectConfig = SUBJECT_QUESTION_CONFIGS[subject.key];
+              const totalQuestions = subjectConfig 
+                ? subjectConfig.knowledgePoints.length * subjectConfig.defaultQuestionsPerPoint 
+                : 0;
+              
+              return (
+                <div
+                  key={subject.key}
+                  className={`subject-card ${selectedSubject === subject.key ? 'selected' : ''}`}
+                  onClick={() => setSelectedSubject(subject.key)}
+                  style={{ '--subject-color': subject.color } as React.CSSProperties}
+                >
+                  <div className="subject-card-icon" style={{ backgroundColor: subject.color + '20', color: subject.color }}>
+                    <SubjectIcon size={32} />
+                  </div>
+                  <div className="subject-card-content">
+                    <h3>{getSubjectLabel(subject.key)}</h3>
+                    <div className="subject-card-stats">
+                      <span className="stat-item">
+                        <Clock size={14} />
+                        {subject.durationMinutes} {t.mockTest?.minutes || '分钟'}
+                      </span>
+                      <span className="stat-item">
+                        <FileText size={14} />
+                        {totalQuestions} {t.mockTest?.questionsUnit || '题'}
+                      </span>
+                      <span className="stat-item">
+                        <BarChart3 size={14} />
+                        {subjectConfig?.knowledgePoints.length || 0} {t.mockTest?.knowledgePoints || '知识点'}
+                      </span>
+                    </div>
+                  </div>
+                  {selectedSubject === subject.key && (
+                    <div className="subject-card-check">
+                      <Check size={20} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 难度选择 */}
+          <div className="difficulty-section">
+            <h3>
+              <Settings size={20} />
+              {t.mockTest?.selectDifficulty || '选择难度模式'}
+            </h3>
+            <div className="difficulty-options">
+              {DIFFICULTY_LEVELS.map((level) => (
+                <button
+                  key={level.key}
+                  className={`difficulty-option ${selectedDifficulty === level.key ? 'selected' : ''}`}
+                  onClick={() => setSelectedDifficulty(level.key)}
+                >
+                  <div className="difficulty-option-header">
+                    <span className={`difficulty-badge ${level.key}`}>
+                      {getDifficultyLevelLabel(level.key)}
+                    </span>
+                  </div>
+                  <div className="difficulty-option-ratios">
+                    <div className="ratio-bar">
+                      <div className="ratio-segment easy" style={{ width: `${level.easyRatio * 100}%` }}></div>
+                      <div className="ratio-segment medium" style={{ width: `${level.mediumRatio * 100}%` }}></div>
+                      <div className="ratio-segment hard" style={{ width: `${level.hardRatio * 100}%` }}></div>
+                    </div>
+                    <div className="ratio-labels">
+                      <span className="easy">{t.mockTest?.difficulty?.easy || '简单'} {Math.round(level.easyRatio * 100)}%</span>
+                      <span className="medium">{t.mockTest?.difficulty?.medium || '中等'} {Math.round(level.mediumRatio * 100)}%</span>
+                      <span className="hard">{t.mockTest?.difficulty?.hard || '困难'} {Math.round(level.hardRatio * 100)}%</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 开始按钮 */}
+          <div className="subject-select-actions">
+            <button
+              onClick={generateTest}
+              disabled={!selectedSubject || generating}
+              className="btn btn-primary btn-large btn-glow"
+            >
+              {generating ? (
+                <>
+                  <span className="btn-spinner"></span>
+                  {t.mockTest?.generating || '正在生成试卷...'}
+                </>
+              ) : (
+                <>
+                  <Play size={24} />
+                  {t.mockTest?.generateTest || '生成试卷'}
+                </>
+              )}
+            </button>
+            <button onClick={() => navigate('/study')} className="btn btn-outline">
+              {t.mockTest?.backToStudy || '返回学习'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!config) {
     return (
       <div className="test-page">
@@ -299,7 +519,8 @@ const MockTest: React.FC = () => {
     );
   }
 
-  if (result) {
+  // 结果页面
+  if (pageState === 'result' && result) {
     const scoreInfo = getScoreLevel(result.percentage);
     const ScoreIcon = scoreInfo.icon;
     return (
@@ -312,7 +533,9 @@ const MockTest: React.FC = () => {
               ))}
             </div>
             <h2 className="result-title">{t.mockTest.mockTestCompleted}</h2>
-            <p className="result-subtitle">{t.mockTest.completedThisMock}</p>
+            <p className="result-subtitle">
+              {getSubjectLabel(config.subject)} - {t.mockTest?.completedThisMock || '您已完成本次模拟考试'}
+            </p>
             
             <div className="score-display">
               <div className="score-ring animate" style={{ '--score-percent': `${result.percentage}%` } as React.CSSProperties}>
@@ -337,6 +560,10 @@ const MockTest: React.FC = () => {
                   <span className="detail-label">{t.mockTest.examDuration}</span>
                   <span className="detail-value">{config.durationMinutes} {t.mockTest.minutes}</span>
                 </div>
+                <div className="score-detail-item">
+                  <span className="detail-label">{t.mockTest?.difficultyMode || '难度模式'}</span>
+                  <span className="detail-value">{getDifficultyLevelLabel(config.difficultyLevel)}</span>
+                </div>
               </div>
             </div>
 
@@ -351,16 +578,19 @@ const MockTest: React.FC = () => {
             </div>
 
             <div className="result-actions">
-              <button onClick={() => window.location.reload()} className="btn btn-primary">
+              {result.id && (
+                <button onClick={() => navigate(`/exam-analysis/${result.id}`)} className="btn btn-primary btn-glow">
+                  <BarChart3 size={20} />
+                  {t.mockTest?.viewAnalysis || '查看考试分析'}
+                </button>
+              )}
+              <button onClick={handleBackToSelect} className="btn btn-secondary">
                 <RefreshCw size={20} />
-                {t.mockTest.retryTest}
+                {t.mockTest?.selectOtherSubject || '选择其他科目'}
               </button>
-              <button onClick={() => navigate('/study')} className="btn btn-secondary">
+              <button onClick={() => navigate('/study')} className="btn btn-outline">
                 <BookOpen size={20} />
                 {t.mockTest.continueLearning}
-              </button>
-              <button onClick={() => navigate('/')} className="btn btn-outline">
-                {t.mockTest.backToHomeBtn}
               </button>
             </div>
           </div>
@@ -369,16 +599,25 @@ const MockTest: React.FC = () => {
     );
   }
 
-  if (!started) {
+  // 考前介绍页面
+  if (pageState === 'intro') {
+    const SubjectIcon = getSubjectIcon(config.subject);
+    const subjectConfig = SUBJECT_QUESTION_CONFIGS[config.subject];
+    
     return (
       <div className="test-page">
         <div className="intro-container">
           <div className="intro-card">
+            <button className="back-to-select" onClick={handleBackToSelect}>
+              <ArrowLeft size={20} />
+              {t.mockTest?.changeSubject || '更换科目'}
+            </button>
+            
             <div className="intro-header">
-              <div className="intro-icon">
-                <FileText size={48} strokeWidth={1.5} />
+              <div className="intro-icon" style={{ backgroundColor: MOCK_TEST_SUBJECTS.find(s => s.key === config.subject)?.color + '20' }}>
+                <SubjectIcon size={48} strokeWidth={1.5} style={{ color: MOCK_TEST_SUBJECTS.find(s => s.key === config.subject)?.color }} />
               </div>
-              <h2>{config.name}</h2>
+              <h2>{getSubjectLabel(config.subject)}</h2>
               <p className="intro-subtitle">{t.mockTest.cscaMockExam}</p>
             </div>
             
@@ -400,6 +639,24 @@ const MockTest: React.FC = () => {
                   <div className="info-content">
                     <span className="info-label">{t.mockTest.questionCount}</span>
                     <span className="info-value">{config.totalQuestions} {t.mockTest.questionsUnit}</span>
+                  </div>
+                </div>
+                <div className="info-card">
+                  <div className="info-icon">
+                    <Settings size={24} />
+                  </div>
+                  <div className="info-content">
+                    <span className="info-label">{t.mockTest?.difficultyMode || '难度模式'}</span>
+                    <span className="info-value">{getDifficultyLevelLabel(config.difficultyLevel)}</span>
+                  </div>
+                </div>
+                <div className="info-card">
+                  <div className="info-icon">
+                    <BarChart3 size={24} />
+                  </div>
+                  <div className="info-content">
+                    <span className="info-label">{t.mockTest?.knowledgePointsCovered || '覆盖知识点'}</span>
+                    <span className="info-value">{subjectConfig?.knowledgePoints.length || 0} {t.mockTest?.knowledgePoints || '个'}</span>
                   </div>
                 </div>
               </div>
@@ -428,12 +685,12 @@ const MockTest: React.FC = () => {
             </div>
 
             <div className="intro-actions">
-              <button onClick={handleStart} className="btn btn-primary btn-large btn-glow">
+              <button onClick={handleStartTest} className="btn btn-primary btn-large btn-glow">
                 <Play size={24} />
                 {t.mockTest.startExam}
               </button>
-              <button onClick={() => navigate('/study')} className="btn btn-outline">
-                {t.mockTest.backToStudy}
+              <button onClick={handleBackToSelect} className="btn btn-outline">
+                {t.mockTest?.changeSubject || '更换科目'}
               </button>
             </div>
           </div>
@@ -442,8 +699,10 @@ const MockTest: React.FC = () => {
     );
   }
 
+  // 测试页面
   const currentQuestion = config.questions[currentIndex];
   const progress = ((currentIndex + 1) / config.totalQuestions) * 100;
+  const SubjectIcon = getSubjectIcon(config.subject);
 
   return (
     <div className="test-page mock-mode">
@@ -451,9 +710,9 @@ const MockTest: React.FC = () => {
         {/* 测试头部 */}
         <header className="test-header mock-header">
           <div className="header-left">
-            <div className="test-type-badge mock">
-              <FileText size={18} />
-              <span>{t.mockTest.mockTestBadge}</span>
+            <div className="test-type-badge mock" style={{ backgroundColor: MOCK_TEST_SUBJECTS.find(s => s.key === config.subject)?.color + '20' }}>
+              <SubjectIcon size={18} style={{ color: MOCK_TEST_SUBJECTS.find(s => s.key === config.subject)?.color }} />
+              <span>{getSubjectLabel(config.subject)}</span>
             </div>
             <div className="progress-info">
               <span className="progress-text">{t.mockTest.question} {currentIndex + 1} / {t.mockTest.total} {config.totalQuestions} {t.mockTest.question}</span>
@@ -487,7 +746,7 @@ const MockTest: React.FC = () => {
             <div className="question-meta">
               <span className="question-category">
                 <BookOpen size={14} />
-                {currentQuestion.category || t.mockTest.comprehensive}
+                {currentQuestion.knowledge_point || currentQuestion.category || t.mockTest.comprehensive}
               </span>
               <span className={`question-difficulty ${getDifficultyClass(currentQuestion.difficulty)}`}>
                 {getDifficultyLabel(currentQuestion.difficulty)}
@@ -498,6 +757,13 @@ const MockTest: React.FC = () => {
             <h3 className="question-text">
               <LatexRenderer>{currentQuestion.question_text}</LatexRenderer>
             </h3>
+            
+            {/* 显示题目图片 */}
+            {currentQuestion.image_url && (
+              <div className="question-image">
+                <img src={currentQuestion.image_url} alt="题目图片" />
+              </div>
+            )}
             
             <div className="options-container">
               {currentQuestion.options.map((option, index) => (
@@ -529,6 +795,34 @@ const MockTest: React.FC = () => {
             </div>
           </div>
         </main>
+
+        {/* 调试按钮 */}
+        {DEBUG_MODE && (
+          <div style={{ 
+            position: 'fixed', 
+            bottom: '100px', 
+            right: '20px', 
+            zIndex: 9999 
+          }}>
+            <button
+              onClick={handleDebugAutoComplete}
+              disabled={submitting}
+              style={{
+                padding: '8px 16px',
+                background: '#f59e0b',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)'
+              }}
+            >
+              🐛 调试：随机答题并提交
+            </button>
+          </div>
+        )}
 
         {/* 底部导航 */}
         <footer className="test-footer">

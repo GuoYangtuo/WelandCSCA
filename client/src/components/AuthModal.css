@@ -29,12 +29,12 @@
   }
 }
 
-.modal-content {
-  background: #1a1a2e;
+.auth-modal .modal-content {
+  background: #ffffff;
   border-radius: 16px;
   padding: 2.5rem;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   animation: slideUp 0.3s ease;
   max-height: 90vh;
   overflow-y: auto;
@@ -82,7 +82,7 @@
 .modal-content h2 {
   font-family: 'Noto Serif SC', 'Source Han Serif CN', Georgia, serif;
   margin-bottom: 0.75rem;
-  color: #fff;
+  color: #1a1a2e;
   font-size: 1.75rem;
   font-weight: 700;
   text-align: center;
@@ -107,6 +107,42 @@
 .modal-content .modal-subtitle p:first-child {
   color: #d4af37;
   font-weight: 500;
+}
+
+.login-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef3cd 0%, #ffeeba 100%);
+  border: 1px solid #ffc107;
+  border-radius: 10px;
+  margin-top: 1.5rem;
+}
+
+.login-warning-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.login-warning-text {
+  flex: 1;
+}
+
+.login-warning-text strong {
+  display: block;
+  color: #856404;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.login-warning-text p {
+  color: #856404;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+  opacity: 0.9;
 }
 
 .form-group {
@@ -195,7 +231,6 @@
 }
 
 .modal-footer {
-  margin-top: 2rem;
   text-align: center;
   color: #666;
   font-size: 0.95rem;

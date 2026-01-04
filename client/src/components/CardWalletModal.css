@@ -16,6 +16,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
+  gap: 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(26, 26, 46, 0) 100%);
 }
@@ -51,25 +52,25 @@
 /* ===== Tabs ===== */
 .modal-tabs {
   display: flex;
-  gap: 0;
-  padding: 0 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.5rem;
   background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.25rem;
 }
 
 .tab-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.5rem;
+  padding: 0.6rem 1.2rem;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 2px solid transparent;
+  border-radius: 6px;
   position: relative;
 }
 
@@ -80,8 +81,7 @@
 
 .tab-btn.active {
   color: #d4af37;
-  border-bottom-color: #d4af37;
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(212, 175, 55, 0.2);
 }
 
 /* ===== Modal Content ===== */
@@ -347,22 +347,25 @@
   padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
   border: none;
-  border-radius: 8px;
   color: #1a1a2e;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
+  clip-path: path("M 10 0 L 40 0 L 280 0 A 17 17 0 0 1 280 45 L 55 45 Q 50 45 45 43 L 5 8 Q 2 2 10 0 Z");
 }
 
 .buy-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+  filter: brightness(1.1);
 }
 
 .buy-btn.combo {
-  padding: 1rem 2rem;
+  padding: 0.7rem 2rem;
   font-size: 1.1rem;
+  clip-path: path("M 10 0 L 40 0 L 260 0 A 17 17 0 0 1 260 45 L 55 45 Q 50 45 45 43 L 5 8 Q 2 2 10 0 Z");
 }
 
 /* ===== Responsive ===== */
@@ -384,6 +387,8 @@
 
   .card-wallet-modal .modal-header {
     padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .card-wallet-modal .modal-header h2 {
@@ -391,12 +396,15 @@
   }
 
   .modal-tabs {
-    padding: 0 1rem;
+    order: 3;
+    width: 100%;
+    padding: 0.2rem;
   }
 
   .tab-btn {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.8rem;
     font-size: 0.85rem;
+    flex: 1;
   }
 
   .modal-content {
@@ -424,6 +432,25 @@
     border-radius: 0;
   }
 
+  .card-wallet-modal .modal-header {
+    padding: 1rem;
+  }
+
+  .card-wallet-modal .modal-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .tab-btn {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+
+  .tab-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
   .modal-content {
     padding: 1rem;
   }
@@ -434,3 +461,8 @@
   }
 }
 
+.combo-or-separator {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.3rem;
+  font-weight: 600;
+}

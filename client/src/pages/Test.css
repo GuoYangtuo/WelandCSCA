@@ -1138,3 +1138,351 @@
     padding: 0 1.5rem 1.5rem;
   }
 }
+
+/* ==================== 科目选择页面样式 ==================== */
+.subject-select-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.subject-select-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.subject-select-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subject-select-header p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+/* 科目卡片网格 */
+.subject-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.test-page .subject-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.test-page .subject-card:hover {
+  border-color: var(--subject-color, var(--primary-color));
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.test-page .subject-card.selected {
+  border-color: var(--subject-color, var(--primary-color));
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--subject-color, var(--primary-color)) 5%, var(--card-bg)),
+    var(--card-bg));
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--subject-color, var(--primary-color)) 20%, transparent);
+}
+
+.test-page .subject-card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.test-page .subject-card-content {
+  flex: 1;
+}
+
+.test-page .subject-card-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.test-page .subject-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.test-page .subject-card-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+
+.test-page .subject-card-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--subject-color, var(--primary-color));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 难度选择区域 */
+.difficulty-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.difficulty-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.difficulty-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.difficulty-option {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.difficulty-option:hover {
+  border-color: var(--primary-color);
+  background: var(--card-bg);
+}
+
+.difficulty-option.selected {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 5%, var(--card-bg));
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+}
+
+.difficulty-option-header {
+  margin-bottom: 1rem;
+}
+
+.difficulty-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.difficulty-badge.easy {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.difficulty-badge.medium {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.difficulty-badge.hard {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.difficulty-option-ratios {
+  margin-top: 0.75rem;
+}
+
+.ratio-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.ratio-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.ratio-segment.easy {
+  background: #10b981;
+}
+
+.ratio-segment.medium {
+  background: #f59e0b;
+}
+
+.ratio-segment.hard {
+  background: #ef4444;
+}
+
+.ratio-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.ratio-labels .easy {
+  color: #10b981;
+}
+
+.ratio-labels .medium {
+  color: #f59e0b;
+}
+
+.ratio-labels .hard {
+  color: #ef4444;
+}
+
+/* 开始按钮区域 */
+.subject-select-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.subject-select-actions .btn {
+  min-width: 180px;
+}
+
+/* 返回按钮 */
+.back-to-select {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-to-select:hover {
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+  background: var(--card-bg);
+}
+
+/* 介绍卡片调整 */
+.intro-card {
+  position: relative;
+}
+
+/* 题目图片样式 */
+.question-image {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.question-image img {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .subject-select-container {
+    padding: 1rem;
+  }
+
+  .subject-select-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .subject-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subject-card {
+    padding: 1.25rem;
+  }
+
+  .subject-card-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .difficulty-section {
+    padding: 1.5rem;
+  }
+
+  .difficulty-options {
+    grid-template-columns: 1fr;
+  }
+
+  .subject-select-actions {
+    flex-direction: column;
+  }
+
+  .subject-select-actions .btn {
+    width: 100%;
+  }
+
+  .back-to-select {
+    position: static;
+    margin-bottom: 1rem;
+    align-self: flex-start;
+  }
+}

@@ -8,6 +8,8 @@ import Study from './pages/Study';
 import QuestionUpload from './pages/QuestionUpload';
 import CourseUpload from './pages/CourseUpload';
 import Admin from './pages/Admin';
+import ExamHistory from './pages/ExamHistory';
+import ExamAnalysis from './pages/ExamAnalysis';
 import Layout from './components/Layout';
 import './App.css'; 
 
@@ -25,6 +27,8 @@ function App() {
               <Route path="/question-upload" element={<QuestionUpload />} />
               <Route path="/course-upload" element={<CourseUpload />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/exam-history" element={<ExamHistory />} />
+              <Route path="/exam-analysis/:id" element={<ExamAnalysis />} />
               {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
             </Routes>
           </Layout>

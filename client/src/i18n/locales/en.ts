@@ -11,6 +11,7 @@ export const en = {
     register: 'Register',
     language: 'Language',
     myCardWallet: 'My Card Wallet',
+    examHistory: 'Exam History',
   },
 
   // AuthModal 登录注册弹窗
@@ -56,6 +57,9 @@ export const en = {
     pleaseSelectSource: 'Please select how you heard about us',
     pleaseDescribeSourceMsg: 'Please describe how you heard about us',
     operationFailed: 'Operation failed, please try again',
+    // Login warning
+    loginWarning: 'One account per person is recommended',
+    loginWarningDetail: 'Logging in with someone else\'s account will mix up data and affect learning and exam analysis for both users.',
     // 来源选项
     sourceOptions: {
       select: 'Please select',
@@ -421,6 +425,78 @@ export const en = {
     loadConfigFailed: 'Failed to load mock test configuration, please try again',
     submitFailed: 'Submission failed, please try again',
     checkStatusFailed: 'Failed to check basic test status',
+    // Subject selection related
+    selectSubject: 'Select Exam Subject',
+    selectSubjectDesc: 'Choose the subject for your mock test. The system will randomly generate questions from the question bank.',
+    subjects: {
+      artsChinese: 'Arts Chinese',
+      scienceChinese: 'Science Chinese',
+      math: 'Mathematics',
+      physics: 'Physics',
+      chemistry: 'Chemistry',
+    },
+    knowledgePoints: 'Knowledge Points',
+    selectDifficulty: 'Select Difficulty Mode',
+    difficultyLevel: {
+      easy: 'Easy Mode',
+      medium: 'Medium Mode',
+      hard: 'Hard Mode',
+    },
+    difficultyMode: 'Difficulty Mode',
+    knowledgePointsCovered: 'Knowledge Points Covered',
+    generateTest: 'Generate Test',
+    generating: 'Generating test...',
+    generateFailed: 'Failed to generate mock test, please try again',
+    changeSubject: 'Change Subject',
+    selectOtherSubject: 'Select Another Subject',
+    viewAnalysis: 'View Exam Analysis',
+  },
+
+  // ExamHistory 考试记录
+  examHistory: {
+    title: 'Exam History',
+    subtitle: 'View your past exam scores and detailed analysis',
+    loading: 'Loading exam history...',
+    totalExams: 'Total Exams',
+    filterAll: 'All',
+    filterMock: 'Mock Tests',
+    filterBasic: 'Basic Tests',
+    noRecords: 'No exam records',
+    startExamHint: 'Your records will appear here after completing exams',
+    goToExam: 'Go to Exam',
+    unknownSubject: 'General Test',
+  },
+
+  // ExamAnalysis 考试分析
+  examAnalysis: {
+    loading: 'Loading exam analysis...',
+    notFound: 'Exam record not found',
+    backToHistory: 'Back to Exam History',
+    correctCount: 'Correct',
+    analysisTab: 'Exam Analysis',
+    reviewTab: 'Review Mistakes',
+    knowledgePointStats: 'Knowledge Point Accuracy',
+    wrongQuestions: 'Wrong Questions',
+    questions: 'questions',
+    explanation: 'Explanation',
+    startReview: 'Start Review',
+    continueReview: 'Continue Review',
+    reviewCompleted: 'Review Completed',
+    reviewProgress: 'Review Progress',
+    knowledgePointReview: 'Knowledge Point Review',
+    wrongQuestionsInKp: 'Wrong questions in this knowledge point',
+    yourAnswer: 'Your Answer',
+    correctAnswer: 'Correct Answer',
+    practiceQuestions: 'Practice (one for each difficulty: hard, medium, easy)',
+    loadingPractice: 'Loading practice questions...',
+    noPracticeQuestions: 'No other practice questions available',
+    practice: 'Practice',
+    checkAnswer: 'Check Answer',
+    understoodNext: 'I understand, move to next',
+    completeReview: 'Complete Review',
+    allReviewCompleted: 'Congratulations! You have completed all reviews',
+    reviewCompletedHint: 'Keep practicing to reinforce what you learned',
+    retryExam: 'Take Another Test',
   },
 
   // CardWallet 卡包
@@ -449,7 +525,7 @@ export const en = {
     comboTitle: 'Special Combo Packages',
     comboDescription: 'Includes 1 test card for each subject',
     combos: {
-      fullPackage: 'Full 5-Subject Package',
+      fullPackage: 'Full 4-Subject Package',
     },
     save: 'Save',
     singleCardsTitle: 'Single Subject Test Cards',

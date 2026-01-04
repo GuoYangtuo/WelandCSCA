@@ -1,0 +1,1292 @@
+.container {
+  height: 100vh;
+  padding: 1rem;
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading, .error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(139, 92, 246, 0.2);
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.backBtn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+/* 返回链接 - 内联在标题左侧 */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.backLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* 主布局 - 左右两栏 */
+.mainLayout {
+  flex: 1;
+  display: flex;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.leftColumn {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+.rightColumn {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 图表部分 */
+.chartSection {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  max-height: 120px;
+  overflow: hidden;
+}
+
+.chartSection.expanded {
+  max-height: none;
+}
+
+.chartHint {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  padding: 0.5rem;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.chartTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.chartSection h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #fff;
+  margin: 0;
+}
+
+.barChart {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.barItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.barLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kpName {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.kpCount {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+}
+
+.barTrack {
+  position: relative;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.barFill.good {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
+}
+
+.barFill.pass {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.barFill.fail {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+}
+
+.barValue {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 堆叠条形图 - 新布局 */
+.stackedBarChart {
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+}
+
+.stackedBarItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.18rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.stackedBarItem.clickable {
+  cursor: pointer;
+}
+
+.stackedBarItem.clickable:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.stackedBarItem.currentKpItem {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.stackedBarLabel {
+  flex-shrink: 0;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.stackedBarLabel .kpName {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stackedBarContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stackedBarTrack {
+  flex: 1;
+  display: flex;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.stackedBarSegment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-width: 20px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stackedBarSegment.correctSegment {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
+}
+
+.stackedBarSegment.wrongSegment {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.segmentCount {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.totalCount {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 已复盘对号标识 */
+.reviewedCheckmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.reviewedCheckmark.active {
+  color: #34d399;
+}
+
+.reviewedIcon {
+  color: #34d399;
+}
+
+/* 图例 */
+.chartLegend {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legendDot.correctDot {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+
+.legendDot.wrongDot {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+}
+
+/* AI 对话组件 */
+.aiChatSection {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.aiChatHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(139, 92, 246, 0.1);
+  flex-shrink: 0;
+}
+
+.aiChatHeader h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.aiAvatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.aiChatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.chatMessage {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 90%;
+}
+
+.chatMessage.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chatMessage.ai {
+  align-self: flex-start;
+}
+
+.messageAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chatMessage.ai .messageAvatar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #fff;
+}
+
+.chatMessage.user .messageAvatar {
+  background: rgba(52, 211, 153, 0.2);
+  color: #34d399;
+}
+
+.messageContent {
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.chatMessage.ai .messageContent {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom-left-radius: 4px;
+}
+
+.chatMessage.user .messageContent {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.aiTyping {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+}
+
+.typingDots {
+  display: flex;
+  gap: 3px;
+}
+
+.typingDots span {
+  width: 5px;
+  height: 5px;
+  background: rgba(139, 92, 246, 0.6);
+  border-radius: 50%;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typingDots span:nth-child(1) { animation-delay: 0s; }
+.typingDots span:nth-child(2) { animation-delay: 0.2s; }
+.typingDots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+}
+
+.aiChatInputArea {
+  padding: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.aiChatInput {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.aiChatInput:focus {
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.aiChatInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.aiChatSendBtn {
+  padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.aiChatSendBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.aiChatSendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 快捷提问按钮 */
+.quickQuestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.quickQuestionBtn {
+  padding: 0.3rem 0.6rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  color: #a78bfa;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quickQuestionBtn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* 错题复盘右侧区域 */
+.reviewSection {
+  flex: 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.reviewContent {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.noWrongQuestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.noWrongQuestions svg {
+  color: #34d399;
+  margin-bottom: 1rem;
+}
+
+.noWrongQuestions h3 {
+  color: #fff;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* 复盘进度条 */
+.reviewProgressBar {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.progressLabel {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.progressTrack {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.progressDots {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.dot.completed {
+  background: #34d399;
+}
+
+.dot.current {
+  background: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+/* 当前知识点卡片 */
+.currentKpCard {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.currentKpCard h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.kpStats {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding-left: 1.75rem;
+}
+
+.kpStats strong {
+  font-weight: 600;
+  color: #fff;
+}
+
+.kpStats .correctText {
+  color: #34d399;
+}
+
+.kpStats .correctText strong {
+  color: #34d399;
+}
+
+.kpStats .wrongText {
+  color: #f87171;
+}
+
+.kpStats .wrongText strong {
+  color: #f87171;
+}
+
+/* 知识点错题 */
+.kpWrongQuestions {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.kpWrongQuestions h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+/* 题目卡片 */
+.questionCard, .reviewQuestionCard, .practiceCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.questionCard:last-child,
+.reviewQuestionCard:last-child,
+.practiceCard:last-child {
+  margin-bottom: 0;
+}
+
+.questionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.questionIndex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 6px;
+  color: #a78bfa;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.kpTag {
+  padding: 0.2rem 0.6rem;
+  background: rgba(96, 165, 250, 0.15);
+  border-radius: 16px;
+  color: #60a5fa;
+  font-size: 0.7rem;
+}
+
+.diffTag {
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.diffTag.easy {
+  background: rgba(72, 187, 120, 0.2);
+  color: #48bb78;
+}
+
+.diffTag.medium {
+  background: rgba(237, 137, 54, 0.2);
+  color: #ed8936;
+}
+
+.diffTag.hard {
+  background: rgba(245, 101, 101, 0.2);
+  color: #f56565;
+}
+
+.questionText {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.questionImage {
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.questionImage img {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 8px;
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.option.selectable {
+  cursor: pointer;
+}
+
+.option.selectable:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.option.selected {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: #8b5cf6;
+}
+
+.option.correct {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: #34d399;
+  color: #34d399;
+}
+
+.option.wrong {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.optionLetter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.optionContent {
+  flex: 1;
+  line-height: 1.5;
+  font-size: 0.85rem;
+}
+
+.correctIcon {
+  color: #34d399;
+  flex-shrink: 0;
+}
+
+.wrongIcon {
+  color: #f87171;
+  flex-shrink: 0;
+}
+
+.explanation {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.explanation svg {
+  color: #fbbf24;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.explanation span {
+  color: #fbbf24;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.explanation > :last-child {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 答案对比 */
+.answerComparison {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.answerItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.answerItem.correct {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.answerItem.wrong {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.answerLabel {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.15rem;
+}
+
+.answerValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.answerItem.correct .answerValue {
+  color: #34d399;
+}
+
+.answerItem.wrong .answerValue {
+  color: #f87171;
+}
+
+/* 练习部分 */
+.practiceSection {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.practiceSection h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.practiceLoading, .noPractice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.practiceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkResultBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkResultBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(52, 211, 153, 0.4);
+}
+
+.checkResultBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 复盘操作按钮 */
+.reviewActions {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.nextKpBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.nextKpBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
+}
+
+/* 复盘完成 */
+.reviewCompleted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #fbbf24;
+}
+
+.reviewCompleted h2 {
+  color: #fff;
+  font-size: 1.35rem;
+  margin: 1.25rem 0 0.4rem;
+}
+
+.reviewCompleted p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.retryBtn {
+  padding: 0.85rem 1.75rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+}
+
+/* 开始复盘按钮 */
+.startReviewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.startReviewBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .mainLayout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .leftColumn,
+  .rightColumn {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .leftColumn {
+    flex-shrink: 0;
+  }
+
+  .aiChatSection {
+    min-height: 350px;
+    max-height: 400px;
+  }
+
+  .reviewSection {
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .answerComparison {
+    flex-direction: column;
+  }
+
+  /* 响应式堆叠条形图 */
+  .stackedBarItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  .stackedBarLabel {
+    width: 100%;
+    text-align: left;
+  }
+
+  .stackedBarTrack {
+    height: 22px;
+  }
+}
+
+/* ========== AI分析等待界面 ========== */
+.aiAnalysisWaiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 3rem;
+}
+
+.waitingContent {
+  text-align: center;
+  max-width: 480px;
+}
+
+.waitingIcon {
+  margin-bottom: 1.5rem;
+  color: #8b5cf6;
+}
+
+.spinningIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.waitingContent h2 {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 1rem;
+}
+
+.waitingContent p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.waitingProgress {
+  margin: 2rem 0;
+}
+
+.waitingDots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.waitingDots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.waitingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.waitingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.waitingTip {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ========== AI分析内容区域 ========== */
+.aiAnalysisSection {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aiAnalysisItem {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.aiAnalysisHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a78bfa;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.aiAnalysisContent {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* ========== 快捷问题头部 ========== */
+.quickQuestionsHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+/* 更新快捷问题按钮样式以支持更长文本 */
+.quickQuestions {
+  flex-wrap: wrap;
+}
+
+.quickQuestionBtn {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,9 +1,9 @@
 import React, { ReactNode, useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { languageNames, Language } from '../i18n';
-import { ChevronDown, Globe, User, LogOut, ChevronRight, CreditCard } from 'lucide-react';
+import { ChevronDown, Globe, User, LogOut, ChevronRight, CreditCard, ClipboardList } from 'lucide-react';
 import AuthModal from './AuthModal';
 import CardWalletModal from './CardWalletModal';
 
@@ -11,13 +11,16 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-// 需要隐藏导航栏的页面路径
+// 需要隐藏导航栏的页面路径（精确匹配）
 const HIDE_HEADER_PATHS = ['/question-upload', '/course-upload'];
+// 需要隐藏导航栏的页面路径前缀（匹配动态路由）
+const HIDE_HEADER_PATH_PREFIXES = ['/exam-analysis'];
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout, isAuthenticated, showAuthModal, authMode, openLoginModal, openRegisterModal, closeAuthModal, switchAuthMode } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showLangSubmenu, setShowLangSubmenu] = useState(false);
@@ -26,7 +29,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
   // 判断是否隐藏导航栏
-  const hideHeader = HIDE_HEADER_PATHS.includes(location.pathname);
+  const hideHeader = HIDE_HEADER_PATHS.includes(location.pathname) || 
+    HIDE_HEADER_PATH_PREFIXES.some(prefix => location.pathname.startsWith(prefix));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,6 +65,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleOpenCardWallet = () => {
     setShowCardWalletModal(true);
     setShowUserDropdown(false);
+  };
+
+  const handleGoToExamHistory = () => {
+    setShowUserDropdown(false);
+    navigate('/exam-history');
   };
 
   return (
@@ -108,6 +117,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         >
                           <CreditCard size={16} />
                           <span>{t.nav.myCardWallet || '我的卡包'}</span>
+                        </button>
+
+                        {/* 考试记录 */}
+                        <button 
+                          className="user-dropdown-item"
+                          onClick={handleGoToExamHistory}
+                        >
+                          <ClipboardList size={16} />
+                          <span>{t.nav.examHistory || '考试记录'}</span>
                         </button>
                         
                         {/* 语言切换 - 二级菜单 */}

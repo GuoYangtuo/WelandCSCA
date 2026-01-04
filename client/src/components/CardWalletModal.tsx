@@ -42,62 +42,52 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
     chemistry: 2,
   });
 
+  const features = [
+    t.cardWallet?.features?.aiTest || 'AI Agent根据学生薄弱点从题库针对性抽题组卷',
+    t.cardWallet?.features?.onlineTest || '在线测试',
+    t.cardWallet?.features?.aiAnalysis || 'AI Agent把每道题都对应到考纲上具体的知识点，智能分析薄弱点，制定个性化提分策略',
+    t.cardWallet?.features?.aiRecommend || 'AI Agent推荐类似题目以及相关联的知识点讲解课程资料',
+    t.cardWallet?.features?.knowledgeCourse || '赠送全科知识点讲解课程资料，AI小助手在线解答知识点疑问',
+    t.cardWallet?.features?.languageSupport || '题目与解析支持中英双语对照',
+    t.cardWallet?.features?.tenLanguagesSupport || 'AI Agent问答支持10种语言，包括汉语，英语，法语，德语，西班牙语，葡萄牙语，意大利语，俄语，日语，韩语',
+  ];
+
   // 卡片数据
   const cards: Card[] = [
     {
       id: 'arts_chinese',
       name: t.cardWallet?.cards?.artsChinese || '文科中文测试卡',
       price: 29.9,
-      description: t.cardWallet?.cardDescription || '每张卡可用于一次完整测试',
-      features: [
-        t.cardWallet?.features?.aiTest || 'AI组题考试',
-        t.cardWallet?.features?.onlineTest || '在线测试',
-        t.cardWallet?.features?.aiAnalysis || 'AI智能分析提分策略',
-      ],
+      description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
+      features: features,
     },
     {
       id: 'science_chinese',
       name: t.cardWallet?.cards?.scienceChinese || '理科中文测试卡',
       price: 29.9,
-      description: t.cardWallet?.cardDescription || '每张卡可用于一次完整测试',
-      features: [
-        t.cardWallet?.features?.aiTest || 'AI组题考试',
-        t.cardWallet?.features?.onlineTest || '在线测试',
-        t.cardWallet?.features?.aiAnalysis || 'AI智能分析提分策略',
-      ],
+      description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
+      features: features,
     },
     {
       id: 'math',
       name: t.cardWallet?.cards?.math || '数学测试卡',
       price: 29.9,
-      description: t.cardWallet?.cardDescription || '每张卡可用于一次完整测试',
-      features: [
-        t.cardWallet?.features?.aiTest || 'AI组题考试',
-        t.cardWallet?.features?.onlineTest || '在线测试',
-        t.cardWallet?.features?.aiAnalysis || 'AI智能分析提分策略',
-      ],
+      description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
+      features: features,
     },
     {
       id: 'physics',
       name: t.cardWallet?.cards?.physics || '物理测试卡',
       price: 29.9,
-      description: t.cardWallet?.cardDescription || '每张卡可用于一次完整测试',
-      features: [
-        t.cardWallet?.features?.aiTest || 'AI组题考试',
-        t.cardWallet?.features?.onlineTest || '在线测试',
-        t.cardWallet?.features?.aiAnalysis || 'AI智能分析提分策略',
-      ],
+      description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
+      features: features,
     },
     {
       id: 'chemistry',
       name: t.cardWallet?.cards?.chemistry || '化学测试卡',
       price: 29.9,
-      description: t.cardWallet?.cardDescription || '每张卡可用于一次完整测试',
-      features: [
-        t.cardWallet?.features?.aiTest || 'AI组题考试',
-        t.cardWallet?.features?.onlineTest || '在线测试',
-        t.cardWallet?.features?.aiAnalysis || 'AI智能分析提分策略',
-      ],
+      description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
+      features: features,
     },
   ];
 
@@ -105,11 +95,11 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
   const comboPackages: ComboPackage[] = [
     {
       id: 'full_package',
-      name: t.cardWallet?.combos?.fullPackage || '五科全能套餐',
+      name: t.cardWallet?.combos?.fullPackage || '四科全能套餐',
       cards: ['arts_chinese', 'science_chinese', 'math', 'physics', 'chemistry'],
-      originalPrice: 149.5,
+      originalPrice: 119.5,
       price: 99.9,
-      discount: '33%',
+      discount: '16.7%',
     },
   ];
 
@@ -121,25 +111,24 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
             <CreditCard size={24} />
             {t.cardWallet?.title || '我的卡包'}
           </h2>
+          <div className="modal-tabs">
+            <button
+              className={`tab-btn ${activeTab === 'wallet' ? 'active' : ''}`}
+              onClick={() => setActiveTab('wallet')}
+            >
+              <CreditCard size={18} />
+              {t.cardWallet?.tabs?.myCards || '我的卡片'}
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'purchase' ? 'active' : ''}`}
+              onClick={() => setActiveTab('purchase')}
+            >
+              <ShoppingCart size={18} />
+              {t.cardWallet?.tabs?.purchaseCards || '购买卡片'}
+            </button>
+          </div>
           <button className="close-btn" onClick={onClose}>
             <X size={24} />
-          </button>
-        </div>
-
-        <div className="modal-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'wallet' ? 'active' : ''}`}
-            onClick={() => setActiveTab('wallet')}
-          >
-            <CreditCard size={18} />
-            {t.cardWallet?.tabs?.myCards || '我的卡片'}
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'purchase' ? 'active' : ''}`}
-            onClick={() => setActiveTab('purchase')}
-          >
-            <ShoppingCart size={18} />
-            {t.cardWallet?.tabs?.purchaseCards || '购买卡片'}
           </button>
         </div>
 
@@ -197,18 +186,29 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
                         {t.cardWallet?.comboDescription || '包含所有科目测试卡各1张'}
                       </p>
                       <div className="combo-items">
-                        {combo.cards.map((cardId) => {
+                        {combo.cards.map((cardId, index) => {
                           const card = cards.find((c) => c.id === cardId);
-                          return card ? (
-                            <span key={cardId} className="combo-item">
-                              {card.name}
-                            </span>
-                          ) : null;
+                          if (!card) return null;
+                          
+                          // 判断是否需要显示分隔符
+                          const showSeparator = index > 0;
+                          // 文科中文和理科中文之间使用"/"分隔
+                          const useSeparator = cardId === 'science_chinese' ? ' / ' : '';
+                          
+                          return (
+                            <React.Fragment key={cardId}>
+                              {showSeparator && !useSeparator && <span className="combo-separator"> </span>}
+                              {useSeparator && <span className="combo-or-separator">{useSeparator}</span>}
+                              <span className="combo-item">
+                                {card.name}
+                              </span>
+                            </React.Fragment>
+                          );
                         })}
                       </div>
                       <div className="combo-price">
-                        <span className="original-price">¥{combo.originalPrice}</span>
-                        <span className="current-price">¥{combo.price}</span>
+                        <span className="original-price">{combo.originalPrice} rmb</span>
+                        <span className="current-price">{combo.price} rmb</span>
                       </div>
                       <button className="buy-btn combo">
                         {t.cardWallet?.buyNow || '立即购买'}
@@ -238,7 +238,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
                         ))}
                       </div>
                       <div className="card-price">
-                        <span className="price">¥{card.price}</span>
+                        <span className="price">{card.price} rmb</span>
                         <span className="price-unit">/{t.cardWallet?.perCard || '张'}</span>
                       </div>
                       <button className="buy-btn">

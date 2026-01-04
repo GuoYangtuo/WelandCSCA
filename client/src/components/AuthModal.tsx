@@ -258,6 +258,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
             <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
               {loading ? t.auth.processing : t.auth.login}
             </button>
+            <div className="login-warning">
+              <span className="login-warning-icon">⚠️</span>
+              <div className="login-warning-text">
+                <strong>{t.auth.loginWarning}</strong>
+                <p>{t.auth.loginWarningDetail}</p>
+              </div>
+            </div>
           </form>
         )}
 

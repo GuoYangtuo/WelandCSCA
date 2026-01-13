@@ -11,16 +11,24 @@ import { th } from './locales/th';
 export type Language = 'zh' | 'en' | 'es' | 'ru' | 'fr' | 'ar' | 'ja' | 'vi' | 'th';
 export type Translations = typeof zh;
 
-export const translations: Record<Language, Translations> = {
+// 深度 Partial 类型，允许其他语言文件缺少部分字段
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+// zh 和 en 需要完整翻译，其他语言可以缺少部分字段
+export type PartialTranslations = DeepPartial<Translations>;
+
+export const translations: Record<Language, Translations | PartialTranslations> = {
   zh,
   en,
-  es,
-  ru,
-  fr,
-  ar,
-  ja,
-  vi,
-  th,
+  es: es as PartialTranslations,
+  ru: ru as PartialTranslations,
+  fr: fr as PartialTranslations,
+  ar: ar as PartialTranslations,
+  ja: ja as PartialTranslations,
+  vi: vi as PartialTranslations,
+  th: th as PartialTranslations,
 };
 
 export const languageNames: Record<Language, string> = {

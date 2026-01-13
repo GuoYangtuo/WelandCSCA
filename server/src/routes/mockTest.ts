@@ -149,6 +149,7 @@ router.get('/subjects', authenticate, async (req: AuthRequest, res: Response) =>
 
 // 生成模拟测试（按科目动态抽题）
 router.post('/generate', authenticate, async (req: AuthRequest, res: Response) => {
+  console.log(0);
   try {
     const { subject, difficultyLevel = 'medium' } = req.body;
     

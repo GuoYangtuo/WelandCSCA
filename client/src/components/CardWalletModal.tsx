@@ -132,7 +132,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
           </button>
         </div>
 
-        <div className="modal-content">
+        <div className="card-wallet-modal-content">
           {activeTab === 'wallet' ? (
             <div className="wallet-content">
               <div className="wallet-summary">

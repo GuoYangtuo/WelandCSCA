@@ -64,7 +64,7 @@ const BasicTest: React.FC = () => {
   const loadQuestions = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await questionAPI.getAll({ limit: 10 });
+      const response = await questionAPI.getAll({ category: '中文', limit: 10 });
       console.log(response.data);
       const questionsData = response.data.map((q: any) => ({
         ...q,

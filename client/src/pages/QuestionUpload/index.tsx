@@ -169,7 +169,7 @@ const QuestionUpload: React.FC = () => {
     setMessage(null);
 
     try {
-      const files = uploadedImages.map(img => img.file);
+      const files = uploadedImages.map(img => img.file).filter((f): f is File => f !== undefined);
       const uploadResult = await difyAPI.uploadImages(files);
       
       if (!uploadResult.success || !uploadResult.data.urls.length) {
@@ -178,7 +178,7 @@ const QuestionUpload: React.FC = () => {
       
       const imageUrls = uploadResult.data.urls;
       // 图片上传时，使用第一个图片的文件名作为来源
-      const source = uploadedImages.length > 0 ? uploadedImages[0].file.name : '';
+      const source = uploadedImages.length > 0 ? uploadedImages[0].file?.name ?? '' : '';
       await parseQuestionsFromImages(imageUrls, source);
     } catch (error: any) {
       console.error('解析错误:', error);

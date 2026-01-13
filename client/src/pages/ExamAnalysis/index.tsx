@@ -107,7 +107,7 @@ const ExamAnalysis: React.FC = () => {
 
   const [examDetail, setExamDetail] = useState<ExamDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [aiAnalysisPolling, setAiAnalysisPolling] = useState(false);
+  const [, setAiAnalysisPolling] = useState(false);
   
   // 复盘状态
   const [reviewProgress, setReviewProgress] = useState<ReviewProgress | null>(null);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminAPI } from '../../services/api';
-import { CATEGORIES, DIFFICULTIES, KNOWLEDGE_POINTS, getKnowledgePointLabel } from './constants';
+import { CATEGORIES, KNOWLEDGE_POINTS, getKnowledgePointLabel } from './constants';
 
 interface QuestionStatsPanelProps {
   onFilterSelect: (category: string, knowledge_point: string, difficulty: string) => void;

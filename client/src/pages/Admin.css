@@ -503,7 +503,7 @@ textarea.form-input {
 }
 
 /* Modal */
-.modal-overlay {
+.admin-page .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -517,7 +517,7 @@ textarea.form-input {
   animation: fadeIn 0.2s ease;
 }
 
-.modal {
+.admin-page .modal {
   background: #1a1a2e;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -528,11 +528,11 @@ textarea.form-input {
   animation: slideUp 0.3s ease;
 }
 
-.modal-lg {
+.admin-page .modal-lg {
   max-width: 800px;
 }
 
-.modal-header {
+.admin-page .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -540,13 +540,13 @@ textarea.form-input {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.modal-header h3 {
+.admin-page .modal-header h3 {
   color: #fff;
   margin: 0;
   font-size: 1.1rem;
 }
 
-.modal-close {
+.admin-page .modal-close {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -560,16 +560,16 @@ textarea.form-input {
   transition: all 0.2s ease;
 }
 
-.modal-close:hover {
+.admin-page .modal-close:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
-.modal-body {
+.admin-page .modal-body {
   padding: 1.5rem;
 }
 
-.modal-footer {
+.admin-page .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -578,14 +578,14 @@ textarea.form-input {
 }
 
 /* Option Edit Row */
-.option-edit-row {
+.admin-page .option-edit-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
-.option-label {
+.admin-page .option-label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -600,7 +600,7 @@ textarea.form-input {
   flex-shrink: 0;
 }
 
-.option-edit-row .form-input {
+.admin-page .option-edit-row .form-input {
   flex: 1;
 }
 

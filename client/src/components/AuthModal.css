@@ -38,7 +38,7 @@
   animation: slideUp 0.3s ease;
   max-height: 90vh;
   overflow-y: auto;
-  max-width: 500px;
+  max-width: 420px;
 }
 
 .modal-content.register-mode {
@@ -232,6 +232,7 @@
 }
 
 .modal-footer {
+  margin-top: 1rem;
   text-align: center;
   color: #666;
   font-size: 0.95rem;

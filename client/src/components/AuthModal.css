@@ -29,7 +29,7 @@
   }
 }
 
-.auth-modal .modal-content {
+.modal-content {
   background: #ffffff;
   border-radius: 16px;
   padding: 2.5rem;
@@ -38,6 +38,7 @@
   animation: slideUp 0.3s ease;
   max-height: 90vh;
   overflow-y: auto;
+  max-width: 500px;
 }
 
 .modal-content.register-mode {

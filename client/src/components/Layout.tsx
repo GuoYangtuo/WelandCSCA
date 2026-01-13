@@ -85,6 +85,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
                 {t.nav.home}
               </Link>
+              <Link to="/pricing" className={location.pathname === '/pricing' ? 'active' : ''}>
+                {t.nav.pricing}
+              </Link>
               <Link to="/basic-test" className={location.pathname === '/basic-test' ? 'active' : ''}>
                 {t.nav.basicTest}
               </Link>

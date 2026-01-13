@@ -2,6 +2,7 @@ export const en = {
   // Layout 导航
   nav: {
     home: 'Home',
+    pricing: 'Pricing',
     basicTest: 'Basic Test',
     study: 'Study',
     mockTest: 'Mock Test',
@@ -499,6 +500,96 @@ export const en = {
     retryExam: 'Take Another Test',
   },
 
+  // Pricing 定价页面
+  pricing: {
+    badge: 'Pricing Strategy',
+    heroTitle: 'Weland-CSCA Product Pricing',
+    heroSubtitle: 'Professional support for your CSCA preparation journey',
+    
+    // Free Test
+    freeTestTitle: 'Basic Chinese Level Test',
+    free: 'Free',
+    comingSoon: '(Coming Soon)',
+    freeTestDesc: 'Help you understand your Chinese proficiency level and prepare for further learning',
+    
+    // Test Card
+    testCardTitle: 'Test Card',
+    testCardDesc: 'Each test card includes the following complete services',
+    onlineTest: '1 Online Test',
+    onlineTestDesc: 'AI generates targeted questions from the question bank, simulating real exam environment',
+    aiAnalysis: '1 AI Analysis',
+    aiAnalysisDesc: 'Smart analysis of weak points, personalized score improvement strategies',
+    freeCourse: 'Free Course Materials',
+    freeCourseDesc: 'After purchasing a test card, you can view course materials for free (including knowledge points and exam guides for all subjects)',
+    bonusTag: 'Bonus',
+    
+    // Features
+    featuresTitle: 'Test & AI Analysis Features',
+    featuresDesc: 'We provide comprehensive AI-powered exam preparation support',
+    imagePlaceholder: 'Feature Demo Image',
+    
+    features: {
+      // AI Targeted Questions
+      aiTargetedQuestions: 'AI Smart Question Generation',
+      aiTargetedQuestionsDesc: 'AI Agent generates targeted questions from the question bank based on weak points identified in your previous tests, ensuring each test effectively improves your abilities.',
+      aiTargetedQuestionsHighlights: [
+        'Analyze weak points based on historical test data',
+        'Smart matching of appropriate difficulty levels',
+        'Cover all knowledge points in the syllabus',
+      ],
+      
+      // Mobile Support
+      mobileSupport: 'Practice Anytime, Anywhere',
+      mobileSupportDesc: 'Online mock tests support mobile devices. No matter where you are, you can start practicing anytime and make full use of fragmented time.',
+      mobileSupportHighlights: [
+        'Support phones, tablets and other mobile devices',
+        'Responsive interface, smooth experience',
+        'Cloud-synced progress',
+      ],
+      
+      // Smart Analysis
+      smartAnalysis: 'Smart Weak Point Analysis',
+      smartAnalysisDesc: 'AI Agent maps each question to specific knowledge points on the syllabus, intelligently analyzes your weak points, and develops personalized score improvement strategies.',
+      smartAnalysisHighlights: [
+        'Precisely correspond to syllabus knowledge points',
+        'Visual ability analysis report',
+        'Personalized score improvement suggestions',
+      ],
+      
+      // AI Recommend
+      aiRecommend: 'AI Learning Resource Recommendations',
+      aiRecommendDesc: 'AI Agent recommends similar questions and related knowledge point explanation course materials to help you strengthen weak areas in a targeted way.',
+      aiRecommendHighlights: [
+        'Recommend similar questions for practice',
+        'Related knowledge point materials',
+        'Systematic learning path planning',
+      ],
+      
+      // Bilingual Support
+      bilingualSupport: 'Chinese-English Bilingual Support',
+      bilingualSupportDesc: 'Questions and explanations support Chinese-English bilingual display, making it easy for students with different language backgrounds to understand and learn.',
+      bilingualSupportHighlights: [
+        'Bilingual question display',
+        'Bilingual explanation comparison',
+        'Seamless language switching',
+      ],
+      
+      // Multi-language AI
+      multiLanguageAI: 'Multi-language AI Q&A',
+      multiLanguageAIDesc: 'AI Agent supports Q&A in multiple languages, including Chinese, English, French, German, Spanish, Portuguese, Italian, Russian, Japanese, Korean, and more.',
+      multiLanguageAIHighlights: [
+        'Support 10+ mainstream languages',
+        'Smart user language recognition',
+        'Real-time learning Q&A',
+      ],
+    },
+    
+    // CTA
+    ctaTitle: 'Ready to Start Your CSCA Preparation Journey?',
+    ctaDesc: 'Register now and experience the new way of AI-powered exam preparation',
+    ctaButton: 'Start Test',
+  },
+
   // CardWallet 卡包
   cardWallet: {
     title: 'My Card Wallet',
@@ -518,9 +609,13 @@ export const en = {
       chemistry: 'Chemistry Test Card',
     },
     features: {
-      aiTest: 'AI-Generated Exam from Question Bank',
-      onlineTest: 'Online Testing',
-      aiAnalysis: 'AI Smart Analysis of Mistakes',
+      aiTest: 'AI Agent generates exam questions from the question bank based on the student\'s weak points',
+      onlineTest: 'Online mock test, mobile support, anytime, anywhere to take the test',
+      aiAnalysis: 'AI Agent matches each question to specific knowledge points on the syllabus, smartly analyzes weak points, and makes personalized scoring strategies',
+      aiRecommend: 'AI Agent recommends similar questions and related knowledge point explanation course materials',
+      knowledgeCourse: 'Includes full-subject knowledge point explanation course materials, AI assistant online answers knowledge point questions',
+      languageSupport: 'Question and explanation support for bilingual Chinese-English comparison',
+      tenLanguagesSupport: 'AI Agent supports 10 languages, including Chinese, English, French, German, Spanish, Portuguese, Italian, Russian, Japanese, and Korean',
     },
     comboTitle: 'Special Combo Packages',
     comboDescription: 'Includes 1 test card for each subject',

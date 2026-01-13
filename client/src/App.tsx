@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import Home from './pages/Home';
+import Pricing from './pages/Pricing';
 import BasicTest from './pages/BasicTest';
 import MockTest from './pages/MockTest';
 import Study from './pages/Study';
@@ -21,6 +22,7 @@ function App() {
           <Layout>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/basic-test" element={<BasicTest />} />
               <Route path="/mock-test" element={<MockTest />} />
               <Route path="/study" element={<Study />} />

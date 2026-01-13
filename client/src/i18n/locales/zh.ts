@@ -2,6 +2,7 @@ export const zh = {
   // Layout 导航
   nav: {
     home: '首页',
+    pricing: '定价',
     basicTest: '基础测试',
     study: '学习训练',
     mockTest: '模拟测试',
@@ -95,7 +96,7 @@ export const zh = {
   home: {
     heroTitle: 'Weland-CSCA在线培训平台',
     heroSubtitle: '全球首家AI辅助系统',
-    heroDescription: '自2026年起，所有申请中国政府奖学金院校本科项目的国际学生，须在提交申请前参加该考试，考试成绩单将作为大学录取审核的必备材料之一。',
+    heroDescription: '自2026年起，所有申请中国政府奖学金院校本科项目的国际学生，须在提交申请前参加CSCA考试，考试成绩单将作为大学录取审核的必备材料之一。',
     stats: {
       universities: '要求院校',
       subjects: '考试科目',
@@ -513,6 +514,96 @@ export const zh = {
     studyAdvice: '复习建议',
   },
 
+  // Pricing 定价页面
+  pricing: {
+    badge: '定价策略',
+    heroTitle: 'Weland-CSCA 产品定价',
+    heroSubtitle: '为您的CSCA备考之旅提供最专业的支持',
+    
+    // 免费测试
+    freeTestTitle: '基础中文水平测试',
+    free: '免费',
+    comingSoon: '（暂未可用）',
+    freeTestDesc: '帮助您了解自己的中文水平基础，为后续学习做好准备',
+    
+    // 测试卡
+    testCardTitle: '测试卡',
+    testCardDesc: '一张测试卡包含以下完整服务',
+    onlineTest: '在线测试 1 次',
+    onlineTestDesc: 'AI从题库针对性抽题组卷，模拟真实考试环境',
+    aiAnalysis: 'AI分析 1 次',
+    aiAnalysisDesc: '智能分析薄弱点，制定个性化提分策略',
+    freeCourse: '免费课程资料',
+    freeCourseDesc: '购买测试卡后可免费查看课程资料（包括各科知识点和考试指南）',
+    bonusTag: '赠送',
+    
+    // 功能详解
+    featuresTitle: '测试与AI分析功能详解',
+    featuresDesc: '我们提供全方位的AI智能备考支持',
+    imagePlaceholder: '功能展示图',
+    
+    features: {
+      // AI智能组卷
+      aiTargetedQuestions: 'AI智能组卷',
+      aiTargetedQuestionsDesc: 'AI Agent根据学生上次测试暴露的薄弱点，从题库针对性抽题组卷，确保每次测试都能有效提升您的能力。',
+      aiTargetedQuestionsHighlights: [
+        '基于历史测试数据分析薄弱点',
+        '智能匹配适合难度的题目',
+        '覆盖考纲全部知识点',
+      ],
+      
+      // 移动端支持
+      mobileSupport: '随时随地做题',
+      mobileSupportDesc: '在线模拟测试支持移动端，无论您身在何处，都可以随时开始练习，充分利用碎片时间。',
+      mobileSupportHighlights: [
+        '支持手机、平板等移动设备',
+        '响应式界面，体验流畅',
+        '进度云端同步',
+      ],
+      
+      // 智能分析
+      smartAnalysis: '智能薄弱点分析',
+      smartAnalysisDesc: 'AI Agent把每道题都对应到考纲上具体的知识点，智能分析您的薄弱点，制定个性化提分策略。',
+      smartAnalysisHighlights: [
+        '精准对应考纲知识点',
+        '可视化能力分析报告',
+        '个性化提分策略建议',
+      ],
+      
+      // AI推荐
+      aiRecommend: 'AI推荐学习资源',
+      aiRecommendDesc: 'AI Agent推荐类似题目以及相关联的知识点讲解课程资料，帮助您有针对性地巩固薄弱环节。',
+      aiRecommendHighlights: [
+        '推荐相似题目强化练习',
+        '关联知识点讲解资料',
+        '系统化学习路径规划',
+      ],
+      
+      // 中英双语
+      bilingualSupport: '中英双语支持',
+      bilingualSupportDesc: '题目与解析支持中英双语对照，方便不同语言背景的学生理解和学习。',
+      bilingualSupportHighlights: [
+        '题目中英双语显示',
+        '解析双语对照',
+        '切换语言无缝体验',
+      ],
+      
+      // 多语言AI
+      multiLanguageAI: '全语言AI问答',
+      multiLanguageAIDesc: 'AI Agent支持多种语言问答，包括中文、英语、法语、德语、西班牙语、葡萄牙语、意大利语、俄语、日语、韩语等。',
+      multiLanguageAIHighlights: [
+        '支持10+种主流语言',
+        '智能识别用户语言',
+        '实时解答学习疑问',
+      ],
+    },
+    
+    // CTA
+    ctaTitle: '准备好开始您的CSCA备考之旅了吗？',
+    ctaDesc: '立即注册，体验AI智能备考的全新方式',
+    ctaButton: '开始测试',
+  },
+
   // CardWallet 卡包
   cardWallet: {
     title: '我的卡包',
@@ -533,8 +624,12 @@ export const zh = {
     },
     features: {
       aiTest: 'AI从题库针对性抽题组卷',
-      onlineTest: '在线测试',
-      aiAnalysis: 'AI智能分析错题，制定个性化提分策略',
+      onlineTest: '在线模拟测试，移动端支持，随时随地做题',
+      aiAnalysis: 'AI Agent把每道题都对应到考纲上具体的知识点，智能分析薄弱点，制定个性化提分策略',
+      aiRecommend: 'AI推荐类似题目以及相关联的知识点讲解课程资料',
+      knowledgeCourse: '赠送全科知识点讲解课程资料，AI小助手在线解答知识点疑问',
+      languageSupport: '题目与解析支持中英双语对照',
+      tenLanguagesSupport: 'AI Agent问答支持10种语言，包括汉语，英语，法语，德语，西班牙语，葡萄牙语，意大利语，俄语，日语，韩语',
     },
     comboTitle: '超值组合套餐',
     comboDescription: '包含所有科目测试卡各1张',

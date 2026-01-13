@@ -44,7 +44,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
 
   const features = [
     t.cardWallet?.features?.aiTest || 'AI Agent根据学生薄弱点从题库针对性抽题组卷',
-    t.cardWallet?.features?.onlineTest || '在线测试',
+    t.cardWallet?.features?.onlineTest || '在线模拟测试，移动端支持，随时随地做题',
     t.cardWallet?.features?.aiAnalysis || 'AI Agent把每道题都对应到考纲上具体的知识点，智能分析薄弱点，制定个性化提分策略',
     t.cardWallet?.features?.aiRecommend || 'AI Agent推荐类似题目以及相关联的知识点讲解课程资料',
     t.cardWallet?.features?.knowledgeCourse || '赠送全科知识点讲解课程资料，AI小助手在线解答知识点疑问',

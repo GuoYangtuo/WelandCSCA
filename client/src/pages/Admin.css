@@ -891,6 +891,135 @@ input[type="number"] {
   }
 }
 
+/* ===== Orders Tab Styles ===== */
+.orders-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.stat-item.pending {
+  background: rgba(246, 173, 85, 0.15);
+  color: #f6ad55;
+}
+
+.order-code-text {
+  font-family: 'Monaco', 'Consolas', monospace;
+  background: rgba(212, 175, 55, 0.15);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #d4af37;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.btn-copy-small {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-small:hover {
+  color: #00d9ff;
+  opacity: 1;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.user-name {
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.user-email {
+  color: #718096;
+  font-size: 0.8rem;
+}
+
+.order-items-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.order-item-tag {
+  background: rgba(159, 122, 234, 0.15);
+  color: #9f7aea;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.order-amount {
+  color: #68d391;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.order-status-badge.pending {
+  background: rgba(246, 173, 85, 0.15);
+  color: #f6ad55;
+}
+
+.order-status-badge.approved {
+  background: rgba(72, 187, 120, 0.15);
+  color: #68d391;
+}
+
+.order-status-badge.rejected {
+  background: rgba(245, 101, 101, 0.15);
+  color: #fc8181;
+}
+
+.order-status-badge.cancelled {
+  background: rgba(160, 174, 192, 0.15);
+  color: #a0aec0;
+}
+
+.btn-action.approve {
+  color: #68d391;
+}
+
+.btn-action.approve:hover {
+  background: rgba(72, 187, 120, 0.15);
+  border-color: rgba(72, 187, 120, 0.3);
+}
+
+.no-actions {
+  color: #4a5568;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-page {
@@ -934,6 +1063,10 @@ input[type="number"] {
   .modal {
     width: 95%;
     margin: 1rem;
+  }
+
+  .orders-stats {
+    flex-wrap: wrap;
   }
 }
 

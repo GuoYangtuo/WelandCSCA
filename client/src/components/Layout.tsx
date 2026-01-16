@@ -3,9 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { languageNames, Language } from '../i18n';
-import { ChevronDown, Globe, User, LogOut, ChevronRight, CreditCard, ClipboardList } from 'lucide-react';
+import { ChevronDown, Globe, User, LogOut, ChevronRight, CreditCard, ClipboardList, Building2 } from 'lucide-react';
 import AuthModal from './AuthModal';
 import CardWalletModal from './CardWalletModal';
+import api from '../services/api';
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,12 +26,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showLangSubmenu, setShowLangSubmenu] = useState(false);
   const [showCardWalletModal, setShowCardWalletModal] = useState(false);
+  const [isInstitution, setIsInstitution] = useState(false);
   const langDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
   // 判断是否隐藏导航栏
   const hideHeader = HIDE_HEADER_PATHS.includes(location.pathname) || 
     HIDE_HEADER_PATH_PREFIXES.some(prefix => location.pathname.startsWith(prefix));
+
+  // 检查用户是否为机构用户
+  useEffect(() => {
+    const checkInstitution = async () => {
+      if (!isAuthenticated) {
+        setIsInstitution(false);
+        return;
+      }
+      try {
+        const response = await api.get('/institution/check');
+        setIsInstitution(response.data.success && response.data.isInstitution);
+      } catch {
+        setIsInstitution(false);
+      }
+    };
+    checkInstitution();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -70,6 +89,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleGoToExamHistory = () => {
     setShowUserDropdown(false);
     navigate('/exam-history');
+  };
+
+  const handleGoToInstitutionAdmin = () => {
+    setShowUserDropdown(false);
+    navigate('/institution-admin');
   };
 
   return (
@@ -130,6 +154,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                           <ClipboardList size={16} />
                           <span>{t.nav.examHistory || '考试记录'}</span>
                         </button>
+
+                        {/* 机构管理后台 - 仅机构用户可见 */}
+                        {isInstitution && (
+                          <button 
+                            className="user-dropdown-item institution"
+                            onClick={handleGoToInstitutionAdmin}
+                          >
+                            <Building2 size={16} />
+                            <span>机构管理</span>
+                          </button>
+                        )}
                         
                         {/* 语言切换 - 二级菜单 */}
                         <div 

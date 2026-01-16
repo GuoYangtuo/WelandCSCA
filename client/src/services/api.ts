@@ -281,8 +281,7 @@ export const adminAPI = {
   deleteLessonDocument: async (filename: string) => {
     const response = await api.delete(`/admin/lessons/document/${filename}`);
     return response.data;
-  }
-,
+  },
   // 卡片/卡包管理
   getCardTypes: async () => {
     const response = await api.get('/admin/card-types');
@@ -302,6 +301,48 @@ export const adminAPI = {
   },
   deleteUserCard: async (userId: string, cardId: number) => {
     const response = await api.delete(`/admin/users/${userId}/cards/${cardId}`);
+    return response.data;
+  },
+  // 订单管理
+  getOrders: async (status?: string) => {
+    const response = await api.get('/admin/orders', { params: { status } });
+    return response.data;
+  },
+  approveOrder: async (orderId: number) => {
+    const response = await api.post(`/admin/orders/${orderId}/approve`);
+    return response.data;
+  },
+  rejectOrder: async (orderId: number, reason?: string) => {
+    const response = await api.post(`/admin/orders/${orderId}/reject`, { reason });
+    return response.data;
+  }
+};
+
+// 订单相关API（用户端）
+export const ordersAPI = {
+  // 获取卡片类型
+  getCardTypes: async () => {
+    const response = await api.get('/orders/card-types');
+    return response.data;
+  },
+  // 获取我的卡片
+  getMyCards: async () => {
+    const response = await api.get('/orders/my-cards');
+    return response.data;
+  },
+  // 创建订单
+  createOrder: async (items: { card_type_id: number; quantity: number; price: number; card_name: string }[], total_price: number) => {
+    const response = await api.post('/orders/create', { items, total_price });
+    return response.data;
+  },
+  // 获取我的订单
+  getMyOrders: async () => {
+    const response = await api.get('/orders/my-orders');
+    return response.data;
+  },
+  // 取消订单
+  cancelOrder: async (orderId: number) => {
+    const response = await api.post(`/orders/${orderId}/cancel`);
     return response.data;
   }
 };

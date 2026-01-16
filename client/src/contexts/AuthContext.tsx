@@ -5,6 +5,7 @@ interface User {
   id: number;
   username: string;
   email: string;
+  userType?: 'student' | 'institution';
 }
 
 interface AuthContextType {

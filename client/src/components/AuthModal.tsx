@@ -12,7 +12,7 @@ interface AuthModalProps {
 type RegisterType = 'student' | 'institution';
 
 // ===== 临时关闭学生注册通道（改为 false 即可重新开放）=====
-const STUDENT_REGISTRATION_ENABLED = false;
+const STUDENT_REGISTRATION_ENABLED = true;
 // ===== 临时关闭学生注册通道 END =====
 
 const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) => {

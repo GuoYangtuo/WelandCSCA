@@ -21,59 +21,6 @@ import './Pricing.css';
 
 const Pricing: React.FC = () => {
   const { t } = useLanguage();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [showWalletModal, setShowWalletModal] = useState(false);
-
-  // 检查是否是admin用户
-  useEffect(() => {
-    const checkAdmin = async () => {
-      if (authLoading) return;
-
-      if (!isAuthenticated) {
-        // 未登录用户也重定向，并显示钱包弹窗
-        setIsAdmin(false);
-        setShowWalletModal(true);
-        return;
-      }
-
-      try {
-        await api.get('/admin/check');
-        setIsAdmin(true);
-      } catch (error) {
-        setIsAdmin(false);
-        setShowWalletModal(true);
-      }
-    };
-
-    checkAdmin();
-  }, [isAuthenticated, authLoading]);
-
-  // 非admin用户显示钱包弹窗
-  if (isAdmin === false) {
-    return (
-      <div className="pricing-page">
-        {showWalletModal && (
-          <CardWalletModal onClose={() => {
-            setShowWalletModal(false);
-            navigate('/');
-          }} />
-        )}
-      </div>
-    );
-  }
-
-  // 加载中状态
-  if (isAdmin === null) {
-    return (
-      <div className="pricing-page">
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <p>加载中...</p>
-        </div>
-      </div>
-    );
-  }
 
   const features = [
     {

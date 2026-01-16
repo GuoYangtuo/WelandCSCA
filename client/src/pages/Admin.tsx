@@ -20,7 +20,11 @@ import {
   CheckCircle,
   Loader,
   Key,
-  Copy
+  Copy,
+  ShoppingCart,
+  Check,
+  XCircle,
+  Clock
 } from 'lucide-react';
 import './Admin.css';
 
@@ -72,7 +76,22 @@ interface InvitationCode {
   created_at: string;
 }
 
-type TabType = 'questions' | 'tests' | 'chapters' | 'lessons' | 'inviteCodes' | 'cardPacks';
+interface CardOrder {
+  id: number;
+  order_code: string;
+  user_id: string;
+  username: string;
+  email: string;
+  order_items: { card_type_id: number; quantity: number; price: number; card_name: string }[];
+  total_price: number;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  approved_by: string | null;
+  approved_at: string | null;
+  reject_reason: string | null;
+  created_at: string;
+}
+
+type TabType = 'questions' | 'tests' | 'chapters' | 'lessons' | 'inviteCodes' | 'cardPacks' | 'orders';
 
 const Admin: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -122,6 +141,11 @@ const Admin: React.FC = () => {
   const [editingUserCard, setEditingUserCard] = useState<any | null>(null);
   const [editingUserCardQuantity, setEditingUserCardQuantity] = useState<number>(0);
   const [editingUserCardExpiresAt, setEditingUserCardExpiresAt] = useState<string>('');
+
+  // Orders state
+  const [orders, setOrders] = useState<CardOrder[]>([]);
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>('pending');
+  const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
 
   // Check admin status
   useEffect(() => {
@@ -205,6 +229,17 @@ const Admin: React.FC = () => {
     }
   }, [showUsedCodes]);
 
+  const loadOrders = useCallback(async () => {
+    try {
+      const response = await api.get('/admin/orders', {
+        params: { status: orderStatusFilter || undefined }
+      });
+      setOrders(response.data.data || []);
+    } catch (error) {
+      console.error('加载订单失败:', error);
+    }
+  }, [orderStatusFilter]);
+
   useEffect(() => {
     if (!isAdmin) return;
     
@@ -239,8 +274,11 @@ const Admin: React.FC = () => {
           }
         })();
         break;
+      case 'orders':
+        loadOrders();
+        break;
     }
-  }, [activeTab, isAdmin, loadQuestions, loadTestResults, loadChapters, loadLessons, loadInvitationCodes]);
+  }, [activeTab, isAdmin, loadQuestions, loadTestResults, loadChapters, loadLessons, loadInvitationCodes, loadOrders]);
 
   const loadUserCards = async (userId: string) => {
     if (!userId) return;
@@ -457,6 +495,43 @@ const Admin: React.FC = () => {
     setMessage({ type: 'success', text: '邀请码已复制到剪贴板' });
   };
 
+  // Order operations
+  const handleApproveOrder = async (orderId: number) => {
+    if (!confirm('确定要审核通过此订单吗？通过后将自动为用户发放卡片。')) return;
+    
+    setProcessingOrderId(orderId);
+    try {
+      await api.post(`/admin/orders/${orderId}/approve`);
+      setMessage({ type: 'success', text: '订单审核通过，卡片已发放给用户' });
+      loadOrders();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || '审核失败' });
+    } finally {
+      setProcessingOrderId(null);
+    }
+  };
+
+  const handleRejectOrder = async (orderId: number) => {
+    const reason = prompt('请输入拒绝原因（可选）：');
+    if (reason === null) return; // 用户点击取消
+    
+    setProcessingOrderId(orderId);
+    try {
+      await api.post(`/admin/orders/${orderId}/reject`, { reason });
+      setMessage({ type: 'success', text: '订单已拒绝' });
+      loadOrders();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || '拒绝失败' });
+    } finally {
+      setProcessingOrderId(null);
+    }
+  };
+
+  const handleCopyOrderCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setMessage({ type: 'success', text: '订单码已复制到剪贴板' });
+  };
+
   // Render loading state
   if (authLoading || loading) {
     return (
@@ -552,6 +627,13 @@ const Admin: React.FC = () => {
           >
             <Users size={18} />
             卡包管理
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            <ShoppingCart size={18} />
+            订单管理
           </button>
         </nav>
 
@@ -1054,6 +1136,137 @@ const Admin: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Orders Tab */}
+          {activeTab === 'orders' && (
+            <div className="tab-content">
+              <div className="content-header">
+                <div className="header-left">
+                  <select
+                    className="filter-select"
+                    value={orderStatusFilter}
+                    onChange={(e) => {
+                      setOrderStatusFilter(e.target.value);
+                      setTimeout(() => loadOrders(), 0);
+                    }}
+                  >
+                    <option value="">全部状态</option>
+                    <option value="pending">待处理</option>
+                    <option value="approved">已通过</option>
+                    <option value="rejected">已拒绝</option>
+                    <option value="cancelled">已取消</option>
+                  </select>
+                </div>
+                <div className="orders-stats">
+                  <span className="stat-item pending">
+                    <Clock size={16} />
+                    待处理: {orders.filter(o => o.status === 'pending').length}
+                  </span>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>订单码</th>
+                      <th>用户</th>
+                      <th>订单内容</th>
+                      <th>金额</th>
+                      <th>状态</th>
+                      <th>创建时间</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order.id}>
+                        <td>
+                          <code className="order-code-text">{order.order_code}</code>
+                          <button 
+                            className="btn-copy-small" 
+                            onClick={() => handleCopyOrderCode(order.order_code)}
+                            title="复制订单码"
+                          >
+                            <Copy size={12} />
+                          </button>
+                        </td>
+                        <td>
+                          <div className="user-info">
+                            <span className="user-name">{order.username || '未知'}</span>
+                            <span className="user-email">{order.email || ''}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="order-items-list">
+                            {order.order_items.map((item, idx) => (
+                              <span key={idx} className="order-item-tag">
+                                {item.card_name} x{item.quantity}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="order-amount">¥{order.total_price}</td>
+                        <td>
+                          <span className={`order-status-badge ${order.status}`}>
+                            {order.status === 'pending' && <Clock size={14} />}
+                            {order.status === 'approved' && <CheckCircle size={14} />}
+                            {order.status === 'rejected' && <XCircle size={14} />}
+                            {order.status === 'cancelled' && <X size={14} />}
+                            {order.status === 'pending' ? '待处理' : 
+                             order.status === 'approved' ? '已通过' :
+                             order.status === 'rejected' ? '已拒绝' : '已取消'}
+                          </span>
+                        </td>
+                        <td>{new Date(order.created_at).toLocaleString('zh-CN')}</td>
+                        <td className="actions-cell">
+                          {order.status === 'pending' && (
+                            <>
+                              <button 
+                                className="btn-action approve" 
+                                onClick={() => handleApproveOrder(order.id)}
+                                disabled={processingOrderId === order.id}
+                                title="审核通过"
+                              >
+                                {processingOrderId === order.id ? (
+                                  <Loader size={16} className="spin" />
+                                ) : (
+                                  <Check size={16} />
+                                )}
+                              </button>
+                              <button 
+                                className="btn-action delete" 
+                                onClick={() => handleRejectOrder(order.id)}
+                                disabled={processingOrderId === order.id}
+                                title="拒绝订单"
+                              >
+                                <X size={16} />
+                              </button>
+                            </>
+                          )}
+                          {order.status !== 'pending' && (
+                            <span className="no-actions">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {orders.length === 0 && (
+                <div className="empty-state">
+                  <ShoppingCart size={48} />
+                  <p>暂无订单</p>
+                  <p className="hint">
+                    {orderStatusFilter === 'pending' 
+                      ? '目前没有待处理的订单' 
+                      : '当前筛选条件下没有订单'}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </main>

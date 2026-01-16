@@ -640,6 +640,27 @@ export const zh = {
     singleCardsTitle: '单科测试卡',
     perCard: '张',
     buyNow: '立即购买',
+    // 结算页面
+    checkout: '确认订单',
+    backToPurchase: '返回选购',
+    selectCards: '选择卡片数量',
+    checkoutHint: '调整每种卡片的购买数量',
+    total: '总计',
+    creating: '创建订单中...',
+    payNow: '立即付款',
+    // 付款弹窗
+    paymentTitle: '扫码付款',
+    orderCode: '订单码',
+    copied: '已复制',
+    copy: '复制',
+    payAmount: '付款金额',
+    importantNotice: '重要提示',
+    paymentNote: '付款时请务必在备注中填写订单码：',
+    paymentNoteSub: '我们会在收到付款后尽快为您发放卡片',
+    step1: '打开支付宝扫一扫',
+    step2: '扫描上方二维码',
+    step3: '付款时备注订单码',
+    paymentDone: '我已完成付款',
   },
 };
 

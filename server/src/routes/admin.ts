@@ -860,5 +860,138 @@ router.delete('/users/:userId/cards/:id', authenticate, adminAuth, async (req: A
   }
 });
 
+// ==================== 订单管理 ====================
+
+// 获取所有订单（管理员）
+router.get('/orders', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const status = req.query.status as string;
+    
+    let query = `
+      SELECT o.*, u.username, u.email
+      FROM card_orders o
+      LEFT JOIN weland.users u ON o.user_id = u.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+    
+    if (status) {
+      query += ' AND o.status = ?';
+      params.push(status);
+    }
+    
+    query += ' ORDER BY o.created_at DESC';
+    
+    const [orders] = await cscaPool.query(query, params);
+    
+    // 解析 order_items JSON
+    const parsedOrders = (orders as any[]).map(order => ({
+      ...order,
+      order_items: typeof order.order_items === 'string' ? JSON.parse(order.order_items) : order.order_items
+    }));
+    
+    res.json({
+      success: true,
+      data: parsedOrders
+    });
+  } catch (error) {
+    console.error('获取订单列表错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+// 审核订单（通过）
+router.post('/orders/:id/approve', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  const connection = await cscaPool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    
+    const { id } = req.params;
+    
+    // 获取订单信息
+    const [orders] = await connection.query(
+      'SELECT * FROM card_orders WHERE id = ? AND status = ? FOR UPDATE',
+      [id, 'pending']
+    );
+    
+    if ((orders as any[]).length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: '订单不存在或已处理' });
+    }
+    
+    const order = (orders as any[])[0];
+    const orderItems = typeof order.order_items === 'string' ? JSON.parse(order.order_items) : order.order_items;
+    
+    // 为用户添加卡片
+    for (const item of orderItems) {
+      // 检查用户是否已有该类型卡片
+      const [existing] = await connection.query(
+        'SELECT * FROM user_cards WHERE user_id = ? AND card_type_id = ? LIMIT 1',
+        [order.user_id, item.card_type_id]
+      );
+      
+      if ((existing as any[]).length > 0) {
+        // 已有卡片，增加数量
+        const existingCard = (existing as any[])[0];
+        await connection.query(
+          'UPDATE user_cards SET quantity = quantity + ? WHERE id = ?',
+          [item.quantity, existingCard.id]
+        );
+      } else {
+        // 新增卡片记录
+        await connection.query(
+          'INSERT INTO user_cards (user_id, card_type_id, quantity) VALUES (?, ?, ?)',
+          [order.user_id, item.card_type_id, item.quantity]
+        );
+      }
+    }
+    
+    // 更新订单状态
+    await connection.query(
+      'UPDATE card_orders SET status = ?, approved_by = ?, approved_at = NOW() WHERE id = ?',
+      ['approved', req.userId, id]
+    );
+    
+    await connection.commit();
+    
+    res.json({
+      success: true,
+      message: '订单审核通过，卡片已发放'
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('审核订单错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  } finally {
+    connection.release();
+  }
+});
+
+// 拒绝订单
+router.post('/orders/:id/reject', authenticate, adminAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    const [result] = await cscaPool.query(
+      'UPDATE card_orders SET status = ?, reject_reason = ?, approved_by = ?, approved_at = NOW() WHERE id = ? AND status = ?',
+      ['rejected', reason || '管理员拒绝', req.userId, id, 'pending']
+    );
+    
+    if ((result as any).affectedRows === 0) {
+      return res.status(404).json({ message: '订单不存在或已处理' });
+    }
+    
+    res.json({
+      success: true,
+      message: '订单已拒绝'
+    });
+  } catch (error) {
+    console.error('拒绝订单错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
 export default router;
 

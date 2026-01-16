@@ -147,14 +147,6 @@ const Home: React.FC = () => {
           <p className="hero-description">
             {t.home.heroDescription}
           </p>
-          <div className="hero-stats">
-            {stats.map((stat, index) => (
-              <div key={index} className="stat-item">
-                <span className="stat-value">{stat.value}</span>
-                <span className="stat-label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
           <div className="hero-actions">
             {isAuthenticated ? (
               <>

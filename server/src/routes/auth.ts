@@ -6,6 +6,45 @@ import { pool, cscaPool } from '../config/database';
 
 const router = express.Router();
 
+/**
+ * 获取当前周编号（与 institution.ts 保持一致）
+ */
+function getCurrentWeekNumber(): number {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  const weekNum = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+  return now.getFullYear() * 100 + weekNum;
+}
+
+/**
+ * 检查邀请码是否为有效的机构码
+ * 返回机构ID（如果有效），否则返回 null
+ */
+async function checkInstitutionCode(code: string): Promise<string | null> {
+  if (!code || code.length !== 6) return null;
+  
+  const currentWeek = getCurrentWeekNumber();
+  const [codes] = await cscaPool.query(
+    'SELECT institution_id FROM institution_codes WHERE code = ? AND week_number = ?',
+    [code.toUpperCase(), currentWeek]
+  );
+  
+  if ((codes as any[]).length === 0) return null;
+  
+  const institutionId = (codes as any[])[0].institution_id;
+  
+  // 验证机构用户是否存在
+  const [institutions] = await pool.query(
+    'SELECT id FROM users WHERE id = ? AND user_type = ?',
+    [institutionId, 'institution']
+  );
+  
+  if ((institutions as any[]).length === 0) return null;
+  
+  return institutionId;
+}
+
 // 验证邀请码（机构注册前调用）
 router.post('/verify-invite-code', async (req: Request, res: Response) => {
   try {
@@ -93,6 +132,18 @@ router.post('/register', async (req: Request, res: Response) => {
         'UPDATE invitation_codes SET is_used = TRUE, used_by = ?, used_at = NOW() WHERE code = ?',
         [userId, inviteCode]
       );
+    }
+
+    // 如果是学生注册且提供了邀请码，检查是否为机构码
+    if (!isInstitution && inviteCode) {
+      const institutionId = await checkInstitutionCode(inviteCode);
+      if (institutionId) {
+        // 绑定学生到机构
+        await cscaPool.query(
+          'INSERT INTO student_institution_bindings (student_id, institution_id) VALUES (?, ?)',
+          [userId, institutionId]
+        );
+      }
     }
 
     // 生成JWT令牌

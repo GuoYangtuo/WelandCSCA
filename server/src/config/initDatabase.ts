@@ -274,6 +274,52 @@ export async function initDatabase() {
       // 忽略重复插入导致的错误
     }
 
+    // 创建卡片订单表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS card_orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_code VARCHAR(6) NOT NULL UNIQUE COMMENT '六位订单码',
+        user_id VARCHAR(36) NOT NULL COMMENT '引用 weland.users.id',
+        order_items JSON NOT NULL COMMENT '订单项: [{card_type_id, quantity, price}]',
+        total_price DECIMAL(10,2) NOT NULL COMMENT '订单总价',
+        status ENUM('pending', 'approved', 'rejected', 'cancelled') DEFAULT 'pending' COMMENT '订单状态',
+        approved_by VARCHAR(36) NULL COMMENT '审核人用户ID',
+        approved_at DATETIME NULL COMMENT '审核时间',
+        reject_reason VARCHAR(500) NULL COMMENT '拒绝原因',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_order_code (order_code),
+        INDEX idx_user_id (user_id),
+        INDEX idx_status (status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='卡片订单表'
+    `);
+
+    // 创建机构码表（每个机构一个动态码，每周一0点更新）
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS institution_codes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        institution_id VARCHAR(36) NOT NULL UNIQUE COMMENT '机构用户ID，引用 weland.users.id',
+        code VARCHAR(6) NOT NULL COMMENT '六位机构码',
+        week_number INT NOT NULL COMMENT '周编号（用于判断是否需要更新）',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_code (code),
+        INDEX idx_institution_id (institution_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='机构动态码表'
+    `);
+
+    // 创建学生-机构绑定表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS student_institution_bindings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id VARCHAR(36) NOT NULL UNIQUE COMMENT '学生用户ID，引用 weland.users.id',
+        institution_id VARCHAR(36) NOT NULL COMMENT '机构用户ID，引用 weland.users.id',
+        bound_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '绑定时间',
+        INDEX idx_student_id (student_id),
+        INDEX idx_institution_id (institution_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生机构绑定表'
+    `);
+
     console.log('数据库表初始化完成');
 
     // 插入示例题目（如果表为空）

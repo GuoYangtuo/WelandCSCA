@@ -6,6 +6,7 @@ interface User {
   username: string;
   email: string;
   userType?: 'student' | 'institution';
+  institutionId?: string | null; // 学生绑定的机构ID
 }
 
 interface AuthContextType {

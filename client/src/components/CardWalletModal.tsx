@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, CreditCard, ShoppingCart, Package, Check, Minus, Plus, ArrowLeft, AlertCircle, Copy, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, CreditCard, ShoppingCart, Package, Check, Minus, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { ordersAPI } from '../services/api';
 import './CardWalletModal.css';
 
@@ -44,8 +45,12 @@ type ViewMode = 'wallet' | 'purchase' | 'checkout' | 'payment';
 
 const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'wallet' | 'purchase'>('wallet');
   const [viewMode, setViewMode] = useState<ViewMode>('wallet');
+  
+  // 判断学生是否绑定了机构，决定价格方案
+  const hasInstitution = !!user?.institutionId;
   
   // 用户卡片数据
   const [userCards, setUserCards] = useState<Record<CardType, number>>({
@@ -64,7 +69,9 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderCode, setOrderCode] = useState('');
   const [orderCreating, setOrderCreating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [pendingOrderData, setPendingOrderData] = useState<{items: any[], total: number} | null>(null);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
   const features = [
     t.cardWallet?.features?.aiTest || 'AI Agent根据学生薄弱点从题库针对性抽题组卷',
@@ -76,13 +83,18 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
     t.cardWallet?.features?.tenLanguagesSupport || 'AI Agent问答支持10种语言，包括汉语，英语，法语，德语，西班牙语，葡萄牙语，意大利语，俄语，日语，韩语',
   ];
 
+  // 根据是否绑定机构确定单卡价格和组合价格
+  const singleCardPrice = hasInstitution ? 29.9 : 39.9;
+  const comboPrice = hasInstitution ? 99.9 : 129.9;
+  const comboOriginalPrice = hasInstitution ? 119.6 : 159.6; // 4张卡原价
+
   // 卡片数据
-  const cards: Card[] = [
+  const cards: Card[] = useMemo(() => [
     {
       id: 1,
       code: 'wenke_chinese',
       name: t.cardWallet?.cards?.artsChinese || '文科中文测试卡',
-      price: 39.9,
+      price: singleCardPrice,
       description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
       features: features,
     },
@@ -90,7 +102,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
       id: 2,
       code: 'like_chinese',
       name: t.cardWallet?.cards?.scienceChinese || '理科中文测试卡',
-      price: 39.9,
+      price: singleCardPrice,
       description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
       features: features,
     },
@@ -98,7 +110,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
       id: 3,
       code: 'math',
       name: t.cardWallet?.cards?.math || '数学测试卡',
-      price: 39.9,
+      price: singleCardPrice,
       description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
       features: features,
     },
@@ -106,7 +118,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
       id: 4,
       code: 'physics',
       name: t.cardWallet?.cards?.physics || '物理测试卡',
-      price: 39.9,
+      price: singleCardPrice,
       description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
       features: features,
     },
@@ -114,23 +126,23 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
       id: 5,
       code: 'chemistry',
       name: t.cardWallet?.cards?.chemistry || '化学测试卡',
-      price: 39.9,
+      price: singleCardPrice,
       description: t.cardWallet?.cardDescription || '每张卡可提供如下功能 x 1 次',
       features: features,
     },
-  ];
+  ], [t, features, singleCardPrice]);
 
   // 组合卡包
-  const comboPackages: ComboPackage[] = [
+  const comboPackages: ComboPackage[] = useMemo(() => [
     {
       id: 'full_package',
       name: t.cardWallet?.combos?.fullPackage || '四科全能套餐',
       cards: ['wenke_chinese', 'like_chinese', 'math', 'physics', 'chemistry'],
-      originalPrice: 159.6,
-      price: 129.9,
-      discount: '18%',
+      originalPrice: comboOriginalPrice,
+      price: comboPrice,
+      discount: hasInstitution ? '16%' : '18%',
     },
-  ];
+  ], [t, comboOriginalPrice, comboPrice, hasInstitution]);
 
   // 加载用户卡片数据
   useEffect(() => {
@@ -215,9 +227,57 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
     }));
   };
 
-  // 计算总价
+  // 计算四科组合数量（数学+物理+化学+一科中文）
+  const calculateComboCount = () => {
+    const mathQty = cartItems.find(item => item.code === 'math')?.quantity || 0;
+    const physicsQty = cartItems.find(item => item.code === 'physics')?.quantity || 0;
+    const chemistryQty = cartItems.find(item => item.code === 'chemistry')?.quantity || 0;
+    const chineseQty = (cartItems.find(item => item.code === 'wenke_chinese')?.quantity || 0) +
+                       (cartItems.find(item => item.code === 'like_chinese')?.quantity || 0);
+    
+    // 组合数量 = min(数学, 物理, 化学, 中文总数)
+    return Math.min(mathQty, physicsQty, chemistryQty, chineseQty);
+  };
+
+  // 计算折扣后的总价
+  const calculateDiscountedTotal = () => {
+    const comboCount = calculateComboCount();
+    const originalTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    
+    if (comboCount > 0) {
+      // 每个组合4张卡的原价（使用动态价格）
+      const comboOriginalPriceCalc = singleCardPrice * 4;
+      const comboDiscountPriceCalc = comboPrice;
+      const discount = (comboOriginalPriceCalc - comboDiscountPriceCalc) * comboCount;
+      return originalTotal - discount;
+    }
+    
+    return originalTotal;
+  };
+
+  // 获取折扣计算说明
+  const getDiscountDescription = () => {
+    const comboCount = calculateComboCount();
+    if (comboCount === 0) return null;
+    
+    const originalTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const discountedTotal = calculateDiscountedTotal();
+    const savedAmount = originalTotal - discountedTotal;
+    
+    return {
+      comboCount,
+      originalTotal,
+      discountedTotal,
+      savedAmount,
+      description: t.cardWallet?.discountCalc?.replace('{count}', String(comboCount))
+                   ?.replace('{saved}', savedAmount.toFixed(2))
+                   || `检测到${comboCount}组"数理化+中文"四科组合，每组享受129.9元优惠价，共省¥${savedAmount.toFixed(2)}`
+    };
+  };
+
+  // 计算总价（兼容旧代码）
   const calculateTotal = () => {
-    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return calculateDiscountedTotal();
   };
 
   // 获取有效购物车项（数量大于0的）
@@ -225,7 +285,17 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
     return cartItems.filter(item => item.quantity > 0);
   };
 
-  // 创建订单并显示付款弹窗
+  // 生成临时订单码（6位大写字母+数字）
+  const generateTempOrderCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return code;
+  };
+
+  // 显示付款弹窗（不入库）
   const handlePayment = async () => {
     const validItems = getValidCartItems();
     if (validItems.length === 0) return;
@@ -239,30 +309,54 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
         card_name: item.name,
       }));
       
-      const response = await ordersAPI.createOrder(orderItems, calculateTotal());
-      
-      if (response.success) {
-        setOrderCode(response.data.order_code);
-        setShowPaymentModal(true);
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.message || '创建订单失败，请重试');
+      // 生成临时订单码，保存待确认的订单数据
+      const tempCode = generateTempOrderCode();
+      setOrderCode(tempCode);
+      setPendingOrderData({
+        items: orderItems,
+        total: calculateTotal()
+      });
+      setPaymentConfirmed(false);
+      setShowPaymentModal(true);
     } finally {
       setOrderCreating(false);
     }
   };
 
-  // 复制订单码
-  const handleCopyOrderCode = () => {
-    navigator.clipboard.writeText(orderCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // 确认付款后才创建订单入库
+  const handleConfirmPayment = async () => {
+    if (!pendingOrderData) return;
+
+    setConfirmingPayment(true);
+    try {
+      const response = await ordersAPI.createOrder(
+        pendingOrderData.items, 
+        pendingOrderData.total,
+        orderCode // 传递已生成的订单码
+      );
+      
+      if (response.success) {
+        // 如果后端返回了新的订单码，更新显示
+        if (response.data.order_code && response.data.order_code !== orderCode) {
+          setOrderCode(response.data.order_code);
+        }
+        setPaymentConfirmed(true);
+        // 显示到账提醒
+        alert(t.cardWallet?.paymentSuccessHint || '订单已提交！您所购买的商品将在1天内到账，请耐心等待。');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || '订单提交失败，请重试');
+    } finally {
+      setConfirmingPayment(false);
+    }
   };
 
   // 关闭付款弹窗
   const handleClosePaymentModal = () => {
     setShowPaymentModal(false);
     setOrderCode('');
+    setPendingOrderData(null);
+    setPaymentConfirmed(false);
     setCartItems([]);
     setViewMode('wallet');
     setActiveTab('wallet');
@@ -480,7 +574,20 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
               </div>
 
               <div className="checkout-footer">
+                {/* 折扣计算说明 */}
+                {getDiscountDescription() && (
+                  <div className="discount-description">
+                    <span className="discount-text">
+                      {getDiscountDescription()?.description}
+                    </span>
+                  </div>
+                )}
                 <div className="checkout-total">
+                  {getDiscountDescription() && (
+                    <span className="original-total">
+                      <del>¥{getDiscountDescription()?.originalTotal.toFixed(2)}</del>
+                    </span>
+                  )}
                   <span className="total-label">{t.cardWallet?.total || '总计'}:</span>
                   <span className="total-amount">¥{calculateTotal().toFixed(2)}</span>
                 </div>
@@ -513,17 +620,6 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
               </div>
 
               <div className="payment-modal-body">
-                <div className="order-code-section">
-                  <div className="order-code-label">{t.cardWallet?.orderCode || '订单码'}</div>
-                  <div className="order-code-value">
-                    <span className="order-code">{orderCode}</span>
-                    <button className="copy-btn" onClick={handleCopyOrderCode}>
-                      {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
-                      {copied ? (t.cardWallet?.copied || '已复制') : (t.cardWallet?.copy || '复制')}
-                    </button>
-                  </div>
-                </div>
-
                 <div className="payment-amount">
                   <span className="amount-label">{t.cardWallet?.payAmount || '付款金额'}:</span>
                   <span className="amount-value">¥{calculateTotal().toFixed(2)}</span>
@@ -546,7 +642,7 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
                       <strong>{orderCode}</strong>
                     </p>
                     <p className="warning-sub">
-                      {t.cardWallet?.paymentNoteSub || '我们会在收到付款后尽快为您发放卡片'}
+                      {t.cardWallet?.paymentNoteSub || '您将在一天之内收到订购的卡片'}
                     </p>
                   </div>
                 </div>
@@ -568,9 +664,21 @@ const CardWalletModal: React.FC<CardWalletModalProps> = ({ onClose }) => {
               </div>
 
               <div className="payment-modal-footer">
-                <button className="done-btn" onClick={handleClosePaymentModal}>
-                  {t.cardWallet?.paymentDone || '我已完成付款'}
-                </button>
+                {!paymentConfirmed ? (
+                  <button 
+                    className="done-btn" 
+                    onClick={handleConfirmPayment}
+                    disabled={confirmingPayment}
+                  >
+                    {confirmingPayment 
+                      ? (t.cardWallet?.submitting || '提交中...')
+                      : (t.cardWallet?.paymentDone || '我已完成付款')}
+                  </button>
+                ) : (
+                  <button className="done-btn confirmed" onClick={handleClosePaymentModal}>
+                    {t.cardWallet?.close || '关闭'}
+                  </button>
+                )}
               </div>
             </div>
           </div>

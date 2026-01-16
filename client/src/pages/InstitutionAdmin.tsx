@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
+import api, { institutionAPI } from '../services/api';
 import {
   Building2,
   Users,
@@ -16,7 +16,11 @@ import {
   Clock,
   TrendingUp,
   UserPlus,
-  Calendar
+  Calendar,
+  DollarSign,
+  CreditCard,
+  ShoppingCart,
+  Package
 } from 'lucide-react';
 import './InstitutionAdmin.css';
 
@@ -40,6 +44,44 @@ interface Pagination {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+interface OrderItem {
+  card_type_id: number;
+  quantity: number;
+  price: number;
+  card_name: string;
+}
+
+interface StudentOrder {
+  order_id: number;
+  order_code: string;
+  order_items: OrderItem[];
+  total_price: number;
+  status: string;
+  order_created_at: string;
+  approved_at: string;
+  student_id: string;
+  student_username: string;
+  student_email: string;
+}
+
+interface CommissionData {
+  quarterInfo: {
+    year: number;
+    quarter: number;
+    startDate: string;
+    endDate: string;
+  };
+  quarterStats: {
+    totalCards: number;
+    commissionPerCard: number;
+    totalCommission: number;
+  };
+  allTimeStats: {
+    totalCards: number;
+    totalCommission: number;
+  };
 }
 
 const InstitutionAdmin: React.FC = () => {
@@ -71,6 +113,18 @@ const InstitutionAdmin: React.FC = () => {
     total: 0,
     totalPages: 1
   });
+
+  // 学生购买记录
+  const [studentOrders, setStudentOrders] = useState<StudentOrder[]>([]);
+  const [ordersPagination, setOrdersPagination] = useState<Pagination>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1
+  });
+
+  // 佣金统计
+  const [commission, setCommission] = useState<CommissionData | null>(null);
 
   // 检查机构用户身份
   useEffect(() => {
@@ -139,14 +193,41 @@ const InstitutionAdmin: React.FC = () => {
     }
   }, [studentSearch, pagination.limit]);
 
+  // 加载学生购买记录
+  const loadStudentOrders = useCallback(async (page = 1) => {
+    try {
+      const response = await institutionAPI.getStudentOrders({ page, limit: ordersPagination.limit });
+      if (response.success) {
+        setStudentOrders(response.data.orders);
+        setOrdersPagination(response.data.pagination);
+      }
+    } catch (error) {
+      console.error('加载学生购买记录失败:', error);
+    }
+  }, [ordersPagination.limit]);
+
+  // 加载佣金统计
+  const loadCommission = useCallback(async () => {
+    try {
+      const response = await institutionAPI.getCommission();
+      if (response.success) {
+        setCommission(response.data);
+      }
+    } catch (error) {
+      console.error('加载佣金统计失败:', error);
+    }
+  }, []);
+
   // 初始化加载数据
   useEffect(() => {
     if (isInstitution) {
       loadInstitutionCode();
       loadStats();
       loadStudents();
+      loadStudentOrders();
+      loadCommission();
     }
-  }, [isInstitution, loadInstitutionCode, loadStats, loadStudents]);
+  }, [isInstitution, loadInstitutionCode, loadStats, loadStudents, loadStudentOrders, loadCommission]);
 
   // 更新倒计时
   useEffect(() => {
@@ -289,6 +370,135 @@ const InstitutionAdmin: React.FC = () => {
               </button>
             </div>
           </div>
+        </section>
+
+        {/* 佣金统计卡片 */}
+        {commission && (
+          <section className="commission-section">
+            <div className="commission-card">
+              <div className="commission-main">
+                <div className="commission-icon">
+                  <DollarSign size={28} />
+                </div>
+                <div className="commission-info">
+                  <h3>本季度预计佣金</h3>
+                  <p className="commission-quarter">
+                    {commission.quarterInfo.year}年 Q{commission.quarterInfo.quarter}
+                  </p>
+                </div>
+                <div className="commission-amount">
+                  <span className="currency">¥</span>
+                  <span className="value">{commission.quarterStats.totalCommission.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="commission-details">
+                <div className="commission-detail-item">
+                  <CreditCard size={16} />
+                  <span>本季度成交卡数</span>
+                  <strong>{commission.quarterStats.totalCards} 张</strong>
+                </div>
+                <div className="commission-detail-item">
+                  <Package size={16} />
+                  <span>单卡返佣</span>
+                  <strong>¥{commission.quarterStats.commissionPerCard}</strong>
+                </div>
+                <div className="commission-detail-item total">
+                  <TrendingUp size={16} />
+                  <span>累计总佣金</span>
+                  <strong>¥{commission.allTimeStats.totalCommission.toFixed(2)}</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 学生购买记录 */}
+        <section className="orders-section">
+          <div className="section-header">
+            <h2>
+              <ShoppingCart size={22} />
+              学生购买记录
+            </h2>
+            <span className="status-badge approved">已审核通过</span>
+          </div>
+
+          {studentOrders.length > 0 ? (
+            <>
+              <div className="data-table-wrapper">
+                <table className="data-table orders-table">
+                  <thead>
+                    <tr>
+                      <th>订单号</th>
+                      <th>学生</th>
+                      <th>购买内容</th>
+                      <th>订单金额</th>
+                      <th>返佣</th>
+                      <th>审核时间</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {studentOrders.map((order) => {
+                      const totalQuantity = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
+                      const commission = totalQuantity * 10;
+                      return (
+                        <tr key={order.order_id}>
+                          <td className="order-code-cell">{order.order_code}</td>
+                          <td>
+                            <div className="student-info">
+                              <span className="student-name">{order.student_username}</span>
+                              <span className="student-email">{order.student_email}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="order-items">
+                              {order.order_items.map((item, idx) => (
+                                <span key={idx} className="order-item-tag">
+                                  {item.card_name} ×{item.quantity}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="price-cell">¥{Number(order.total_price).toFixed(2)}</td>
+                          <td className="commission-cell">+¥{commission.toFixed(2)}</td>
+                          <td>
+                            <div className="date-cell">
+                              <Calendar size={14} />
+                              {new Date(order.approved_at).toLocaleDateString('zh-CN')}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pagination">
+                <span>共 {ordersPagination.total} 条记录</span>
+                <div className="pagination-btns">
+                  <button
+                    disabled={ordersPagination.page <= 1}
+                    onClick={() => loadStudentOrders(ordersPagination.page - 1)}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <span>{ordersPagination.page} / {ordersPagination.totalPages}</span>
+                  <button
+                    disabled={ordersPagination.page >= ordersPagination.totalPages}
+                    onClick={() => loadStudentOrders(ordersPagination.page + 1)}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state">
+              <ShoppingCart size={48} />
+              <p>暂无学生购买记录</p>
+              <p className="hint">学生购买卡片并审核通过后将显示在这里</p>
+            </div>
+          )}
         </section>
 
         {/* 学生列表 */}

@@ -193,6 +193,18 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ message: '用户名或密码错误' });
     }
 
+    // 检查学生是否绑定了机构
+    let institutionId: string | null = null;
+    if (user.user_type === 'student') {
+      const [bindings] = await cscaPool.query(
+        'SELECT institution_id FROM student_institution_bindings WHERE student_id = ?',
+        [user.id]
+      );
+      if ((bindings as any[]).length > 0) {
+        institutionId = (bindings as any[])[0].institution_id;
+      }
+    }
+
     // 生成JWT令牌
     const token = jwt.sign(
       { userId: user.id, username: user.username, email: user.email },
@@ -206,7 +218,9 @@ router.post('/login', async (req: Request, res: Response) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        userType: user.user_type,
+        institutionId: institutionId
       }
     });
   } catch (error) {

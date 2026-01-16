@@ -319,6 +319,40 @@ export const adminAPI = {
 };
 
 // 订单相关API（用户端）
+// 机构管理API
+export const institutionAPI = {
+  // 检查是否为机构用户
+  check: async () => {
+    const response = await api.get('/institution/check');
+    return response.data;
+  },
+  // 获取机构码
+  getCode: async () => {
+    const response = await api.get('/institution/code');
+    return response.data;
+  },
+  // 获取统计数据
+  getStats: async () => {
+    const response = await api.get('/institution/stats');
+    return response.data;
+  },
+  // 获取学生列表
+  getStudents: async (params?: { page?: number; limit?: number; search?: string }) => {
+    const response = await api.get('/institution/students', { params });
+    return response.data;
+  },
+  // 获取学生购买记录（只显示approved状态）
+  getStudentOrders: async (params?: { page?: number; limit?: number }) => {
+    const response = await api.get('/institution/student-orders', { params });
+    return response.data;
+  },
+  // 获取佣金统计
+  getCommission: async () => {
+    const response = await api.get('/institution/commission');
+    return response.data;
+  }
+};
+
 export const ordersAPI = {
   // 获取卡片类型
   getCardTypes: async () => {
@@ -330,9 +364,9 @@ export const ordersAPI = {
     const response = await api.get('/orders/my-cards');
     return response.data;
   },
-  // 创建订单
-  createOrder: async (items: { card_type_id: number; quantity: number; price: number; card_name: string }[], total_price: number) => {
-    const response = await api.post('/orders/create', { items, total_price });
+  // 创建订单（确认付款后入库）
+  createOrder: async (items: { card_type_id: number; quantity: number; price: number; card_name: string }[], total_price: number, order_code?: string) => {
+    const response = await api.post('/orders/create', { items, total_price, order_code });
     return response.data;
   },
   // 获取我的订单

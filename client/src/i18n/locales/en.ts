@@ -647,6 +647,10 @@ export const en = {
     step2: 'Scan the QR code above',
     step3: 'Include order code in payment note',
     paymentDone: 'Payment Completed',
+    submitting: 'Submitting...',
+    close: 'Close',
+    paymentSuccessHint: 'Order submitted! Your purchased items will arrive within 1 day, please wait patiently.',
+    discountCalc: 'Detected {count} "Math+Physics+Chemistry+Chinese" combo(s), each at ¥129.9, saving ¥{saved} total',
   },
 };
 

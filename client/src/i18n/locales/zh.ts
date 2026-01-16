@@ -656,11 +656,15 @@ export const zh = {
     payAmount: '付款金额',
     importantNotice: '重要提示',
     paymentNote: '付款时请务必在备注中填写订单码：',
-    paymentNoteSub: '我们会在收到付款后尽快为您发放卡片',
+    paymentNoteSub: '您将会在一天内收到订购的卡片',
     step1: '打开支付宝扫一扫',
     step2: '扫描上方二维码',
     step3: '付款时备注订单码',
     paymentDone: '我已完成付款',
+    submitting: '提交中...',
+    close: '关闭',
+    paymentSuccessHint: '订单已提交！您所购买的商品将在1天内到账，请耐心等待。',
+    discountCalc: '检测到{count}组"数理化+中文"四科组合，每组享受129.9元优惠价，共省¥{saved}',
   },
 };
 

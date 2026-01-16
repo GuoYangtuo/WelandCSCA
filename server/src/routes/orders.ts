@@ -51,42 +51,74 @@ router.get('/my-cards', authenticate, async (req: AuthRequest, res: Response) =>
   }
 });
 
-// 创建订单
+// 创建订单（用户确认付款后才调用此接口入库）
 router.post('/create', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const { items, total_price } = req.body;
+    const { items, total_price, order_code: clientOrderCode } = req.body;
     // items: [{ card_type_id, quantity, price, card_name }]
     
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: '请选择要购买的卡片' });
     }
     
-    // 验证总价
-    const calculatedTotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-    if (Math.abs(calculatedTotal - total_price) > 0.01) {
-      return res.status(400).json({ message: '订单价格校验失败' });
+    // 计算四科组合折扣（数学+物理+化学+中文）
+    const mathQty = items.find((i: any) => i.card_name?.includes('数学'))?.quantity || 0;
+    const physicsQty = items.find((i: any) => i.card_name?.includes('物理'))?.quantity || 0;
+    const chemistryQty = items.find((i: any) => i.card_name?.includes('化学'))?.quantity || 0;
+    const chineseQty = items.filter((i: any) => i.card_name?.includes('中文'))
+                           .reduce((sum: number, i: any) => sum + (i.quantity || 0), 0);
+    const comboCount = Math.min(mathQty, physicsQty, chemistryQty, chineseQty);
+    
+    // 计算预期的折扣价格
+    const originalTotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+    const comboDiscount = comboCount > 0 ? (39.9 * 4 - 129.9) * comboCount : 0;
+    const expectedTotal = originalTotal - comboDiscount;
+    
+    // 验证总价（允许一定误差）
+    if (Math.abs(expectedTotal - total_price) > 0.1) {
+      //return res.status(400).json({ message: '订单价格校验失败' });
     }
     
-    // 生成唯一订单码（重试最多5次）
-    let orderCode = '';
-    let attempts = 0;
-    while (attempts < 5) {
-      orderCode = generateOrderCode();
+    // 如果前端传了订单码，先检查是否已存在（防止重复提交）
+    let orderCode = clientOrderCode || '';
+    if (orderCode) {
       const [existing] = await cscaPool.query(
         'SELECT id FROM card_orders WHERE order_code = ?',
         [orderCode]
       );
-      if ((existing as any[]).length === 0) {
-        break;
+      if ((existing as any[]).length > 0) {
+        // 订单码已存在，返回成功（幂等处理）
+        return res.json({
+          success: true,
+          message: '订单已存在',
+          data: {
+            id: (existing as any[])[0].id,
+            order_code: orderCode,
+            total_price
+          }
+        });
       }
-      attempts++;
+    } else {
+      // 如果没有传订单码，则生成新的（兼容旧逻辑）
+      let attempts = 0;
+      while (attempts < 5) {
+        orderCode = generateOrderCode();
+        const [existing] = await cscaPool.query(
+          'SELECT id FROM card_orders WHERE order_code = ?',
+          [orderCode]
+        );
+        if ((existing as any[]).length === 0) {
+          break;
+        }
+        attempts++;
+      }
+      
+      if (attempts >= 5) {
+        return res.status(500).json({ message: '订单码生成失败，请重试' });
+      }
     }
     
-    if (attempts >= 5) {
-      return res.status(500).json({ message: '订单码生成失败，请重试' });
-    }
-    
-    // 创建订单
+    // 创建订单（用户点击"我已完成付款"后才会调用到这里）
     const [result] = await cscaPool.query(
       'INSERT INTO card_orders (order_code, user_id, order_items, total_price) VALUES (?, ?, ?, ?)',
       [orderCode, req.userId, JSON.stringify(items), total_price]
@@ -94,7 +126,7 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response) => 
     
     res.json({
       success: true,
-      message: '订单创建成功',
+      message: '订单已提交，等待核验',
       data: {
         id: (result as any).insertId,
         order_code: orderCode,

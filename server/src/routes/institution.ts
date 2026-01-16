@@ -280,6 +280,188 @@ router.get('/check', authenticate, async (req: AuthRequest, res: Response) => {
 });
 
 /**
+ * 获取机构绑定学生的已审核购买记录
+ * GET /api/institution/student-orders
+ */
+router.get('/student-orders', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    // 检查是否为机构用户
+    const isInstitution = await checkIsInstitution(userId);
+    if (!isInstitution) {
+      return res.status(403).json({ message: '只有机构用户可以访问此接口' });
+    }
+
+    // 分页参数
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
+
+    // 获取该机构绑定的学生的已审核购买记录
+    const query = `
+      SELECT 
+        co.id as order_id,
+        co.order_code,
+        co.order_items,
+        co.total_price,
+        co.status,
+        co.created_at as order_created_at,
+        co.approved_at,
+        u.id as student_id,
+        u.username as student_username,
+        u.email as student_email
+      FROM card_orders co
+      INNER JOIN student_institution_bindings sib ON co.user_id = sib.student_id
+      INNER JOIN weland.users u ON co.user_id = u.id
+      WHERE sib.institution_id = ? AND co.status = 'approved'
+      ORDER BY co.approved_at DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM card_orders co
+      INNER JOIN student_institution_bindings sib ON co.user_id = sib.student_id
+      WHERE sib.institution_id = ? AND co.status = 'approved'
+    `;
+
+    const [orders] = await cscaPool.query(query, [userId, limit, offset]);
+    const [countResult] = await cscaPool.query(countQuery, [userId]);
+    const total = (countResult as any[])[0].total;
+
+    // 解析 order_items JSON
+    const parsedOrders = (orders as any[]).map(order => ({
+      ...order,
+      order_items: typeof order.order_items === 'string' ? JSON.parse(order.order_items) : order.order_items
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        orders: parsedOrders,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取学生购买记录错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+/**
+ * 获取本季度佣金统计
+ * GET /api/institution/commission
+ * 每张卡返佣10元，只计算approved的订单
+ */
+router.get('/commission', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    // 检查是否为机构用户
+    const isInstitution = await checkIsInstitution(userId);
+    if (!isInstitution) {
+      return res.status(403).json({ message: '只有机构用户可以访问此接口' });
+    }
+
+    // 计算当前季度的开始和结束日期
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    // 季度: Q1(1-3月), Q2(4-6月), Q3(7-9月), Q4(10-12月)
+    const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
+    const quarterStart = new Date(currentYear, quarterStartMonth, 1);
+    const quarterEnd = new Date(currentYear, quarterStartMonth + 3, 0, 23, 59, 59, 999);
+
+    // 获取本季度绑定学生的已审核订单
+    const [orders] = await cscaPool.query(`
+      SELECT co.order_items
+      FROM card_orders co
+      INNER JOIN student_institution_bindings sib ON co.user_id = sib.student_id
+      WHERE sib.institution_id = ? 
+        AND co.status = 'approved'
+        AND co.approved_at >= ?
+        AND co.approved_at <= ?
+    `, [userId, quarterStart, quarterEnd]);
+
+    // 计算总卡数
+    let totalCards = 0;
+    (orders as any[]).forEach(order => {
+      const items = typeof order.order_items === 'string' 
+        ? JSON.parse(order.order_items) 
+        : order.order_items;
+      items.forEach((item: any) => {
+        totalCards += item.quantity || 1;
+      });
+    });
+
+    // 每张卡返佣10元
+    const commissionPerCard = 10;
+    const totalCommission = totalCards * commissionPerCard;
+
+    // 获取历史总佣金（所有时间）
+    const [allOrders] = await cscaPool.query(`
+      SELECT co.order_items
+      FROM card_orders co
+      INNER JOIN student_institution_bindings sib ON co.user_id = sib.student_id
+      WHERE sib.institution_id = ? AND co.status = 'approved'
+    `, [userId]);
+
+    let allTimeCards = 0;
+    (allOrders as any[]).forEach(order => {
+      const items = typeof order.order_items === 'string' 
+        ? JSON.parse(order.order_items) 
+        : order.order_items;
+      items.forEach((item: any) => {
+        allTimeCards += item.quantity || 1;
+      });
+    });
+    const allTimeCommission = allTimeCards * commissionPerCard;
+
+    // 获取季度信息
+    const quarter = Math.floor(currentMonth / 3) + 1;
+
+    res.json({
+      success: true,
+      data: {
+        quarterInfo: {
+          year: currentYear,
+          quarter: quarter,
+          startDate: quarterStart.toISOString(),
+          endDate: quarterEnd.toISOString()
+        },
+        quarterStats: {
+          totalCards: totalCards,
+          commissionPerCard: commissionPerCard,
+          totalCommission: totalCommission
+        },
+        allTimeStats: {
+          totalCards: allTimeCards,
+          totalCommission: allTimeCommission
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取佣金统计错误:', error);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
+/**
  * 通过机构码验证并返回机构信息（供注册时使用）
  * POST /api/institution/verify-code
  */

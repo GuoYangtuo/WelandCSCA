@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import CardWalletModal from '../components/CardWalletModal';
 import {
   Check,
   Sparkles,

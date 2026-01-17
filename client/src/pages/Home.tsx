@@ -125,13 +125,6 @@ const Home: React.FC = () => {
     }
   ];
 
-  const stats = [
-    { value: '307+', label: t.home.stats.universities },
-    { value: '4', label: t.home.stats.subjects },
-    { value: '5', label: t.home.stats.sessions },
-    { value: '2年', label: t.home.stats.validity }
-  ];
-
   return (
     <div className="home">
       {/* Hero Section */}

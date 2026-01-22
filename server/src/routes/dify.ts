@@ -360,7 +360,7 @@ async function callDashscopeWithRetry(
       const parsedResult = extractJsonFromResponse(responseData);
 
       return {
-        questions: parsedResult,
+        questions: parsedResult['questions'],
         metadata: {
           model: responseData.model,
           usage: responseData.usage,

@@ -111,7 +111,15 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
             <label>选项 * <span className="label-hint">（支持LaTeX）</span></label>
           </div>
           {isEditingOptions ? (
-            <div className="options-grid">
+            <div 
+              className="options-grid"
+              onBlur={(e) => {
+                // 只有当焦点离开整个选项组时才关闭编辑模式
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setIsEditingOptions(false);
+                }
+              }}
+            >
               {question.options.map((option, oIndex) => (
                 <div key={oIndex} className="option-input-wrapper">
                   <span className="option-label">
@@ -123,7 +131,6 @@ const QuestionFormCard: React.FC<QuestionFormCardProps> = ({
                     placeholder={`选项 ${String.fromCharCode(65 + oIndex)}`}
                     value={option}
                     onChange={(e) => onUpdateOption(index, oIndex, e.target.value)}
-                    onBlur={() => setIsEditingOptions(false)}
                     autoFocus={oIndex === 0}
                   />
                   <button

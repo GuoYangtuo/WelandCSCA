@@ -209,12 +209,16 @@ export const difyAPI = {
   },
   // 解析题目（只返回题目和选项）
   parseQuestions: async (imageUrls: string[]) => {
-    const response = await api.post('/dify/parse-questions', { imageUrls });
+    const response = await api.post('/dify/parse-questions', { imageUrls }, {
+      timeout: 300000 // 图像识别可能需要较长时间，设置5分钟超时
+    });
     return response.data;
   },
   // 使用DeepSeek解析单个题目的详细信息
   analyzeQuestion: async (question: { question_text: string; options: string[]; correct_answer?: number; explanation?: string }, category?: string) => {
-    const response = await api.post('/dify/analyze-question', { question, category });
+    const response = await api.post('/dify/analyze-question', { question, category }, {
+      timeout: 120000 // AI分析可能需要较长时间，设置2分钟超时
+    });
     return response.data;
   },
   // 清理上传的图片
